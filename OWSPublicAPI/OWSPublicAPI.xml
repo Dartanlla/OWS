@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>OWSPublicAPI</name>
+    </assembly>
+    <members>
+        <member name="M:TestCore2.Controllers.UsersController.CreateCharacter(OWSPublicAPI.Requests.Users.CreateCharacterRequest)">
+            <summary>
+            Creates a new Character.
+            </summary>
+            <remarks>
+            Create a new Character and attach it to the User referenced by the UserSessionGUID. ClassName is the name of the Class you setup in the management console (from the Characters tab). 
+            Classes are meant to be default values for creating characters. The purpose is to ensure that players are not able to hack their starting stats. This is needed because Characters are created from and unsecure UE4 client
+            that has not connected to a UE4 server yet.
+            </remarks>
+        </member>
+        <member name="M:TestCore2.Controllers.UsersController.GetPlayerGroupsCharacterIsIn(OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest)">
+            <summary>
+            Gets a list of Player Groups that a Character is in.
+            </summary>
+        </member>
+        <member name="M:TestCore2.Controllers.UsersController.GetServerToConnectTo(OWSPublicAPI.Requests.Users.GetServerToConnectToRequest)">
+            <summary>
+            Gets the server to connect to for a specific character or zonename.
+            </summary>
+            <remarks>
+            Get the Zone Server to travel to based on the User referenced by the UserSessionGUID. Send in an empty ZoneName or ZoneName set to "GETLASTZONENAME" to use the last zone the Character was on rather than specifying a ZoneName.
+            </remarks>
+        </member>
+        <member name="M:TestCore2.Controllers.UsersController.GetUserSession(OWSPublicAPI.Requests.Users.GetUserSessionRequest)">
+            <summary>
+            Gets the User Session from a UserSessionGUID.
+            </summary>
+        </member>
+        <member name="M:TestCore2.Controllers.UsersController.LoginAndCreateSession(OWSPublicAPI.Requests.Users.LoginAndCreateSessionRequest)">
+            <summary>
+            Login and create a User Session.
+            </summary>
+        </member>
+        <member name="M:TestCore2.Controllers.UsersController.ExternalLoginAndCreateSession(OWSPublicAPI.Requests.Users.ExternalLoginAndCreateSessionRequest)">
+            <summary>
+            Login and create a User Session using an External Login Provider (such as Xsolla).
+            </summary>
+        </member>
+        <member name="M:TestCore2.Controllers.UsersController.UserSessionSetSelectedCharacter(OWSPublicAPI.Requests.Users.UserSessionSetSelectedCharacterRequest)">
+            <summary>
+            Set the Character that has been selected to play for a User Session.
+            </summary>
+        </member>
+        <member name="M:TestCore2.Controllers.UsersController.SetSelectedCharacterAndGetUserSession(OWSPublicAPI.Requests.Users.SetSelectedCharacterAndGetUserSessionRequest)">
+            <summary>
+            Set the Character that has been selected to play for a User Session and Get the User Session all in one call.
+            </summary>
+        </member>
+        <member name="M:TestCore2.Controllers.UsersController.RegisterUser(OWSPublicAPI.Requests.Users.RegisterUserRequest)">
+            <summary>
+            Create a new User account.
+            </summary>
+        </member>
+    </members>
+</doc>
