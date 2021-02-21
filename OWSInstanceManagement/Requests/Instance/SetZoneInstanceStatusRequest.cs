@@ -2,6 +2,7 @@
 using OWSData.Models.Composites;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
+using OWSShared.RequestPayloads;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +12,12 @@ namespace OWSInstanceManagement.Requests.Instance
 {
     public class SetZoneInstanceStatusRequest : IRequestHandler<SetZoneInstanceStatusRequest, IActionResult>, IRequest
     {
+        /*
         public int MapInstanceID { get; set; }
         public int InstanceStatus { get; set; }
+        */
+
+        public SetZoneInstanceStatusRequestPayload request { get; set; }
 
         private IInstanceManagementRepository _instanceManagementRepository;
         private SuccessAndErrorMessage _output;
@@ -26,7 +31,7 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            await _instanceManagementRepository.SetZoneInstanceStatus(_customerGUID, MapInstanceID, InstanceStatus);
+            await _instanceManagementRepository.SetZoneInstanceStatus(_customerGUID, request.MapInstanceID, request.InstanceStatus);
 
             _output = new SuccessAndErrorMessage()
             {

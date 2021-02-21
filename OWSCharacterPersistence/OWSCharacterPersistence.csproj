@@ -5,7 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Requests\Abilities\" />
     <Folder Include="Requests\Stats\" />
   </ItemGroup>
 

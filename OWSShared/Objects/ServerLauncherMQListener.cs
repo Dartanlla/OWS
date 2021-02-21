@@ -147,14 +147,17 @@ namespace OWSShared.Objects
             instanceManagementHttpClient.DefaultRequestHeaders.Add("Accept", "application/json");
             instanceManagementHttpClient.DefaultRequestHeaders.Add("X-CustomerGUID", customerGUID.ToString());
 
-            SetZoneInstanceStatusRequestPayload setZoneInstanceStatusRequestPayload = new SetZoneInstanceStatusRequestPayload { 
-                MapInstanceID = mapInstanceID,
-                InstanceStatus = 2 //Ready
+            var setZoneInstanceStatusRequestPayload = new { 
+                request = new SetZoneInstanceStatusRequestPayload
+                {
+                    MapInstanceID = mapInstanceID,
+                    InstanceStatus = 2 //Ready
+                }
             };
 
-            var setZoneInstanceStatusPayload = new StringContent(JsonConvert.SerializeObject(setZoneInstanceStatusRequestPayload), Encoding.UTF8, "application/json");
+            var setZoneInstanceStatusRequest = new StringContent(JsonConvert.SerializeObject(setZoneInstanceStatusRequestPayload), Encoding.UTF8, "application/json");
 
-            var responseMessage = await instanceManagementHttpClient.PostAsync("api/Instance/SetZoneInstanceStatus", setZoneInstanceStatusPayload);
+            var responseMessage = await instanceManagementHttpClient.PostAsync("api/Instance/SetZoneInstanceStatus", setZoneInstanceStatusRequest);
 
             return;
         }
