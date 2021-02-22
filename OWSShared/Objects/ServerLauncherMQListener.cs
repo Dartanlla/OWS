@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using OWSData.Models;
+using OWSData.Repositories.Interfaces;
+using OWSShared.Interfaces;
 using OWSShared.Messages;
 using OWSShared.RequestPayloads;
 using RabbitMQ.Client;
@@ -15,26 +17,28 @@ using System.Threading.Tasks;
 
 namespace OWSShared.Objects
 {
-    public class ServerLauncherMQListener : BackgroundService
+    public class ServerLauncherMQListener : IInstanceLauncherJob //BackgroundService
     {
         private IConnection connection;
-        private IModel channel;
+        private IModel serverSpinUpChannel;
         private Guid queueNameGUID;
         private Guid customerGUID;
-        private readonly IHttpClientFactory _httpClientFactory;
 
         private readonly IOptions<OWSInstanceLauncherOptions> _OWSInstanceLauncherOptions;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IZoneServerProcessesRepository _zoneServerProcessesRepository;
 
         //string _PathToDedicatedServer;
         //string _ServerArguments;
 
-        public ServerLauncherMQListener(IOptions<OWSInstanceLauncherOptions> OWSInstanceLauncherOptions, IHttpClientFactory httpClientFactory)
+        public ServerLauncherMQListener(IOptions<OWSInstanceLauncherOptions> OWSInstanceLauncherOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository)
         {
             //_PathToDedicatedServer = PathToDedicatedServer;
             //_ServerArguments = ServerArguments;
 
             _OWSInstanceLauncherOptions = OWSInstanceLauncherOptions;
             _httpClientFactory = httpClientFactory;
+            _zoneServerProcessesRepository = zoneServerProcessesRepository;
 
             InitRabbitMQ();
         }
@@ -49,24 +53,28 @@ namespace OWSShared.Objects
             // create connection  
             connection = factory.CreateConnection();
 
-            // create channel  
-            channel = connection.CreateModel();
+            // create channel for server spin up  
+            serverSpinUpChannel = connection.CreateModel();
 
             queueNameGUID = Guid.NewGuid();
 
-            channel.ExchangeDeclare(exchange: "ows.serverspinup",
+            serverSpinUpChannel.ExchangeDeclare(exchange: "ows.serverspinup",
                             type: "direct",
                             durable: false,
                             autoDelete: false);
 
-            //_channel.ExchangeDeclare("demo.exchange", ExchangeType.Topic);
-            channel.QueueDeclare(queue: queueNameGUID.ToString(),
+            serverSpinUpChannel.QueueDeclare(queue: queueNameGUID.ToString(),
                                          durable: false,
                                          exclusive: true,
                                          autoDelete: true,
                                          arguments: null);
-            channel.QueueBind(queueNameGUID.ToString(), "ows.serverspinup", "ows.serverspinup.86");
-            channel.BasicQos(0, 1, false);
+            serverSpinUpChannel.QueueBind(queueNameGUID.ToString(), "ows.serverspinup", "ows.serverspinup.86");
+            serverSpinUpChannel.BasicQos(0, 1, false);
+
+
+            //create channel for server shut down
+
+
 
             connection.ConnectionShutdown += RabbitMQ_ConnectionShutdown;
 
@@ -74,11 +82,12 @@ namespace OWSShared.Objects
             Console.WriteLine("Registered OWS Instance Launcher with RabbitMQ ServerSpinUp Queue Success!");
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        //protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        public void DoWork()
         {
-            stoppingToken.ThrowIfCancellationRequested();
+            //stoppingToken.ThrowIfCancellationRequested();
 
-            var consumer = new AsyncEventingBasicConsumer(channel);
+            var consumer = new AsyncEventingBasicConsumer(serverSpinUpChannel);
 
             consumer.Received += (model, ea) =>
             {
@@ -86,11 +95,11 @@ namespace OWSShared.Objects
                 Console.WriteLine("Message Received");
                 var body = ea.Body;
                 MQSpinUpServerMessage serverSpinUpMessage = MQSpinUpServerMessage.Deserialize(body.ToArray());
-                HandleMessage(
+                HandleServerSpinUpMessage(
                     serverSpinUpMessage.CustomerGUID,
-                    serverSpinUpMessage.WorldServerID, 
-                    serverSpinUpMessage.MapInstanceID, 
-                    serverSpinUpMessage.MapName, 
+                    serverSpinUpMessage.WorldServerID,
+                    serverSpinUpMessage.MapInstanceID,
+                    serverSpinUpMessage.MapName,
                     serverSpinUpMessage.Port);
 
                 return Task.CompletedTask;
@@ -101,17 +110,17 @@ namespace OWSShared.Objects
             consumer.Unregistered += OnConsumerUnregistered;
             consumer.ConsumerCancelled += OnConsumerConsumerCancelled;
 
-            channel.BasicConsume(queue: queueNameGUID.ToString(),
+            serverSpinUpChannel.BasicConsume(queue: queueNameGUID.ToString(),
                                          autoAck: true,
                                          consumer: consumer);
 
-            return Task.CompletedTask;
+            //return Task.CompletedTask;
         }
 
-        private void HandleMessage(Guid customerGUID, int worldServerID, int mapInstanceID, string mapName, int port)
+        private void HandleServerSpinUpMessage(Guid customerGUID, int worldServerID, int zoneInstanceID, string mapName, int port)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Startin up {customerGUID} : {worldServerID} : {mapName} : {port}");
+            Console.WriteLine("Starting up {customerGUID} : {worldServerID} : {mapName} : {port}");
 
             this.customerGUID = customerGUID;
 
@@ -133,14 +142,40 @@ namespace OWSShared.Objects
             proc.Start();
             proc.WaitForInputIdle();
 
+            _zoneServerProcessesRepository.AddZoneServerProcess(new ZoneServerProcess {
+                ZoneInstanceId = zoneInstanceID,
+                MapName = mapName,
+                Port = port,
+                ProcessId = proc.Id,
+                ProcessName = proc.ProcessName
+            });
+
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("{customerGUID} : {worldServerID} : {mapName} : {port} is ready for players");
 
             //The server has finished spinning up.  Set the status to 2.
-            _ = UpdateZoneServerStatusReady(mapInstanceID);
+            _ = UpdateZoneServerStatusReady(zoneInstanceID);
         }
 
-        private async Task UpdateZoneServerStatusReady(int mapInstanceID)
+        private void HandleServerShutDownMessage(Guid customerGUID, int zoneInstanceID)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Shutting down {customerGUID} : {zoneInstanceID}");
+
+            int foundProcessId = _zoneServerProcessesRepository.FindZoneServerProcessId(zoneInstanceID);
+
+            if (foundProcessId > 0)
+            {
+                System.Diagnostics.Process procToKill = System.Diagnostics.Process.GetProcessById(foundProcessId);
+
+                if (procToKill != null)
+                {
+                    procToKill.Kill();
+                }
+            }
+        }
+
+        private async Task UpdateZoneServerStatusReady(int zoneInstanceID)
         {
             var instanceManagementHttpClient = _httpClientFactory.CreateClient("OWSInstanceManagement");
 
@@ -150,7 +185,7 @@ namespace OWSShared.Objects
             var setZoneInstanceStatusRequestPayload = new { 
                 request = new SetZoneInstanceStatusRequestPayload
                 {
-                    MapInstanceID = mapInstanceID,
+                    MapInstanceID = zoneInstanceID,
                     InstanceStatus = 2 //Ready
                 }
             };
@@ -168,11 +203,13 @@ namespace OWSShared.Objects
         private Task OnConsumerShutdown(object sender, ShutdownEventArgs e) { return Task.CompletedTask; }
         private void RabbitMQ_ConnectionShutdown(object sender, ShutdownEventArgs e) { }
 
+        /*
         public override void Dispose()
         {
-            channel.Close();
+            serverSpinUpChannel.Close();
             connection.Close();
             base.Dispose();
         }
+        */
     }
 }

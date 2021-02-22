@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OWSData.Repositories.Interfaces;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
 using OWSShared.Messages;
@@ -49,15 +50,6 @@ namespace OWSInstanceLauncher
                 options.SerializerSettings.Converters.Add(new RequestHandlerConverter<IRequest>(container));
             });*/
 
-
-            services.AddSimpleInjector(container, options => {
-                options.AddAspNetCore()
-                    .AddControllerActivation()
-                    .AddViewComponentActivation();
-                //.AddPageModelActivation()
-                //.AddTagHelperActivation();
-            });
-
             services.Configure<OWSData.Models.OWSInstanceLauncherOptions>(Configuration.GetSection("OWSInstanceLauncherOptions"));
 
             services.AddHttpClient("OWSInstanceManagement", c =>
@@ -67,29 +59,18 @@ namespace OWSInstanceLauncher
                 c.DefaultRequestHeaders.Add("User-Agent", "OWSInstanceLauncher");
             });
 
-            services.AddHostedService<ServerLauncherMQListener>();
-
-            /*
-            services.AddSwaggerGen(c => {
-                c.SwaggerDoc("v1", new Info { Title = "Open World Server Authentication API", Version = "v1" });
-
-                c.AddSecurityDefinition("X-CustomerGUID", new ApiKeyScheme()
-                {
-                    Description = "Authorization header using the X-CustomerGUID scheme",
-                    Name = "X-CustomerGUID",
-                    In = "header"
-                });
-
-                c.DocumentFilter<SwaggerSecurityRequirementsDocumentFilter>();
+            services.AddSimpleInjector(container, options => {
+                options.AddHostedService<TimedHostedService<IInstanceLauncherJob>>();
             });
-            */
 
-            //services.Configure<OWSData.Models.StorageOptions>(Configuration.GetSection("OWSStorageConfig"));
+            InitializeContainer(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseSimpleInjector(container);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -114,6 +95,20 @@ namespace OWSInstanceLauncher
             });
 
             container.Verify();
+        }
+
+        private void InitializeContainer(IServiceCollection services)
+        {
+            container.Register<IZoneServerProcessesRepository, OWSData.Repositories.Implementations.InMemory.ZoneServerProcessesRepository>(Lifestyle.Singleton);
+            container.RegisterInstance(new TimedHostedService<IInstanceLauncherJob>.Settings(
+                interval: TimeSpan.FromSeconds(10),
+                runOnce: true,
+                action: processor => processor.DoWork()));
+
+            container.Register<IInstanceLauncherJob, ServerLauncherMQListener>();
+
+            var provider = services.BuildServiceProvider();
+            container.RegisterInstance<IServiceProvider>(provider);
         }
     }
 }
