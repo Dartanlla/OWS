@@ -103,7 +103,9 @@ namespace OWSInstanceLauncher
             container.RegisterInstance(new TimedHostedService<IInstanceLauncherJob>.Settings(
                 interval: TimeSpan.FromSeconds(10),
                 runOnce: true,
-                action: processor => processor.DoWork()));
+                action: processor => processor.DoWork(),
+                dispose: processor => processor.Dispose()
+            ));
 
             container.Register<IInstanceLauncherJob, ServerLauncherMQListener>();
 

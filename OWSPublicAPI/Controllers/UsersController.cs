@@ -30,6 +30,7 @@ namespace TestCore2.Controllers
         private readonly ICharactersRepository _charactersRepository;
         private readonly IHeaderCustomerGUID _customerGuid;
         private readonly IOptions<PublicAPIOptions> _owsGeneralConfig;
+        private readonly IOptions<APIPathOptions> _owsApiPathConfig;
         private readonly IHttpClientFactory _httpClientFactory;
 
         public UsersController(Container container, 
@@ -38,6 +39,7 @@ namespace TestCore2.Controllers
             ICharactersRepository charactersRepository, 
             IHeaderCustomerGUID customerGuid,
             IOptions<PublicAPIOptions> owsGeneralConfig,
+            IOptions<APIPathOptions> owsApiPathConfig,
             IHttpClientFactory httpClientFactory)
         {
             _container = container;
@@ -46,6 +48,7 @@ namespace TestCore2.Controllers
             _charactersRepository = charactersRepository;
             _customerGuid = customerGuid;
             _owsGeneralConfig = owsGeneralConfig;
+            _owsApiPathConfig = owsApiPathConfig;
             _httpClientFactory = httpClientFactory;
         }
 

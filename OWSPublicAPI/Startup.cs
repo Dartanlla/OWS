@@ -97,17 +97,18 @@ namespace OWSPublicAPI
                 c.IncludeXmlComments(filePath);
             });
 
-            var generalOptions = new OWSShared.Options.PublicAPIOptions();
-            Configuration.GetSection(OWSShared.Options.PublicAPIOptions.SectionName).Bind(generalOptions);
+            var apiPathOptions = new OWSShared.Options.APIPathOptions();
+            Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName).Bind(apiPathOptions);
 
             services.AddHttpClient("OWSInstanceManagement", c =>
             {
-                c.BaseAddress = new Uri(generalOptions.OWSInstanceMangementBaseAddress);
+                c.BaseAddress = new Uri(apiPathOptions.InternalInstanceManagementApiURL);
                 c.DefaultRequestHeaders.Add("Accept", "application/json");
                 c.DefaultRequestHeaders.Add("User-Agent", "OWSPublicAPI");
             });
 
             services.Configure<OWSShared.Options.PublicAPIOptions>(Configuration.GetSection(OWSShared.Options.PublicAPIOptions.SectionName));
+            services.Configure<OWSShared.Options.APIPathOptions>(Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName));
             services.Configure<OWSData.Models.StorageOptions>(Configuration.GetSection(OWSData.Models.StorageOptions.SectionName));
             services.Configure<OWSExternalLoginProviders.Options.ExternalLoginProviderOptions>(Configuration.GetSection(OWSExternalLoginProviders.Options.ExternalLoginProviderOptions.SectionName));
 

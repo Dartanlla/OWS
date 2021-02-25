@@ -12,11 +12,6 @@ namespace OWSInstanceManagement.Requests.Instance
 {
     public class SetZoneInstanceStatusRequest : IRequestHandler<SetZoneInstanceStatusRequest, IActionResult>, IRequest
     {
-        /*
-        public int MapInstanceID { get; set; }
-        public int InstanceStatus { get; set; }
-        */
-
         public SetZoneInstanceStatusRequestPayload request { get; set; }
 
         private IInstanceManagementRepository _instanceManagementRepository;
@@ -31,7 +26,7 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            await _instanceManagementRepository.SetZoneInstanceStatus(_customerGUID, request.MapInstanceID, request.InstanceStatus);
+            await _instanceManagementRepository.SetZoneInstanceStatus(_customerGUID, request.ZoneInstanceID, request.InstanceStatus);
 
             _output = new SuccessAndErrorMessage()
             {

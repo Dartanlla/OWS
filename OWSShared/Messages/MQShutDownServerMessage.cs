@@ -5,13 +5,11 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace OWSShared.Messages
 {
     [Serializable]
-    public class MQSpinUpServerMessage
+    public class MQShutDownServerMessage
     {
         public Guid CustomerGUID { get; set; }
         public int WorldServerID { get; set; }
         public int ZoneInstanceID { get; set; }
-        public string MapName { get; set; }
-        public int Port { get; set; }
 
         public byte[] SerialiseIntoBinary()
         {
@@ -23,16 +21,16 @@ namespace OWSShared.Messages
             return memoryStream.GetBuffer();
         }
 
-        public static MQSpinUpServerMessage Deserialize(byte[] data)
+        public static MQShutDownServerMessage Deserialize(byte[] data)
         {
-            MQSpinUpServerMessage messageToReturn = new MQSpinUpServerMessage();
+            MQShutDownServerMessage messageToReturn = new MQShutDownServerMessage();
 
             BinaryFormatter binaryFormatter = new BinaryFormatter();
             using (MemoryStream memoryStream = new MemoryStream(data))
             {
                 try
                 {
-                    messageToReturn = (MQSpinUpServerMessage)binaryFormatter.Deserialize(memoryStream);
+                    messageToReturn = (MQShutDownServerMessage)binaryFormatter.Deserialize(memoryStream);
                 }
                 catch (Exception ex)
                 {

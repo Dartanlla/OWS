@@ -130,7 +130,7 @@ namespace OWSPublicAPI.Requests.Users
             return false;
         }
 
-        private async Task<bool> RequestServerSpinUp(int worldServerID, int mapInstanceID, string zoneName, int port)
+        private async Task<bool> RequestServerSpinUp(int worldServerID, int zoneInstanceID, string zoneName, int port)
         {
             var instanceManagementHttpClient = httpClientFactory.CreateClient("OWSInstanceManagement");
 
@@ -139,7 +139,7 @@ namespace OWSPublicAPI.Requests.Users
 
             SpinUpServerInstanceRequestPayload spinUpServerInstanceRequestPayload = new SpinUpServerInstanceRequestPayload { 
                 WorldServerID = worldServerID,
-                MapInstanceID = mapInstanceID,
+                ZoneInstanceID = zoneInstanceID,
                 ZoneName = zoneName,
                 Port = port
             };

@@ -11,41 +11,6 @@ using SimpleInjector.Lifestyles;
 
 namespace OWSShared.Objects
 {
-    /*public class SimpleInjectorJobProcessorHostedService : IHostedService, IDisposable
-    {
-        private readonly Container container;
-        private Timer timer;
-
-        public SimpleInjectorJobProcessorHostedService(Container c) => this.container = c;
-
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            this.timer = new Timer(this.DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
-            return Task.CompletedTask;
-        }
-
-        private void DoWork(object state)
-        {
-            // Run operation in a scope
-            using (AsyncScopedLifestyle.BeginScope(this.container))
-            {
-                // Resolve the collection of IMyJob implementations
-                foreach (var service in this.container.GetAllInstances<IMyJob>())
-                {
-                    service.DoWork();
-                }
-            }
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            this.timer?.Change(Timeout.Infinite, 0);
-            return Task.CompletedTask;
-        }
-
-        public void Dispose() => this.timer?.Dispose();
-    }*/
-
     public class TimedHostedService<TService> : IHostedService, IDisposable
         where TService : class
     {
@@ -97,19 +62,39 @@ namespace OWSShared.Objects
             return Task.CompletedTask;
         }
 
-        public void Dispose() => this.timer.Dispose();
+        //public void Dispose() => this.timer.Dispose();
+
+        public void Dispose()
+        {
+            try
+            {
+                using (AsyncScopedLifestyle.BeginScope(this.container))
+                {
+                    var service = this.container.GetInstance<TService>();
+                    this.settings.Dispose(service);
+                }
+            }
+            catch (Exception ex)
+            {
+                //this.logger.LogError(ex, ex.Message);
+            }
+
+            this.timer.Dispose();
+        }
 
         public class Settings
         {
             public readonly TimeSpan Interval;
             public readonly bool RunOnce;
             public readonly Action<TService> Action;
+            public readonly Action<TService> Dispose;
 
-            public Settings(TimeSpan interval, bool runOnce, Action<TService> action)
+            public Settings(TimeSpan interval, bool runOnce, Action<TService> action, Action<TService> dispose)
             {
                 this.Interval = interval;
                 this.RunOnce = runOnce;
                 this.Action = action;
+                this.Dispose = dispose;
             }
         }
     }

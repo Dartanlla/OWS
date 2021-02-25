@@ -6,7 +6,7 @@ namespace OWSShared.RequestPayloads
 {
     public class SetZoneInstanceStatusRequestPayload
     {
-        public int MapInstanceID { get; set; }
+        public int ZoneInstanceID { get; set; }
         public int InstanceStatus { get; set; }
     }
 }

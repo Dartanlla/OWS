@@ -3,7 +3,7 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 
 # Projects
 - OWS Benchmarks - This project will allow us to configure and run performance testing on the OWS API.  This will be important for comparing the impact of certain changes.
-- OWS Character Persistenace - The Character Persistence API will be responsible for storing our player characters and all related data.
+- OWS Character Persistence - The Character Persistence API will be responsible for storing our player characters and all related data.
 - OWS Data - This is a shared project that houses our data repository access code.
 - OWS External Login Providers - This project contains code for integrating with external login providers such as Xsolla, Google, Facebook, etc.
 - OWS Instance Launcher - This project builds our Instance Launcher that replaces the RPG World Server in OWS 1.
