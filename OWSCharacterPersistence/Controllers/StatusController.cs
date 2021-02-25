@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using OWSCharacterPersistence.Requests.Statuses;
+using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 
@@ -24,11 +26,11 @@ namespace OWSCharacterPersistence.Controllers
 
         [HttpPost]
         [Route("GetCharacterStatuses")]
-        [Produces(typeof(CharacterStatuses))]
-        public async Task<IActionResult> CreateCharacter([FromBody] GetCharacterStatuses request)
+        [Produces(typeof(GetCharByCharName))]
+        public async Task<IActionResult> CreateCharacter([FromBody] GetCharacterStatusesRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
-            return await request.Run();
+            return await request.Handle();
         }
     }
 }

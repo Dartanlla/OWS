@@ -13,22 +13,21 @@ namespace OWSCharacterPersistence.Requests.Statuses
     {
         public string CharacterName { get; set; }
 
-        private GetCharByCharName Output;
-        private Guid CustomerGUID;
+        private GetCharByCharName output;
+        private Guid customerGUID;
         private ICharactersRepository charactersRepository;
 
-        public GetCharacterStatusesRequest(ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
+        public void SetData(ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
         {
-            //CustomerGUID = new Guid("56FB0902-6FE7-4BFE-B680-E3C8E497F016");
-            CustomerGUID = customerGuid.CustomerGUID;
             this.charactersRepository = charactersRepository;
+            customerGUID = customerGuid.CustomerGUID;
         }
 
         public async Task<IActionResult> Handle()
         {
-            Output = await charactersRepository.GetCharByCharName(CustomerGUID, CharacterName);
+            output = await charactersRepository.GetCharByCharName(customerGUID, CharacterName);
 
-            return new OkObjectResult(Output);
+            return new OkObjectResult(output);
         }
     }
 }

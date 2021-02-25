@@ -110,14 +110,14 @@ namespace OWSPublicAPI.Requests.Users
             return new OkObjectResult(Output);
         }
 
-        private async Task<bool> WaitForServerReadyToConnect(Guid customerGUID, int mapInstanceID)
+        private async Task<bool> WaitForServerReadyToConnect(Guid customerGUID, int zoneInstanceID)
         {
             DateTime StartPollingTime = DateTime.Now;
 
             while (DateTime.Now < StartPollingTime.AddSeconds(owsGeneralConfig.Value.SecondsToWaitForServerSpinUp))
             {
                 //Check Map Status
-                var resultCheckMapInstanceStatus = await charactersRepository.CheckMapInstanceStatus(CustomerGUID, mapInstanceID);
+                var resultCheckMapInstanceStatus = await charactersRepository.CheckMapInstanceStatus(CustomerGUID, zoneInstanceID);
 
                 if (resultCheckMapInstanceStatus.MapInstanceStatus == 2) //Ready to play
                 {
@@ -126,6 +126,9 @@ namespace OWSPublicAPI.Requests.Users
 
                 System.Threading.Thread.Sleep(owsGeneralConfig.Value.SecondsToWaitInBetweenSpinUpPolling);
             }
+
+            //The server did not spin up in time so shut it down
+
 
             return false;
         }
