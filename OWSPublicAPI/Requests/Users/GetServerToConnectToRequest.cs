@@ -13,7 +13,7 @@ using System.Text;
 
 namespace OWSPublicAPI.Requests.Users
 {
-    public class GetServerToConnectToRequest //: IRequestHandler<GetServerToConnectToRequest, IActionResult>, IRequest
+    public class GetServerToConnectToRequest : IRequestHandler<GetServerToConnectToRequest, IActionResult>, IRequest
     {
         //Request Parameters
         public Guid UserSessionGUID { get; set; }
@@ -38,7 +38,7 @@ namespace OWSPublicAPI.Requests.Users
             CustomerGUID = customerGuid.CustomerGUID;
         }
 
-        public async Task<IActionResult> Run()
+        public async Task<IActionResult> Handle()
         {
             Output = new JoinMapByCharName();
 

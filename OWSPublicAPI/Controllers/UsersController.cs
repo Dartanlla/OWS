@@ -140,7 +140,7 @@ namespace OWSPublicAPI.Controllers
         public async Task<IActionResult> GetPlayerGroupsCharacterIsIn([FromBody] GetPlayerGroupsCharacterIsInRequest request)
         {
             request.SetData(_usersRepository, _customerGuid);
-            return await request.Run();
+            return await request.Handle();
         }
 
         /// <summary>
@@ -155,7 +155,7 @@ namespace OWSPublicAPI.Controllers
         public async Task<IActionResult> GetServerToConnectTo([FromBody] GetServerToConnectToRequest request)
         {
             request.SetData(_owsGeneralConfig, _usersRepository, _charactersRepository, _customerGuid, _httpClientFactory);
-            return await request.Run();
+            return await request.Handle();
         }
 
         /// <summary>
@@ -167,7 +167,7 @@ namespace OWSPublicAPI.Controllers
         public async Task<IActionResult> GetUserSession([FromQuery] GetUserSessionRequest request)
         {
             request.SetData(_usersRepository, _customerGuid);
-            return await request.Run();
+            return await request.Handle();
         }
 
         /// <summary>
@@ -179,7 +179,7 @@ namespace OWSPublicAPI.Controllers
         public async Task<IActionResult> LoginAndCreateSession([FromBody] LoginAndCreateSessionRequest request)
         {
             request.SetData(_usersRepository, _customerGuid);
-            return await request.Run();
+            return await request.Handle();
         }
 
         /// <summary>
@@ -191,7 +191,7 @@ namespace OWSPublicAPI.Controllers
         public async Task<IActionResult> ExternalLoginAndCreateSession([FromBody] ExternalLoginAndCreateSessionRequest request)
         {
             request.SetData(_usersRepository, _externalLoginProvider, _customerGuid);
-            return await request.Run();
+            return await request.Handle();
         }
 
         /// <summary>
@@ -203,7 +203,7 @@ namespace OWSPublicAPI.Controllers
         public async Task<IActionResult> UserSessionSetSelectedCharacter([FromBody] UserSessionSetSelectedCharacterRequest request)
         {
             request.SetData(_usersRepository, _customerGuid);
-            return await request.Run();
+            return await request.Handle();
         }
 
         /// <summary>
@@ -215,7 +215,7 @@ namespace OWSPublicAPI.Controllers
         public async Task<IActionResult> SetSelectedCharacterAndGetUserSession([FromBody] SetSelectedCharacterAndGetUserSessionRequest request)
         {
             request.SetData(_usersRepository, _customerGuid);
-            return await request.Run();
+            return await request.Handle();
         }
 
         /// <summary>
@@ -227,7 +227,7 @@ namespace OWSPublicAPI.Controllers
         public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest request)
         {
             request.SetData(_usersRepository, _externalLoginProvider, _customerGuid);
-            return await request.Run();
+            return await request.Handle();
         }
 
     }

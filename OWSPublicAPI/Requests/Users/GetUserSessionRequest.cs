@@ -9,26 +9,25 @@ using OWSShared.Interfaces;
 
 namespace OWSPublicAPI.Requests.Users
 {
-    public class GetUserSessionRequest
+    public class GetUserSessionRequest : IRequestHandler<GetUserSessionRequest, IActionResult>, IRequest
     {
         public Guid UserSessionGUID { get; set; }
 
-        private GetUserSession Output;
-        private Guid CustomerGUID;
+        private GetUserSession output;
+        private Guid customerGUID;
         private IUsersRepository usersRepository;
 
         public void SetData(IUsersRepository usersRepository, IHeaderCustomerGUID customerGuid)
         {
-            CustomerGUID = customerGuid.CustomerGUID;
+            customerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
         }
 
-        public async Task<IActionResult> Run()
-        {            
-            Output = await usersRepository.GetUserSession(CustomerGUID, UserSessionGUID);
-            //Output = new GetUserSession();
+        public async Task<IActionResult> Handle()
+        {
+            output = await usersRepository.GetUserSession(customerGUID, UserSessionGUID);
 
-            return new OkObjectResult(Output);
+            return new OkObjectResult(output);
         }
     }
 

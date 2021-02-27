@@ -10,28 +10,29 @@ using OWSData.Models.StoredProcs;
 
 namespace OWSPublicAPI.Requests.Users
 {
-    public class SetSelectedCharacterAndGetUserSessionRequest
-    {   public Guid UserSessionGUID { get; set; }
+    public class SetSelectedCharacterAndGetUserSessionRequest : IRequestHandler<SetSelectedCharacterAndGetUserSessionRequest, IActionResult>, IRequest
+    {   
+        public Guid UserSessionGUID { get; set; }
         public string SelectedCharacterName { get; set; }
 
-        private GetUserSession Output;
-        private SuccessAndErrorMessage SuccessOrError;
-        private Guid CustomerGUID;
+        private GetUserSession output;
+        private SuccessAndErrorMessage successOrError;
+        private Guid customerGUID;
         private IUsersRepository usersRepository;
 
         public void SetData(IUsersRepository usersRepository, IHeaderCustomerGUID customerGuid)
         {
-            CustomerGUID = customerGuid.CustomerGUID;
+            customerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
         }
 
-        public async Task<IActionResult> Run()
+        public async Task<IActionResult> Handle()
         {
-            SuccessOrError = await usersRepository.UserSessionSetSelectedCharacter(CustomerGUID, UserSessionGUID, SelectedCharacterName);
+            successOrError = await usersRepository.UserSessionSetSelectedCharacter(customerGUID, UserSessionGUID, SelectedCharacterName);
 
-            Output = await usersRepository.GetUserSession(CustomerGUID, UserSessionGUID);
+            output = await usersRepository.GetUserSession(customerGUID, UserSessionGUID);
 
-            return new OkObjectResult(Output);
+            return new OkObjectResult(output);
         }
     }
 }

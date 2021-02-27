@@ -14,25 +14,48 @@ using System.Text;
 
 namespace OWSPublicAPI.Requests.Users
 {
-    public class ExternalLoginAndCreateSessionRequest
-    {   
+    /// <summary>
+    /// ExternalLoginAndCreateSessionRequest Handler
+    /// </summary>
+    /// <remarks>
+    /// Handles api/Users/ExternalLoginAndCreateSession requests.
+    /// </remarks>
+    public class ExternalLoginAndCreateSessionRequest : IRequestHandler<ExternalLoginAndCreateSessionRequest, IActionResult>, IRequest
+    {
+        /// <summary>
+        /// Email Request Paramater.
+        /// </summary>
+        /// <remarks>
+        /// The email is used as the primary ID for the sign in credentials.
+        /// </remarks>
         public string Email { get; set; }
+        /// <summary>
+        /// Password Request Paramater.
+        /// </summary>
+        /// <remarks>
+        /// The password is part of the sign in credentials.
+        /// </remarks>
         public string Password { get; set; }
 
-        private PlayerLoginAndCreateSession Output;
-        private Guid CustomerGUID;
+        private PlayerLoginAndCreateSession output;
+        private Guid customerGUID;
         private IUsersRepository usersRepository;
         private IExternalLoginProvider externalLoginProvider;
 
+        /// <summary>
+        /// Set Dependencies for ExternalLoginAndCreateSessionRequest
+        /// </summary>
+        /// <remarks>
+        /// Injects the dependencies for the ExternalLoginAndCreateSessionRequest.
+        /// </remarks>
         public void SetData(IUsersRepository usersRepository, IExternalLoginProvider externalLoginProvider, IHeaderCustomerGUID customerGuid)
         {
-            //CustomerGUID = new Guid("56FB0902-6FE7-4BFE-B680-E3C8E497F016");
-            this.CustomerGUID = customerGuid.CustomerGUID;
+            this.customerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
             this.externalLoginProvider = externalLoginProvider;
         }
 
-        public async Task<IActionResult> Run()
+        public async Task<IActionResult> Handle()
         {
             //Call external provider to get token
             string token = await externalLoginProvider.AuthenticateAsync(Email, Password, false);
@@ -40,22 +63,22 @@ namespace OWSPublicAPI.Requests.Users
             if (!String.IsNullOrEmpty(token) && externalLoginProvider.ValidateLoginToken(token, Email))
             {
                 //Login to OWS
-                Output = await usersRepository.LoginAndCreateSession(CustomerGUID, Email, Password);
+                output = await usersRepository.LoginAndCreateSession(customerGUID, Email, Password);
 
-                if (!Output.Authenticated || !Output.UserSessionGuid.HasValue || Output.UserSessionGuid == Guid.Empty)
+                if (!output.Authenticated || !output.UserSessionGuid.HasValue || output.UserSessionGuid == Guid.Empty)
                 {
-                    Output.ErrorMessage = "Username or Password is invalid!";
+                    output.ErrorMessage = "Username or Password is invalid!";
                 }
 
-                return new OkObjectResult(Output);
+                return new OkObjectResult(output);
             }
 
             //Not authenticated
-            Output = new PlayerLoginAndCreateSession();
-            Output.Authenticated = false;
-            Output.UserSessionGuid = Guid.Empty;
-            Output.ErrorMessage = externalLoginProvider.GetErrorFromToken(token);
-            return new OkObjectResult(Output);
+            output = new PlayerLoginAndCreateSession();
+            output.Authenticated = false;
+            output.UserSessionGuid = Guid.Empty;
+            output.ErrorMessage = externalLoginProvider.GetErrorFromToken(token);
+            return new OkObjectResult(output);
         }
     }
 }

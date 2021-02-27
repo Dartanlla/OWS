@@ -9,27 +9,27 @@ using OWSShared.Interfaces;
 
 namespace OWSPublicAPI.Requests.Users
 {
-    public class GetPlayerGroupsCharacterIsInRequest
+    public class GetPlayerGroupsCharacterIsInRequest : IRequestHandler<GetPlayerGroupsCharacterIsInRequest, IActionResult>, IRequest
     {
         public Guid UserSessionGUID { get; set; }
         public string CharacterName { get; set; }
         public int PlayerGroupTypeID { get; set; }
 
-        private IEnumerable<GetPlayerGroupsCharacterIsIn> Output;
-        private Guid CustomerGUID;
+        private IEnumerable<GetPlayerGroupsCharacterIsIn> output;
+        private Guid customerGUID;
         private IUsersRepository usersRepository;
 
         public void SetData(IUsersRepository usersRepository, IHeaderCustomerGUID customerGuid)
         {
-            CustomerGUID = customerGuid.CustomerGUID;
+            customerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
         }
 
-        public async Task<IActionResult> Run()
+        public async Task<IActionResult> Handle()
         {
-            Output = await usersRepository.GetPlayerGroupsCharacterIsIn(CustomerGUID, UserSessionGUID, CharacterName, PlayerGroupTypeID);
+            output = await usersRepository.GetPlayerGroupsCharacterIsIn(customerGUID, UserSessionGUID, CharacterName, PlayerGroupTypeID);
 
-            return new OkObjectResult(Output);
+            return new OkObjectResult(output);
         }
     }
 }

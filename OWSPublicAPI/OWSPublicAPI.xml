@@ -249,5 +249,37 @@
             Overrides IRequestHandler Handle().
             </remarks>
         </member>
+        <member name="T:OWSPublicAPI.Requests.Users.ExternalLoginAndCreateSessionRequest">
+            <summary>
+            ExternalLoginAndCreateSessionRequest Handler
+            </summary>
+            <remarks>
+            Handles api/Users/ExternalLoginAndCreateSession requests.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Users.ExternalLoginAndCreateSessionRequest.Email">
+            <summary>
+            Email Request Paramater.
+            </summary>
+            <remarks>
+            The email is used as the primary ID for the sign in credentials.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Users.ExternalLoginAndCreateSessionRequest.Password">
+            <summary>
+            Password Request Paramater.
+            </summary>
+            <remarks>
+            The password is part of the sign in credentials.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Users.ExternalLoginAndCreateSessionRequest.SetData(OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProvider,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            Set Dependencies for ExternalLoginAndCreateSessionRequest
+            </summary>
+            <remarks>
+            Injects the dependencies for the ExternalLoginAndCreateSessionRequest.
+            </remarks>
+        </member>
     </members>
 </doc>

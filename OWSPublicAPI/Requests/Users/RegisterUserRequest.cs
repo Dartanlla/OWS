@@ -10,41 +10,41 @@ using System.Threading.Tasks;
 
 namespace OWSPublicAPI.Requests.Users
 {
-    public class RegisterUserRequest
+    public class RegisterUserRequest : IRequestHandler<RegisterUserRequest, IActionResult>, IRequest
     {
         public string Email { get; set; }
         public string Password { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
-        private SuccessAndErrorMessage Output;
-        private Guid CustomerGUID;
+        private SuccessAndErrorMessage output;
+        private Guid customerGUID;
         private IUsersRepository usersRepository;
         private IExternalLoginProvider externalLoginProvider;
 
         public void SetData(IUsersRepository usersRepository, IExternalLoginProvider externalLoginProvider, IHeaderCustomerGUID customerGuid)
         {
-            CustomerGUID = customerGuid.CustomerGUID;
+            customerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
             this.externalLoginProvider = externalLoginProvider;
         }
 
-        public async Task<IActionResult> Run()
+        public async Task<IActionResult> Handle()
         {
             //Check for duplicate account before creating a new one:
-            var foundUser = await usersRepository.GetUserFromEmail(CustomerGUID, Email);
+            var foundUser = await usersRepository.GetUserFromEmail(customerGUID, Email);
 
             //This user already exists
             if (foundUser != null)
             {
-                Output = new SuccessAndErrorMessage();
-                Output.Success = false;
-                Output.ErrorMessage = "Duplicate Account!";
+                output = new SuccessAndErrorMessage();
+                output.Success = false;
+                output.ErrorMessage = "Duplicate Account!";
 
-                return new OkObjectResult(Output);
+                return new OkObjectResult(output);
             }
 
-            Output = await usersRepository.RegisterUser(CustomerGUID, Email, Password, FirstName, LastName);
+            output = await usersRepository.RegisterUser(customerGUID, Email, Password, FirstName, LastName);
 
             if (externalLoginProvider != null)
             {
@@ -52,7 +52,7 @@ namespace OWSPublicAPI.Requests.Users
                 await externalLoginProvider.RegisterAsync(Email, Password, Email);
             }
 
-            return new OkObjectResult(Output);
+            return new OkObjectResult(output);
         }
     }
 }

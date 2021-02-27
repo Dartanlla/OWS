@@ -9,32 +9,32 @@ using OWSShared.Interfaces;
 
 namespace OWSPublicAPI.Requests.Users
 {
-    public class LoginAndCreateSessionRequest
+    public class LoginAndCreateSessionRequest : IRequestHandler<LoginAndCreateSessionRequest, IActionResult>, IRequest
     {
         public string Email { get; set; }
         public string Password { get; set; }
 
-        private PlayerLoginAndCreateSession Output;
-        private Guid CustomerGUID;
+        private PlayerLoginAndCreateSession output;
+        private Guid customerGUID;
         private IUsersRepository usersRepository;
 
         public void SetData(IUsersRepository usersRepository, IHeaderCustomerGUID customerGuid)
         {
             //CustomerGUID = new Guid("56FB0902-6FE7-4BFE-B680-E3C8E497F016");
-            this.CustomerGUID = customerGuid.CustomerGUID;
+            this.customerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
         }
 
-        public async Task<IActionResult> Run()
+        public async Task<IActionResult> Handle()
         {
-            Output = await usersRepository.LoginAndCreateSession(CustomerGUID, Email, Password, false);
+            output = await usersRepository.LoginAndCreateSession(customerGUID, Email, Password, false);
 
-            if (!Output.Authenticated || !Output.UserSessionGuid.HasValue || Output.UserSessionGuid == Guid.Empty)
+            if (!output.Authenticated || !output.UserSessionGuid.HasValue || output.UserSessionGuid == Guid.Empty)
             {
-                Output.ErrorMessage = "Username or Password is invalid!";
+                output.ErrorMessage = "Username or Password is invalid!";
             }
 
-            return new OkObjectResult(Output);
+            return new OkObjectResult(output);
         }
     }
 }
