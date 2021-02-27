@@ -21,6 +21,7 @@ namespace OWSInstanceLauncher
     {
         //Container container;
         private Container container = new SimpleInjector.Container();
+        private OWSData.Models.OWSInstanceLauncherOptions owsInstanceLauncherOptions;
 
         public IConfiguration Configuration { get; }
 
@@ -50,7 +51,10 @@ namespace OWSInstanceLauncher
                 options.SerializerSettings.Converters.Add(new RequestHandlerConverter<IRequest>(container));
             });*/
 
-            services.Configure<OWSData.Models.OWSInstanceLauncherOptions>(Configuration.GetSection("OWSInstanceLauncherOptions"));
+            services.Configure<OWSData.Models.OWSInstanceLauncherOptions>(Configuration.GetSection(OWSData.Models.OWSInstanceLauncherOptions.SectionName));
+
+            owsInstanceLauncherOptions = new OWSData.Models.OWSInstanceLauncherOptions();
+            Configuration.GetSection(OWSData.Models.OWSInstanceLauncherOptions.SectionName).Bind(owsInstanceLauncherOptions);
 
             services.AddHttpClient("OWSInstanceManagement", c =>
             {
@@ -61,6 +65,7 @@ namespace OWSInstanceLauncher
 
             services.AddSimpleInjector(container, options => {
                 options.AddHostedService<TimedHostedService<IInstanceLauncherJob>>();
+                options.AddHostedService<TimedHostedService<IServerHealthMonitoringJob>>();
             });
 
             InitializeContainer(services);
@@ -99,7 +104,10 @@ namespace OWSInstanceLauncher
 
         private void InitializeContainer(IServiceCollection services)
         {
+            //Register our ZoneServerProcessesRepository to store a list of our running zone server processes for this hardware device
             container.Register<IZoneServerProcessesRepository, OWSData.Repositories.Implementations.InMemory.ZoneServerProcessesRepository>(Lifestyle.Singleton);
+
+            //ServerLauncherMQListener runs only once
             container.RegisterInstance(new TimedHostedService<IInstanceLauncherJob>.Settings(
                 interval: TimeSpan.FromSeconds(10),
                 runOnce: true,
@@ -107,7 +115,19 @@ namespace OWSInstanceLauncher
                 dispose: processor => processor.Dispose()
             ));
 
+            //ServerLauncherHealthMonitoring runs once every X seconds.  X is configured in the OWSInstanceLauncherOptions in appsettings.json
+            container.RegisterInstance(new TimedHostedService<IServerHealthMonitoringJob>.Settings(
+                interval: TimeSpan.FromSeconds(owsInstanceLauncherOptions.RunServerHealthMonitoringFrequencyInSeconds),
+                runOnce: false,
+                action: processor => processor.DoWork(),
+                dispose: processor => processor.Dispose()
+            ));
+
+            //Register our Server Launcher MQ Listener job
             container.Register<IInstanceLauncherJob, ServerLauncherMQListener>();
+
+            //Register our Server Launcher Health Monitoring Job
+            container.Register<IServerHealthMonitoringJob, ServerLauncherHealthMonitoring>();
 
             var provider = services.BuildServiceProvider();
             container.RegisterInstance<IServiceProvider>(provider);

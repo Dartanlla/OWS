@@ -169,6 +169,30 @@
             Register a new User account.
             </summary>
         </member>
+        <member name="T:OWSPublicAPI.Program">
+            <summary>
+            OWS Public API Program
+            </summary>
+            <remarks>
+            The program class.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Program.Main(System.String[])">
+            <summary>
+            OWS Public API Main
+            </summary>
+            <remarks>
+            The program entry point.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Program.CreateHostBuilder(System.String[])">
+            <summary>
+            OWS Public API CreateHostBuilder
+            </summary>
+            <remarks>
+            Configure the web host.
+            </remarks>
+        </member>
         <member name="T:OWSPublicAPI.Requests.Characters.GetByNameRequest">
             <summary>
             GetByNameRequest Handler

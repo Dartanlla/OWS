@@ -31,14 +31,8 @@ namespace OWSShared.Objects
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IZoneServerProcessesRepository _zoneServerProcessesRepository;
 
-        //string _PathToDedicatedServer;
-        //string _ServerArguments;
-
         public ServerLauncherMQListener(IOptions<OWSInstanceLauncherOptions> OWSInstanceLauncherOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository)
         {
-            //_PathToDedicatedServer = PathToDedicatedServer;
-            //_ServerArguments = ServerArguments;
-
             _OWSInstanceLauncherOptions = OWSInstanceLauncherOptions;
             _httpClientFactory = httpClientFactory;
             _zoneServerProcessesRepository = zoneServerProcessesRepository;
