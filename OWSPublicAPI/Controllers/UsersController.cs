@@ -18,8 +18,14 @@ using OWSShared.Options;
 using Microsoft.Extensions.Options;
 using System.Net.Http;
 
-namespace TestCore2.Controllers
+namespace OWSPublicAPI.Controllers
 {
+    /// <summary>
+    /// Public User related API calls.
+    /// </summary>
+    /// <remarks>
+    /// Contains user related API calls that are all publicly accessible.
+    /// </remarks>
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : Controller
@@ -33,6 +39,12 @@ namespace TestCore2.Controllers
         private readonly IOptions<APIPathOptions> _owsApiPathConfig;
         private readonly IHttpClientFactory _httpClientFactory;
 
+        /// <summary>
+        /// Constructor for Public User related API calls.
+        /// </summary>
+        /// <remarks>
+        /// All dependencies are injected.
+        /// </remarks>
         public UsersController(Container container, 
             IUsersRepository usersRepository,
             IExternalLoginProvider externalLoginProvider,
@@ -52,6 +64,12 @@ namespace TestCore2.Controllers
             _httpClientFactory = httpClientFactory;
         }
 
+        /// <summary>
+        /// Get a list of all Users.
+        /// </summary>
+        /// <remarks>
+        /// Get a list of all OWS Users.
+        /// </remarks>
         // GET: api/Users
         [HttpGet]
         public IEnumerable<string> Get()
@@ -59,6 +77,12 @@ namespace TestCore2.Controllers
             return new string[] { "value1", "value2" };
         }
 
+        /// <summary>
+        /// Get all User Information.
+        /// </summary>
+        /// <remarks>
+        /// Get all OWS User data.
+        /// </remarks>
         // GET: api/Users/5
         [HttpGet("{id}", Name = "Get")]
         public string Get(int id)
@@ -66,18 +90,24 @@ namespace TestCore2.Controllers
             return "value";
         }
 
-        // POST: api/Users
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
+        /// <summary>
+        /// Save a User.
+        /// </summary>
+        /// <remarks>
+        /// Save OWS User data.
+        /// </remarks>
         // PUT: api/Users/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {
         }
 
+        /// <summary>
+        /// Delete a User from OWS.
+        /// </summary>
+        /// <remarks>
+        /// Delete an OWS User permanently.
+        /// </remarks>
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
         public void Delete(int id)
@@ -98,7 +128,7 @@ namespace TestCore2.Controllers
         public async Task<IActionResult> CreateCharacter([FromBody] CreateCharacterRequest request)
         {
             request.SetData(_usersRepository, _customerGuid);
-            return await request.Run();
+            return await request.Handle();
         }
 
         /// <summary>
@@ -189,7 +219,7 @@ namespace TestCore2.Controllers
         }
 
         /// <summary>
-        /// Create a new User account.
+        /// Register a new User account.
         /// </summary>
         [HttpPost]
         [Route("RegisterUser")]
