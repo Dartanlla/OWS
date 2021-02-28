@@ -52,13 +52,16 @@ namespace OWSInstanceLauncher
             });*/
 
             services.Configure<OWSData.Models.OWSInstanceLauncherOptions>(Configuration.GetSection(OWSData.Models.OWSInstanceLauncherOptions.SectionName));
+            services.Configure<OWSShared.Options.APIPathOptions>(Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName));
 
             owsInstanceLauncherOptions = new OWSData.Models.OWSInstanceLauncherOptions();
             Configuration.GetSection(OWSData.Models.OWSInstanceLauncherOptions.SectionName).Bind(owsInstanceLauncherOptions);
+            var apiPathOptions = new OWSShared.Options.APIPathOptions();
+            Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName).Bind(apiPathOptions);
 
             services.AddHttpClient("OWSInstanceManagement", c =>
             {
-                c.BaseAddress = new Uri("https://localhost:44329/");
+                c.BaseAddress = new Uri(apiPathOptions.InternalInstanceManagementApiURL);
                 c.DefaultRequestHeaders.Add("Accept", "application/json");
                 c.DefaultRequestHeaders.Add("User-Agent", "OWSInstanceLauncher");
             });
