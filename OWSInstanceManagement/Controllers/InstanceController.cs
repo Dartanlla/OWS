@@ -50,14 +50,14 @@ namespace OWSInstanceManagement.Controllers
         }
 
         [HttpPost]
-        [Route("SpinUpServerInstance")]
+        [Route("SetZoneInstanceStatus")]
         [Produces(typeof(SuccessAndErrorMessage))]
         /*[SwaggerOperation("ByName")]
         [SwaggerResponse(200)]
         [SwaggerResponse(404)]*/
-        public async Task<IActionResult> SpinUpServerInstance([FromBody] SpinUpServerInstanceRequest request)
+        public async Task<IActionResult> SetZoneInstanceStatusRequest([FromBody] SetZoneInstanceStatusRequest request)
         {
-            request.SetData(_owsApiPathConfig, _charactersRepository, _customerGuid);
+            request.SetData(_instanceManagementRepository, _customerGuid);
 
             return await request.Handle();
         }
@@ -76,6 +76,19 @@ namespace OWSInstanceManagement.Controllers
         }
 
         [HttpPost]
+        [Route("SpinUpServerInstance")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        /*[SwaggerOperation("ByName")]
+        [SwaggerResponse(200)]
+        [SwaggerResponse(404)]*/
+        public async Task<IActionResult> SpinUpServerInstance([FromBody] SpinUpServerInstanceRequest request)
+        {
+            request.SetData(_owsApiPathConfig, _charactersRepository, _customerGuid);
+
+            return await request.Handle();
+        }
+
+        [HttpPost]
         [Route("GetServerToConnectTo")]
         [Produces(typeof(SuccessAndErrorMessage))]
         /*[SwaggerOperation("ByName")]
@@ -89,16 +102,20 @@ namespace OWSInstanceManagement.Controllers
         }
 
         [HttpPost]
-        [Route("SetZoneInstanceStatus")]
+        [Route("GetZoneInstancesForWorldServer")]
         [Produces(typeof(SuccessAndErrorMessage))]
         /*[SwaggerOperation("ByName")]
         [SwaggerResponse(200)]
         [SwaggerResponse(404)]*/
-        public async Task<IActionResult> SetZoneInstanceStatusRequest([FromBody] SetZoneInstanceStatusRequest request)
+        public async Task<IActionResult> GetZoneInstancesForWorldServer([FromBody] GetZoneInstancesForWorldServerRequest request)
         {
             request.SetData(_instanceManagementRepository, _customerGuid);
 
             return await request.Handle();
         }
+
+        
+
+        
     }
 }

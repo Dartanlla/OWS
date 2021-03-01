@@ -30,7 +30,7 @@ namespace OWSShared.Objects
         }
         public void DoWork()
         {
-
+            //Get a list of ZoneInstances from api/Instance/GetZoneInstancesForWorldServer
         }
 
         public void Dispose()
