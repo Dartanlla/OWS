@@ -18,8 +18,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public CharactersRepository(IOptions<StorageOptions> storageOptions)
         {
-            //var connection = @"Server=desktop-rvdfpao\sqlexpress;Database=d20;Trusted_Connection=True;ConnectRetryCount=0";
-            //this.ConnectionString = connection;
             _storageOptions = storageOptions;
         }
 

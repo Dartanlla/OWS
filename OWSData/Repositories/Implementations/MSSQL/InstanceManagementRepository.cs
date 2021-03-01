@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using OWSData.Models;
 using OWSData.Models.Composites;
+using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -34,7 +35,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
             using (Connection)
             {
                 var p = new DynamicParameters();
-                //p.Add("@CustomerGUID", customerGUID); //The Stored Procedure SetMapInstanceStatus mistakenly does not accept a CustomerGUID.  This is an error that will be corrected in the new distributed database(s).
                 p.Add("@MapInstanceID", zoneInstanceID);
                 p.Add("@MapInstanceStatus", instanceStatus);
 
@@ -50,6 +50,25 @@ namespace OWSData.Repositories.Implementations.MSSQL
             };
 
             return Output;
+        }
+
+        public async Task<IEnumerable<GetZoneInstancesForWorldServer>> GetZoneInstancesForWorldServer(Guid customerGUID, int worldServerID)
+        {
+            IEnumerable<GetZoneInstancesForWorldServer> output;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@WorldServerID", worldServerID);
+
+                output = await Connection.QueryAsync<GetZoneInstancesForWorldServer>("GetMapInstancesForWorldServerID",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+
+            return output;
         }
     }
 }
