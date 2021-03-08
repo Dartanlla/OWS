@@ -5,6 +5,7 @@ using OWSData.Models;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 using OWSShared.Messages;
+using OWSShared.Options;
 using OWSShared.RequestPayloads;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -24,22 +25,29 @@ namespace OWSShared.Objects
         private IModel serverShutDownChannel;
         private Guid serverSpinUpQueueNameGUID;
         private Guid serverShutDownQueueNameGUID;
-        private Guid customerGUID;
-        private int worldServerId;
 
+        private readonly Guid _customerGUID;
         private readonly IOptions<OWSInstanceLauncherOptions> _OWSInstanceLauncherOptions;
+        private readonly IOptions<APIPathOptions> _OWSAPIPathOptions;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IZoneServerProcessesRepository _zoneServerProcessesRepository;
+        private readonly int _worldServerId;
 
-        public ServerLauncherMQListener(IOptions<OWSInstanceLauncherOptions> OWSInstanceLauncherOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository)
+        public ServerLauncherMQListener(IOptions<OWSInstanceLauncherOptions> OWSInstanceLauncherOptions, IOptions<APIPathOptions> OWSAPIPathOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository)
         {
             _OWSInstanceLauncherOptions = OWSInstanceLauncherOptions;
+            _OWSAPIPathOptions = OWSAPIPathOptions;
             _httpClientFactory = httpClientFactory;
             _zoneServerProcessesRepository = zoneServerProcessesRepository;
-
-            worldServerId = 86;
+            _customerGUID = new Guid(OWSInstanceLauncherOptions.Value.OWSAPIKey);
+            _worldServerId = GetWorldServerID();
 
             InitRabbitMQ();
+        }
+
+        private int GetWorldServerID()
+        {
+            return StartInstanceLauncherRequest();
         }
 
         private void InitRabbitMQ()
@@ -47,7 +55,12 @@ namespace OWSShared.Objects
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Attempting to Register OWS Instance Launcher with RabbitMQ ServerSpinUp Queue...");
 
-            var factory = new ConnectionFactory() { HostName = "localhost", DispatchConsumersAsync = true };
+            var factory = new ConnectionFactory() { 
+                HostName = _OWSAPIPathOptions.Value.InternalRabbitMQServerHostName, 
+                DispatchConsumersAsync = true, 
+                UserName = _OWSInstanceLauncherOptions.Value.RabbitMQUserName, 
+                Password = _OWSInstanceLauncherOptions.Value.RabbitMQPassword 
+            };
 
             // create connection  
             connection = factory.CreateConnection();
@@ -67,7 +80,7 @@ namespace OWSShared.Objects
                                          exclusive: true,
                                          autoDelete: true,
                                          arguments: null);
-            serverSpinUpChannel.QueueBind(serverSpinUpQueueNameGUID.ToString(), "ows.serverspinup", String.Format("ows.serverspinup.{0}", worldServerId));
+            serverSpinUpChannel.QueueBind(serverSpinUpQueueNameGUID.ToString(), "ows.serverspinup", String.Format("ows.serverspinup.{0}", _worldServerId));
             serverSpinUpChannel.BasicQos(0, 1, false);
 
 
@@ -86,7 +99,7 @@ namespace OWSShared.Objects
                                          exclusive: true,
                                          autoDelete: true,
                                          arguments: null);
-            serverShutDownChannel.QueueBind(serverShutDownQueueNameGUID.ToString(), "ows.servershutdown", String.Format("ows.servershutdown.{0}", worldServerId));
+            serverShutDownChannel.QueueBind(serverShutDownQueueNameGUID.ToString(), "ows.servershutdown", String.Format("ows.servershutdown.{0}", _worldServerId));
             serverShutDownChannel.BasicQos(0, 1, false);
 
 
@@ -161,9 +174,14 @@ namespace OWSShared.Objects
         private void HandleServerSpinUpMessage(Guid customerGUID, int worldServerID, int zoneInstanceID, string mapName, int port)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Starting up {customerGUID} : {worldServerID} : {mapName} : {port}");
+            Console.WriteLine($"Starting up {customerGUID} : {worldServerID} : {mapName} : {port}");
 
-            this.customerGUID = customerGUID;
+            //Security Check on CustomerGUID
+            if (_customerGUID != customerGUID)
+            {
+                Console.WriteLine("HandleServerSpinUpMessage - Incoming CustomerGUID does not match OWSAPIKey in appsettings.json");
+                return;
+            }
 
             //string PathToDedicatedServer = "E:\\Program Files\\Epic Games\\UE_4.25\\Engine\\Binaries\\Win64\\UE4Editor.exe";
             //string ServerArguments = "\"C:\\OWS\\OpenWorldStarterPlugin\\OpenWorldStarter.uproject\" {0}?listen -server -log -nosteam -messaging -port={1}";
@@ -192,7 +210,7 @@ namespace OWSShared.Objects
             });
 
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("{customerGUID} : {worldServerID} : {mapName} : {port} is ready for players");
+            Console.WriteLine($"{customerGUID} : {worldServerID} : {mapName} : {port} is ready for players");
 
             //The server has finished spinning up.  Set the status to 2.
             _ = UpdateZoneServerStatusReady(zoneInstanceID);
@@ -201,7 +219,14 @@ namespace OWSShared.Objects
         private void HandleServerShutDownMessage(Guid customerGUID, int zoneInstanceID)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Shutting down {customerGUID} : {zoneInstanceID}");
+            Console.WriteLine($"Shutting down {customerGUID} : {zoneInstanceID}");
+
+            //Security Check on CustomerGUID
+            if (_customerGUID != customerGUID)
+            {
+                Console.WriteLine("HandleServerShutDownMessage - Incoming CustomerGUID does not match OWSAPIKey in appsettings.json");
+                return;
+            }
 
             int foundProcessId = _zoneServerProcessesRepository.FindZoneServerProcessId(zoneInstanceID);
 
@@ -216,14 +241,80 @@ namespace OWSShared.Objects
             }
         }
 
+        private void ShutDownAllZoneServerInstances()
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Shutting down all Server Instances...");
+            Console.ForegroundColor = ConsoleColor.White;
+
+            foreach (var zoneServerInstance in _zoneServerProcessesRepository.GetZoneServerProcesses())
+            {
+                if (zoneServerInstance.ProcessId > 0)
+                {
+                    System.Diagnostics.Process procToKill = System.Diagnostics.Process.GetProcessById(zoneServerInstance.ProcessId);
+
+                    if (procToKill != null)
+                    {
+                        procToKill.Kill();
+                    }
+                }
+            }
+        }
+
+        private int StartInstanceLauncherRequest()
+        {
+            var instanceManagementHttpClient = _httpClientFactory.CreateClient("OWSInstanceManagement");
+
+            var responseMessageAsync = instanceManagementHttpClient.GetAsync("api/Instance/StartInstanceLauncher");
+            var responseMessage = responseMessageAsync.Result;
+
+            if (responseMessage == null)
+            {
+                return -1;
+            }
+
+            if (!responseMessage.IsSuccessStatusCode)
+            {
+                return -1;
+            }
+
+            var responseContentAsync = responseMessage.Content.ReadAsStringAsync();
+            string responseContentString = responseContentAsync.Result;
+
+            int worldServerID = -1;
+            if (Int32.TryParse(responseContentString, out worldServerID))
+            {
+                return worldServerID;
+            }
+
+            return -1;
+        }
+
+        private async Task ShutDownInstanceLauncherRequest(int worldServerId)
+        {
+            var instanceManagementHttpClient = _httpClientFactory.CreateClient("OWSInstanceManagement");
+
+            var shutDownInstanceLauncherRequestPayload = new
+            {
+                request = new ShutDownInstanceLauncherRequestPayload
+                {
+                    WorldServerID = worldServerId
+                }
+            };
+
+            var shutDownInstanceLauncherRequest = new StringContent(JsonConvert.SerializeObject(shutDownInstanceLauncherRequestPayload), Encoding.UTF8, "application/json");
+
+            var responseMessage = await instanceManagementHttpClient.PostAsync("api/Instance/ShutDownInstanceLauncher", shutDownInstanceLauncherRequest);
+
+            return;
+        }
+
         private async Task UpdateZoneServerStatusReady(int zoneInstanceID)
         {
             var instanceManagementHttpClient = _httpClientFactory.CreateClient("OWSInstanceManagement");
 
-            instanceManagementHttpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-            instanceManagementHttpClient.DefaultRequestHeaders.Add("X-CustomerGUID", customerGUID.ToString());
-
-            var setZoneInstanceStatusRequestPayload = new { 
+            var setZoneInstanceStatusRequestPayload = new 
+            { 
                 request = new SetZoneInstanceStatusRequestPayload
                 {
                     ZoneInstanceID = zoneInstanceID,
@@ -253,9 +344,23 @@ namespace OWSShared.Objects
 
         public void Dispose()
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Shutting Down OWS Instance Launcher...");
+            Console.ForegroundColor = ConsoleColor.White;
+
+            var shutDownTask = ShutDownInstanceLauncherRequest(_worldServerId);
+
+            ShutDownAllZoneServerInstances();
+
             serverSpinUpChannel.Close();
             serverShutDownChannel.Close();
             connection.Close();
+
+            shutDownTask.Wait();
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Done!");
+            Console.ForegroundColor = ConsoleColor.White;
         }
     }
 }

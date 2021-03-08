@@ -9,7 +9,10 @@ namespace OWSData.Models
         public const string SectionName = "OWSInstanceLauncherOptions";
         public string OWSAPIKey { get; set; }
         public string PathToDedicatedServer { get; set; }
-        public string ServerArguments { get; set; }
+        public string RabbitMQUserName { get; set; }
+        public string RabbitMQPassword { get; set; }
         public int RunServerHealthMonitoringFrequencyInSeconds { get; set; }
+        public string ServerArguments { get; set; }
+        
     }
 }

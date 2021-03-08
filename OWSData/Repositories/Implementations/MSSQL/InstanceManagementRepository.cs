@@ -30,28 +30,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
-        public async Task<SuccessAndErrorMessage> SetZoneInstanceStatus(Guid customerGUID, int zoneInstanceID, int instanceStatus)
-        {
-            using (Connection)
-            {
-                var p = new DynamicParameters();
-                p.Add("@MapInstanceID", zoneInstanceID);
-                p.Add("@MapInstanceStatus", instanceStatus);
-
-                await Connection.QueryFirstOrDefaultAsync("SetMapInstanceStatus",
-                    p,
-                    commandType: CommandType.StoredProcedure);
-            }
-
-            SuccessAndErrorMessage Output = new SuccessAndErrorMessage()
-            {
-                Success = true,
-                ErrorMessage = ""
-            };
-
-            return Output;
-        }
-
         public async Task<IEnumerable<GetZoneInstancesForWorldServer>> GetZoneInstancesForWorldServer(Guid customerGUID, int worldServerID)
         {
             IEnumerable<GetZoneInstancesForWorldServer> output;
@@ -69,6 +47,71 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
 
             return output;
+        }
+
+        public async Task<SuccessAndErrorMessage> SetZoneInstanceStatus(Guid customerGUID, int zoneInstanceID, int instanceStatus)
+        {
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@MapInstanceID", zoneInstanceID);
+                p.Add("@MapInstanceStatus", instanceStatus);
+
+                await Connection.QueryFirstOrDefaultAsync("SetMapInstanceStatus",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+            {
+                Success = true,
+                ErrorMessage = ""
+            };
+
+            return output;
+        }
+
+        public async Task<SuccessAndErrorMessage> ShutDownWorldServer(Guid customerGUID, int worldServerID)
+        {
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@WorldServerID", worldServerID);
+
+                await Connection.ExecuteAsync("ShutdownWorldServer",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+            {
+                Success = true,
+                ErrorMessage = ""
+            };
+
+            return output;
+        }
+
+        public async Task<int> StartWorldServer(Guid customerGUID, string ip)
+        {
+            int worldServerId;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@ServerIP", ip);
+                p.Add("@WorldServerID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+                await Connection.ExecuteAsync("StartWorldServer",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+
+                worldServerId = p.Get<int>("@WorldServerID");
+            }
+
+            return worldServerId;
         }
     }
 }

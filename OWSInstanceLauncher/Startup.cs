@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -62,8 +63,9 @@ namespace OWSInstanceLauncher
             services.AddHttpClient("OWSInstanceManagement", c =>
             {
                 c.BaseAddress = new Uri(apiPathOptions.InternalInstanceManagementApiURL);
-                c.DefaultRequestHeaders.Add("Accept", "application/json");
+                c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 c.DefaultRequestHeaders.Add("User-Agent", "OWSInstanceLauncher");
+                c.DefaultRequestHeaders.Add("X-CustomerGUID", owsInstanceLauncherOptions.OWSAPIKey);
             });
 
             services.AddSimpleInjector(container, options => {
@@ -127,10 +129,10 @@ namespace OWSInstanceLauncher
             ));
 
             //Register our Server Launcher MQ Listener job
-            container.Register<IInstanceLauncherJob, ServerLauncherMQListener>();
+            container.RegisterSingleton<IInstanceLauncherJob, ServerLauncherMQListener>();
 
             //Register our Server Launcher Health Monitoring Job
-            container.Register<IServerHealthMonitoringJob, ServerLauncherHealthMonitoring>();
+            container.RegisterSingleton<IServerHealthMonitoringJob, ServerLauncherHealthMonitoring>();
 
             var provider = services.BuildServiceProvider();
             container.RegisterInstance<IServiceProvider>(provider);

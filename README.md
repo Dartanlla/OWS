@@ -19,3 +19,15 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 - https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/inside-a-program/coding-conventions
 - https://docs.microsoft.com/en-us/dotnet/standard/design-guidelines/naming-guidelines
 - https://github.com/dotnet/corefx/blob/368fdfd86ee3a3bf1bca2a6c339ee590f3d6505d/Documentation/coding-guidelines/coding-style.md
+
+# Windows Server Setup Instructions
+- Install Erlang (https://www.erlang.org/downloads) - must be a version your RabbitMQ version supports
+- Install RabbitMQ (https://www.rabbitmq.com/install-windows.html)
+- Enable the RabbitMQ Admin Web Console - rabbitmq-plugins enable rabbitmq_management
+- Open the RabbitMQ Admin Web Console - http://localhost:15672/ - Login as guest / guest
+- Create a new RabbitMQ User and give the user access to /
+- Put those credentials in appsettings.json for the OWSInstanceLauncher
+- Install IIS (from your Windows media)
+- Install the .NET Core 3.1 Web Hosting Bundle - https://dotnet.microsoft.com/download/dotnet/3.1 - Windows Hosting Bundle link
+- Create the folder in C:\inetpub\sites\OWSPublicAPI
+- Create the folder in C:\inetpub\sites\OWSInstanceManagement

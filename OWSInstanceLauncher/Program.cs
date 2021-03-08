@@ -13,7 +13,6 @@ namespace OWSInstanceLauncher
 {
     public class Program
     {
-        public static ServerLauncherMQListener serverLauncherMQListener;
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();

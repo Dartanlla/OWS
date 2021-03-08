@@ -20,7 +20,10 @@ namespace OWSData.Repositories.Implementations.InMemory
             zoneServerProcesses.Add(zoneServerProcess);
         }
 
-        //void GetZoneServerProcesses();
+        public List<ZoneServerProcess> GetZoneServerProcesses()
+        {
+            return zoneServerProcesses;
+        }
 
         //Returns the processId.  Returns -1 if not found.
         public int FindZoneServerProcessId(int zoneInstanceId)

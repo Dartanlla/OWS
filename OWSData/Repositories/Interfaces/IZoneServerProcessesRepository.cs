@@ -8,7 +8,7 @@ namespace OWSData.Repositories.Interfaces
     public interface IZoneServerProcessesRepository
     {
         void AddZoneServerProcess(ZoneServerProcess zoneServerProcess);
-        //List GetZoneServerProcesses();
+        List<ZoneServerProcess> GetZoneServerProcesses();
         int FindZoneServerProcessId(int zoneInstanceId);
     }
 }

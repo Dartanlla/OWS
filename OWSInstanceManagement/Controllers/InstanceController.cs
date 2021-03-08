@@ -88,9 +88,36 @@ namespace OWSInstanceManagement.Controllers
             return await request.Handle();
         }
 
+        [HttpGet]
+        [Route("StartInstanceLauncher")]
+        [Produces(typeof(int))]
+        /*[SwaggerOperation("ByName")]
+        [SwaggerResponse(200)]
+        [SwaggerResponse(404)]*/
+        public async Task<IActionResult> StartInstanceLauncher()
+        {
+            StartInstanceLauncherRequest request = new StartInstanceLauncherRequest();
+            request.SetData(_instanceManagementRepository, Request.HttpContext.Connection.RemoteIpAddress.ToString(), _customerGuid);
+
+            return await request.Handle();
+        }
+
+        [HttpPost]
+        [Route("ShutDownInstanceLauncher")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        /*[SwaggerOperation("ByName")]
+        [SwaggerResponse(200)]
+        [SwaggerResponse(404)]*/
+        public async Task<IActionResult> ShutDownInstanceLauncher([FromBody] ShutDownInstanceLauncherRequest request)
+        {
+            request.SetData(_instanceManagementRepository, _customerGuid);
+
+            return await request.Handle();
+        }
+
         [HttpPost]
         [Route("GetServerToConnectTo")]
-        [Produces(typeof(SuccessAndErrorMessage))]
+        [Produces(typeof(JoinMapByCharName))]
         /*[SwaggerOperation("ByName")]
         [SwaggerResponse(200)]
         [SwaggerResponse(404)]*/
@@ -103,7 +130,7 @@ namespace OWSInstanceManagement.Controllers
 
         [HttpPost]
         [Route("GetZoneInstancesForWorldServer")]
-        [Produces(typeof(SuccessAndErrorMessage))]
+        [Produces(typeof(IEnumerable<GetZoneInstancesForWorldServer>))]
         /*[SwaggerOperation("ByName")]
         [SwaggerResponse(200)]
         [SwaggerResponse(404)]*/
