@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
@@ -53,6 +55,22 @@ namespace OWSInstanceManagement
                 //.AddTagHelperActivation();
             });
 
+            services.AddSwaggerGen(c => {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Open World Server Instance Management API", Version = "v1" });
+
+                c.AddSecurityDefinition("X-CustomerGUID", new OpenApiSecurityScheme()
+                {
+                    Description = "Authorization header using the X-CustomerGUID scheme",
+                    Name = "X-CustomerGUID",
+                    In = ParameterLocation.Header
+                });
+
+                c.OperationFilter<SwaggerSecurityRequirementsDocumentFilter>();
+
+                var filePath = Path.Combine(System.AppContext.BaseDirectory, "OWSInstanceManagement.xml");
+                c.IncludeXmlComments(filePath);
+            });
+
             services.Configure<OWSData.Models.StorageOptions>(Configuration.GetSection(OWSData.Models.StorageOptions.SectionName));
             services.Configure<OWSShared.Options.APIPathOptions>(Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName));
 
@@ -85,6 +103,17 @@ namespace OWSInstanceManagement
             //app.UseAuthorization();
 
             app.UseMvc();
+
+            app.UseSwagger(/*c =>
+            {
+                c.RouteTemplate =
+                    "api-docs/{documentName}/swagger.json";
+            }*/);
+            app.UseSwaggerUI(c =>
+            {
+                //c.RoutePrefix = "api-docs";
+                c.SwaggerEndpoint("./v1/swagger.json", "Open World Server Instance Management API");
+            });
 
             container.Verify();
         }

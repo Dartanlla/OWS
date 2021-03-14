@@ -4,6 +4,10 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>C:\Users\eric\source\repos\OWS\OWSInstanceManagement\OWSInstanceManagement.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.7" />
@@ -11,6 +15,7 @@
     <PackageReference Include="RabbitMQ.Client" Version="6.2.1" />
     <PackageReference Include="SimpleInjector" Version="4.8.1" />
     <PackageReference Include="SimpleInjector.Integration.AspNetCore.Mvc" Version="4.8.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.0.4" />
   </ItemGroup>
 
   <ItemGroup>
