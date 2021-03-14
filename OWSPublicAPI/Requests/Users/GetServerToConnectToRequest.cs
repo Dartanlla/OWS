@@ -78,7 +78,7 @@ namespace OWSPublicAPI.Requests.Users
             //There is no zone server running that will accept our connection, so start up a new one
             if (joinMapByCharacterName.NeedToStartupMap)
             {
-                bool requestSuccess = await RequestServerSpinUp(joinMapByCharacterName.WorldServerID, joinMapByCharacterName.MapInstanceID, ZoneName, joinMapByCharacterName.Port);
+                bool requestSuccess = await RequestServerSpinUp(joinMapByCharacterName.WorldServerID, joinMapByCharacterName.MapInstanceID, joinMapByCharacterName.MapNameToStart, joinMapByCharacterName.Port);
 
                 //Wait OWSGeneralConfig.SecondsToWaitBeforeFirstPollForSpinUp seconds before the first CheckMapInstanceStatus to give it time to spin up
                 System.Threading.Thread.Sleep(owsGeneralConfig.Value.SecondsToWaitBeforeFirstPollForSpinUp);

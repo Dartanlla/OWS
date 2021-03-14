@@ -108,6 +108,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 WorldServerIP = worldServerIp,
                 WorldServerPort = worldServerPort,
                 MapInstanceID = mapInstanceID,
+                MapNameToStart = mapNameToStart,
                 MapInstanceStatus = mapInstanceStatus ?? -1,
                 NeedToStartupMap = needToStartupMap,
                 EnableAutoLoopback = enableAutoLoopback,
