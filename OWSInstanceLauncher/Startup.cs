@@ -69,7 +69,7 @@ namespace OWSInstanceLauncher
             //If using the UE4 editor, make sure there is a project path in Server Arguments
             else if (owsInstanceLauncherOptions.PathToDedicatedServer.Contains("UE4Editor.exe"))
             {
-                string serverArgumentsProjectPattern = @"^""(?:[a-zA-Z]\:|\\\\[\w\s\.]+\\[\w\s.$]+)\\(?:[\w\s]+\\)*\w([\w\s.])+.uproject"" ";
+                string serverArgumentsProjectPattern = @"^"".*.uproject"" ";
                 MatchCollection testForUprojectPath = Regex.Matches(owsInstanceLauncherOptions.ServerArguments, serverArgumentsProjectPattern);
                 if (testForUprojectPath.Count == 1)
                 {
