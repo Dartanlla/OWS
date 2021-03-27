@@ -112,6 +112,12 @@ namespace OWSShared.Objects
         //protected override Task ExecuteAsync(CancellationToken stoppingToken)
         public void DoWork()
         {
+            //This will be null if there was a problem with initialization in the constructor
+            if (_OWSInstanceLauncherOptions == null)
+            {
+                return;
+            }
+
             //stoppingToken.ThrowIfCancellationRequested();
 
             //Server Spin Up
@@ -294,15 +300,15 @@ namespace OWSShared.Objects
         {
             var instanceManagementHttpClient = _httpClientFactory.CreateClient("OWSInstanceManagement");
 
-            var shutDownInstanceLauncherRequestPayload = new
+            var worldServerIDRequestPayload = new
             {
-                request = new ShutDownInstanceLauncherRequestPayload
+                request = new WorldServerIDRequestPayload
                 {
                     WorldServerID = worldServerId
                 }
             };
 
-            var shutDownInstanceLauncherRequest = new StringContent(JsonConvert.SerializeObject(shutDownInstanceLauncherRequestPayload), Encoding.UTF8, "application/json");
+            var shutDownInstanceLauncherRequest = new StringContent(JsonConvert.SerializeObject(worldServerIDRequestPayload), Encoding.UTF8, "application/json");
 
             var responseMessage = await instanceManagementHttpClient.PostAsync("api/Instance/ShutDownInstanceLauncher", shutDownInstanceLauncherRequest);
 
@@ -348,15 +354,27 @@ namespace OWSShared.Objects
             Console.WriteLine("Shutting Down OWS Instance Launcher...");
             Console.ForegroundColor = ConsoleColor.White;
 
-            var shutDownTask = ShutDownInstanceLauncherRequest(_worldServerId);
+            if (_worldServerId > 0)
+            {
+                var shutDownTask = ShutDownInstanceLauncherRequest(_worldServerId);
 
-            ShutDownAllZoneServerInstances();
+                shutDownTask.Wait();
 
-            serverSpinUpChannel.Close();
-            serverShutDownChannel.Close();
-            connection.Close();
+                ShutDownAllZoneServerInstances();
+            }
 
-            shutDownTask.Wait();
+            if (serverSpinUpChannel != null)
+            {
+                serverSpinUpChannel.Close();
+            }
+            if (serverShutDownChannel != null)
+            {
+                serverShutDownChannel.Close();
+            }
+            if (connection != null)
+            {
+                connection.Close();
+            }
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Done!");

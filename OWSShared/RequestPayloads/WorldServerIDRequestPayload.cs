@@ -4,7 +4,7 @@ using System.Text;
 
 namespace OWSShared.RequestPayloads
 {
-    public class ShutDownInstanceLauncherRequestPayload
+    public class WorldServerIDRequestPayload
     {
         public int WorldServerID { get; set; }
     }

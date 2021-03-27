@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using OWSData.Models;
+using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 using OWSShared.Messages;
@@ -30,12 +31,53 @@ namespace OWSShared.Objects
         }
         public void DoWork()
         {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Server Health Monitoring is checking for broken Zone Server Instances...");
+            Console.ForegroundColor = ConsoleColor.White;
+
             //Get a list of ZoneInstances from api/Instance/GetZoneInstancesForWorldServer
+            List<GetZoneInstancesForWorldServer> zoneInstances = GetZoneInstancesForWorldServer(86);
+
         }
 
         public void Dispose()
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Shutting Down OWS Server Health Monitoring...");
+            Console.ForegroundColor = ConsoleColor.White;
+        }
 
+        private List<GetZoneInstancesForWorldServer> GetZoneInstancesForWorldServer(int worldServerId)
+        {
+            List<GetZoneInstancesForWorldServer> output;
+
+            var instanceManagementHttpClient = _httpClientFactory.CreateClient("OWSInstanceManagement");
+
+            var worldServerIDRequestPayload = new
+            {
+                request = new WorldServerIDRequestPayload
+                {
+                    WorldServerID = worldServerId
+                }
+            };
+
+            var shutDownInstanceLauncherRequest = new StringContent(JsonConvert.SerializeObject(worldServerIDRequestPayload), Encoding.UTF8, "application/json");
+
+            var responseMessageTask = instanceManagementHttpClient.PostAsync("api/Instance/GetZoneInstancesForWorldServer", shutDownInstanceLauncherRequest);
+            var responseMessage = responseMessageTask.Result;
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var responseContentAsync = responseMessage.Content.ReadAsStringAsync();
+                string responseContentString = responseContentAsync.Result;
+                output = JsonConvert.DeserializeObject<List<GetZoneInstancesForWorldServer>>(responseContentString);
+            } 
+            else 
+            {
+                output = new List<GetZoneInstancesForWorldServer>();
+            }
+
+            return output;
         }
     }
 }

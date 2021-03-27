@@ -10,7 +10,7 @@ namespace OWSInstanceManagement.Requests.Instance
 {
     public class ShutDownInstanceLauncherRequest
     {
-        public ShutDownInstanceLauncherRequestPayload Request { get; set; }
+        public WorldServerIDRequestPayload Request { get; set; }
 
         private SuccessAndErrorMessage _output;
         private IInstanceManagementRepository _instanceManagementRepository;

@@ -2,6 +2,7 @@
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
+using OWSShared.RequestPayloads;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace OWSInstanceManagement.Requests.Instance
 {
     public class GetZoneInstancesForWorldServerRequest : IRequestHandler<GetServerToConnectToRequest, IActionResult>, IRequest
     {
-        public int WorldServerID { get; set; }
+        public WorldServerIDRequestPayload Request { get; set; }
 
         private IEnumerable<GetZoneInstancesForWorldServer> _output;
         private IInstanceManagementRepository _instanceManagementRepository;
@@ -25,7 +26,7 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            _output = await _instanceManagementRepository.GetZoneInstancesForWorldServer(_customerGUID, WorldServerID);
+            _output = await _instanceManagementRepository.GetZoneInstancesForWorldServer(_customerGUID, Request.WorldServerID);
 
             return new OkObjectResult(_output);
         }
