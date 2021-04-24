@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace OWSData.Models.Tables
 {
-    public partial class Users
+    public partial class User
     {
-        public Users()
+        public User()
         {
             UserSessions = new HashSet<UserSessions>();
         }

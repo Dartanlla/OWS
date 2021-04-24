@@ -44,7 +44,7 @@ namespace OWSData.Models.Tables
         public virtual DbSet<PlayerGroupCharacters> PlayerGroupCharacters { get; set; }
         public virtual DbSet<PlayerGroupTypes> PlayerGroupTypes { get; set; }
         public virtual DbSet<Races> Races { get; set; }
-        public virtual DbSet<Users> Users { get; set; }
+        public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<UserSessions> UserSessions { get; set; }
         public virtual DbSet<UsersInQueue> UsersInQueue { get; set; }
         public virtual DbSet<WorldServers> WorldServers { get; set; }
@@ -778,7 +778,7 @@ namespace OWSData.Models.Tables
                     .IsUnicode(false);
             });
 
-            modelBuilder.Entity<Users>(entity =>
+            modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(e => e.UserGuid);
 
