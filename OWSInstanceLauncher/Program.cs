@@ -22,7 +22,7 @@ namespace OWSInstanceLauncher
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseUrls("https://*:8182", "http://*:8181");
+                    webBuilder.UseUrls("http://*:8181");
                     webBuilder.UseStartup<Startup>();
                 });
     }

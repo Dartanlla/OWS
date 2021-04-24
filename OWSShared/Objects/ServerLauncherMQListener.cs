@@ -31,14 +31,17 @@ namespace OWSShared.Objects
         private readonly IOptions<APIPathOptions> _OWSAPIPathOptions;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IZoneServerProcessesRepository _zoneServerProcessesRepository;
+        private readonly IOWSInstanceLauncherDataRepository _owsInstanceLauncherDataRepository;
         private readonly int _worldServerId;
 
-        public ServerLauncherMQListener(IOptions<OWSInstanceLauncherOptions> OWSInstanceLauncherOptions, IOptions<APIPathOptions> OWSAPIPathOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository)
+        public ServerLauncherMQListener(IOptions<OWSInstanceLauncherOptions> OWSInstanceLauncherOptions, IOptions<APIPathOptions> OWSAPIPathOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository,
+            IOWSInstanceLauncherDataRepository owsInstanceLauncherDataRepository)
         {
             _OWSInstanceLauncherOptions = OWSInstanceLauncherOptions;
             _OWSAPIPathOptions = OWSAPIPathOptions;
             _httpClientFactory = httpClientFactory;
             _zoneServerProcessesRepository = zoneServerProcessesRepository;
+            _owsInstanceLauncherDataRepository = owsInstanceLauncherDataRepository;
             _customerGUID = new Guid(OWSInstanceLauncherOptions.Value.OWSAPIKey);
             _worldServerId = GetWorldServerID();
 
@@ -47,7 +50,15 @@ namespace OWSShared.Objects
 
         private int GetWorldServerID()
         {
-            return StartInstanceLauncherRequest();
+            int worldServerID = _owsInstanceLauncherDataRepository.GetWorldServerID();
+
+            if (worldServerID < 1)
+            {
+                worldServerID = StartInstanceLauncherRequest();
+                _owsInstanceLauncherDataRepository.SetWorldServerID(worldServerID);
+            }
+
+            return worldServerID;
         }
 
         private void InitRabbitMQ()
@@ -117,8 +128,6 @@ namespace OWSShared.Objects
             {
                 return;
             }
-
-            //stoppingToken.ThrowIfCancellationRequested();
 
             //Server Spin Up
             var serverSpinUpConsumer = new AsyncEventingBasicConsumer(serverSpinUpChannel);

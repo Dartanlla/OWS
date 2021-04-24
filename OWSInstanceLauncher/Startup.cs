@@ -186,7 +186,12 @@ namespace OWSInstanceLauncher
         private void InitializeContainer(IServiceCollection services)
         {
             //Register our ZoneServerProcessesRepository to store a list of our running zone server processes for this hardware device
-            container.Register<IZoneServerProcessesRepository, OWSData.Repositories.Implementations.InMemory.ZoneServerProcessesRepository>(Lifestyle.Singleton);
+            //container.Register<IZoneServerProcessesRepository, OWSData.Repositories.Implementations.InMemory.ZoneServerProcessesRepository>(Lifestyle.Singleton);
+            container.RegisterSingleton<IZoneServerProcessesRepository, OWSData.Repositories.Implementations.InMemory.ZoneServerProcessesRepository>();
+
+            //Register our OWSInstanceLauncherDataRepository to store information that needs to be shared amongst the jobs
+            //container.Register<IOWSInstanceLauncherDataRepository, OWSData.Repositories.Implementations.InMemory.OWSInstanceLauncherDataRepository> (Lifestyle.Singleton);
+            container.RegisterSingleton<IOWSInstanceLauncherDataRepository, OWSData.Repositories.Implementations.InMemory.OWSInstanceLauncherDataRepository>();
 
             //ServerLauncherMQListener runs only once
             container.RegisterInstance(new TimedHostedService<IInstanceLauncherJob>.Settings(

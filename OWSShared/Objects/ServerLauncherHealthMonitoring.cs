@@ -21,22 +21,40 @@ namespace OWSShared.Objects
         private readonly IOptions<OWSInstanceLauncherOptions> _OWSInstanceLauncherOptions;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IZoneServerProcessesRepository _zoneServerProcessesRepository;
+        private readonly IOWSInstanceLauncherDataRepository _owsInstanceLauncherDataRepository;
 
-        public ServerLauncherHealthMonitoring(IOptions<OWSInstanceLauncherOptions> OWSInstanceLauncherOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository)
+        public ServerLauncherHealthMonitoring(IOptions<OWSInstanceLauncherOptions> OWSInstanceLauncherOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository, 
+            IOWSInstanceLauncherDataRepository owsInstanceLauncherDataRepository)
         {
             _OWSInstanceLauncherOptions = OWSInstanceLauncherOptions;
             _httpClientFactory = httpClientFactory;
             _zoneServerProcessesRepository = zoneServerProcessesRepository;
-
+            _owsInstanceLauncherDataRepository = owsInstanceLauncherDataRepository;
         }
+
         public void DoWork()
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Server Health Monitoring is checking for broken Zone Server Instances...");
             Console.ForegroundColor = ConsoleColor.White;
 
+            int worldServerID = _owsInstanceLauncherDataRepository.GetWorldServerID();
+
+            if (worldServerID < 1)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("Server Health Monitoring is waiting for a valid World Server ID...");
+                Console.ForegroundColor = ConsoleColor.White;
+
+                return;
+            }
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Server Health Monitoring is getting a list of Zone Server Instances...");
+            Console.ForegroundColor = ConsoleColor.White;
+
             //Get a list of ZoneInstances from api/Instance/GetZoneInstancesForWorldServer
-            List<GetZoneInstancesForWorldServer> zoneInstances = GetZoneInstancesForWorldServer(86);
+            List<GetZoneInstancesForWorldServer> zoneInstances = GetZoneInstancesForWorldServer(worldServerID);
 
         }
 
