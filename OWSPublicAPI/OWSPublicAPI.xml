@@ -92,7 +92,7 @@
             Get a list of all OWS Users.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.Get(System.Int32)">
+        <member name="M:OWSPublicAPI.Controllers.UsersController.Get(System.Guid)">
             <summary>
             Get all User Information.
             </summary>

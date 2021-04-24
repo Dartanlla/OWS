@@ -17,6 +17,7 @@ using OWSExternalLoginProviders.Interfaces;
 using OWSShared.Options;
 using Microsoft.Extensions.Options;
 using System.Net.Http;
+using OWSData.Models.Tables;
 
 namespace OWSPublicAPI.Controllers
 {
@@ -84,12 +85,19 @@ namespace OWSPublicAPI.Controllers
         /// Get all OWS User data.
         /// </remarks>
         // GET: api/Users/5
+     //   [HttpGet("{id}", Name = "Get")]
+     //   public string Get(int id)
+     //   {
+     //       return "value";
+     //   }
         [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
+        [Produces(typeof(User))]
+        public async Task<IActionResult> Get(Guid id)
         {
-            return "value";
+            GetUserRequest request = new GetUserRequest();
+            request.SetData(id, _usersRepository, _customerGuid);
+            return await request.Handle();
         }
-
         /// <summary>
         /// Save a User.
         /// </summary>

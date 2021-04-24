@@ -99,6 +99,23 @@ namespace OWSData.Repositories.Implementations.MSSQL
             return outputObject;
         }
 
+        public async Task<User> GetUser(Guid customerGuid, Guid userGuid)
+        {
+            User outputObject = new User();
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGuid);
+                p.Add("@UserGUID", userGuid);
+
+                outputObject = await Connection.QuerySingleOrDefaultAsync<User>("GetUser",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+            return outputObject;
+        }
         public async Task<GetUserSession> GetUserSession(Guid customerGUID, Guid userSessionGUID)
         {
             GetUserSession outputObject = new GetUserSession();
@@ -133,13 +150,13 @@ namespace OWSData.Repositories.Implementations.MSSQL
         {
             GetUserSessionComposite outputObject = new GetUserSessionComposite();
             UserSessions userSession = new UserSessions();
-            Users user = new Users();
+            User user = new User();
             Characters character = new Characters();
 
             using (Connection)
             {
                 userSession = await Connection.QueryFirstOrDefaultAsync<UserSessions>(MSSQLQueries.GetUserSessionOnlySQL, new { CustomerGUID = customerGUID, UserSessionGUID = userSessionGUID });
-                var userTask = Connection.QueryFirstOrDefaultAsync<Users>(MSSQLQueries.GetUserSQL, new { CustomerGUID = customerGUID, UserGUID = userSession.UserGuid });
+                var userTask = Connection.QueryFirstOrDefaultAsync<User>(MSSQLQueries.GetUserSQL, new { CustomerGUID = customerGUID, UserGUID = userSession.UserGuid });
                 var characterTask = Connection.QueryFirstOrDefaultAsync<Characters>(MSSQLQueries.GetCharacterByNameSQL, new { CustomerGUID = customerGUID, CharacterName = userSession.SelectedCharacterName });
 
                 user = await userTask;

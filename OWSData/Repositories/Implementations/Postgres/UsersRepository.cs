@@ -12,6 +12,7 @@ using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
+using OWSData.Models.Tables;
 
 namespace OWSData.Repositories.Implementations.Postgres
 {
@@ -104,6 +105,24 @@ namespace OWSData.Repositories.Implementations.Postgres
             }
 
             return OutputObject;
+        }
+
+        public async Task<User> GetUser(Guid customerGuid, Guid userGuid)
+        {
+            User outputObject = new User();
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGuid);
+                p.Add("@UserGUID", userGuid);
+
+                outputObject = await Connection.QuerySingleOrDefaultAsync<User>("GetUser",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+            return outputObject;
         }
 
         public async Task<GetUserSession> GetUserSession(Guid _CustomerGUID, Guid _UserSessionGUID) //id = UserSessionGUID

@@ -11,6 +11,6 @@ namespace OWSData.Models.Tables
         public DateTime LoginDate { get; set; }
         public string SelectedCharacterName { get; set; }
 
-        public Users UserGu { get; set; }
+        public User UserGu { get; set; }
     }
 }
