@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>5f287243-b8be-4d52-a0d5-8c329ba8d881</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -17,6 +19,7 @@
   <ItemGroup>
     <PackageReference Include="Dapper" Version="1.50.7" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.12" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.13" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="SimpleInjector" Version="4.8.1" />
     <PackageReference Include="SimpleInjector.Integration.AspNetCore.Mvc" Version="4.8.1" />
@@ -31,6 +34,12 @@
     <ProjectReference Include="..\OWSData\OWSData.csproj" />
     <ProjectReference Include="..\OWSExternalLoginProviders\OWSExternalLoginProviders.csproj" />
     <ProjectReference Include="..\OWSShared\OWSShared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="OWSPublicAPI.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

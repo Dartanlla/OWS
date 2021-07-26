@@ -1,0 +1,18 @@
+version: '3.4'
+
+services:
+  owspublicapi:
+    image: ${DOCKER_REGISTRY-}owspublicapi
+    build:
+      context: .
+      dockerfile: OWSPublicAPI/Dockerfile
+    ports:
+    - "44303:443"
+
+  owsinstancemanagement:
+    image: ${DOCKER_REGISTRY-}owsinstancemanagement
+    build:
+      context: .
+      dockerfile: OWSInstanceManagement/Dockerfile
+    ports:
+    - "44329:443"
