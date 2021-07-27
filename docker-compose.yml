@@ -1,6 +1,15 @@
 version: '3.4'
 
 services:
+  mssql:
+    build:
+      context: .
+      dockerfile: Databases/MSSQL/Dockerfile
+    environment:
+     - ACCEPT_EULA=Y
+     - SA_PASSWORD=yourStrong(!)Password
+    ports:
+     - "1433:1433"
   owspublicapi:
     image: ${DOCKER_REGISTRY-}owspublicapi
     build:
