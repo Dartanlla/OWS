@@ -7,9 +7,16 @@ services:
       dockerfile: Databases/MSSQL/Dockerfile
     environment:
      - ACCEPT_EULA=Y
+     # Developer, Express, Standard, Enterprise, EnterpriseCore
+     - MSSQL_PID=Developer
      - SA_PASSWORD=yourStrong(!)Password
     ports:
      - "1433:1433"
+    volumes:
+     - ./Databases/MSSQL/data:/var/opt/mssql/data
+     - ./Databases/MSSQL/log:/var/opt/mssql/log
+     - ./Databases/MSSQL/secrets:/var/opt/mssql/secrets
+     - ./Databases/MSSQL/backups:/var/opt/mssql/backups
   owspublicapi:
     image: ${DOCKER_REGISTRY-}owspublicapi
     build:

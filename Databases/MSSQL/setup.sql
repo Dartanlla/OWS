@@ -1,13 +1,13 @@
 USE master
 GO
 
-RESTORE DATABASE OpenWorldServer
-FROM DISK =  N'/user/config/20210203OpenWorldServer.bak'
-WITH FILE = 1,
-     MOVE N'd20'
-     TO  N'/var/opt/mssql/data/OpenWorldServer.mdf',
-     MOVE N'd20_log'
-     TO  N'/var/opt/mssql/data/OpenWorldServer_log.ldf',
-     NOUNLOAD,
-     STATS = 5;
+IF DB_ID('OpenWorldServer') IS NULL
+BEGIN
+    RESTORE DATABASE OpenWorldServer
+    FROM DISK =  N'/var/opt/mssql/backups/20210203OpenWorldServer.bak' WITH REPLACE,
+        MOVE N'd20' TO N'/var/opt/mssql/data/OpenWorldServer.mdf',
+        MOVE N'd20_log' TO  N'/var/opt/mssql/data/OpenWorldServer_log.ldf',
+    NOUNLOAD,
+    STATS = 5;
+END
 GO
