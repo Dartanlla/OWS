@@ -255,7 +255,9 @@ ServiceFabricBackup/
 *.mdf
 *.ldf
 *.ndf
-secrets/
+Databases/MSSQL/data/
+Databases/MSSQL/log/
+Databases/MSSQL/secrets/
 !backups/
 
 # Business Intelligence projects
