@@ -1,6 +1,7 @@
 version: '3.4'
 
 services:
+
   mssql:
     build:
       context: .
@@ -11,18 +12,26 @@ services:
      - MSSQL_PID=Developer
      - SA_PASSWORD=yourStrong(!)Password
     ports:
-     - "1433:1433"
+     - "54324:1433"
     volumes:
      - ./Databases/MSSQL/data:/var/opt/mssql/data
      - ./Databases/MSSQL/log:/var/opt/mssql/log
      - ./Databases/MSSQL/secrets:/var/opt/mssql/secrets
      - ./Databases/MSSQL/backups:/var/opt/mssql/backups
+
+  rabbitmq:
+    image: rabbitmq:3.9.0-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
   owspublicapi:
     image: ${DOCKER_REGISTRY-}owspublicapi
     build:
       context: .
       dockerfile: OWSPublicAPI/Dockerfile
     ports:
+    - "44302:80"
     - "44303:443"
 
   owsinstancemanagement:
@@ -31,4 +40,5 @@ services:
       context: .
       dockerfile: OWSInstanceManagement/Dockerfile
     ports:
+    - "44328:80"
     - "44329:443"
