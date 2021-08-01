@@ -12,5 +12,6 @@ namespace OWSData.Repositories.Interfaces
         Task<JoinMapByCharName> JoinMapByCharName(Guid customerGUID, string characterName, string zoneName, int playerGroupType);
         Task<CheckMapInstanceStatus> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID);
         Task AddCharacterToMapInstanceByCharName(Guid customerGUID, string characterName, int mapInstanceID);
+        Task UpdateCharacterStats(UpdateCharacterStats updateCharacterStats);
     }
 }
