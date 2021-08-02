@@ -12,7 +12,7 @@ services:
      - MSSQL_PID=Developer
      - SA_PASSWORD=yourStrong(!)Password
     ports:
-     - "54324:1433"
+     - "1433:1433"
     volumes:
      - ./Databases/MSSQL/data:/var/opt/mssql/data
      - ./Databases/MSSQL/log:/var/opt/mssql/log
