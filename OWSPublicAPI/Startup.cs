@@ -31,6 +31,7 @@ using OWSExternalLoginProviders.Interfaces;
 using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Hosting;
 using System.IO;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace OWSPublicAPI
 {
@@ -52,6 +53,8 @@ namespace OWSPublicAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo("./temp/DataProtection-Keys"));
+
             //services.AddMvc();
 
             services.AddMvcCore(config => {
