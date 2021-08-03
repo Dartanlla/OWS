@@ -35,6 +35,9 @@ services:
     ports:
     - "44302:80"
     - "44303:443"
+    depends_on:
+    - mssql
+    - rabbitmq
 
   owsinstancemanagement:
     image: ${DOCKER_REGISTRY-}owsinstancemanagement
@@ -44,3 +47,6 @@ services:
     ports:
     - "44328:80"
     - "44329:443"
+    depends_on:
+    - mssql
+    - rabbitmq
