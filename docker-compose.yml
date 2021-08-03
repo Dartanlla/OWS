@@ -28,7 +28,7 @@ services:
     - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
 
   owspublicapi:
-    image: ${DOCKER_REGISTRY-}owspublicapi
+    image: ${REGISTRY:-ows}/owspublicapi:${PLATFORM:-linux}-${TAG:-latest}
     build:
       context: .
       dockerfile: OWSPublicAPI/Dockerfile
@@ -40,7 +40,7 @@ services:
     - rabbitmq
 
   owsinstancemanagement:
-    image: ${DOCKER_REGISTRY-}owsinstancemanagement
+    image: ${REGISTRY:-ows}/owsinstancemanagement:${PLATFORM:-linux}-${TAG:-latest}
     build:
       context: .
       dockerfile: OWSInstanceManagement/Dockerfile
