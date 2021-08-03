@@ -24,21 +24,29 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+    - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
 
   owspublicapi:
-    image: ${DOCKER_REGISTRY-}owspublicapi
+    image: ${REGISTRY:-ows}/owspublicapi:${PLATFORM:-linux}-${TAG:-latest}
     build:
       context: .
       dockerfile: OWSPublicAPI/Dockerfile
     ports:
     - "44302:80"
     - "44303:443"
+    depends_on:
+    - mssql
+    - rabbitmq
 
   owsinstancemanagement:
-    image: ${DOCKER_REGISTRY-}owsinstancemanagement
+    image: ${REGISTRY:-ows}/owsinstancemanagement:${PLATFORM:-linux}-${TAG:-latest}
     build:
       context: .
       dockerfile: OWSInstanceManagement/Dockerfile
     ports:
     - "44328:80"
     - "44329:443"
+    depends_on:
+    - mssql
+    - rabbitmq
