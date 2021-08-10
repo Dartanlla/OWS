@@ -355,3 +355,4 @@ MigrationBackup/
 
 # Docker temp files
 temp/
+docker-compose.override.yml
