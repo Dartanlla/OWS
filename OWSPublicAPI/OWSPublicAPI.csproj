@@ -41,5 +41,27 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  
+  <Target Name="DockerComposeOverrideWindows" BeforeTargets="PreBuildEvent" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <ItemGroup>
+      <DockerComposeOverrideFile Include="$(SolutionDir)\docker-compose.override.windows.yml" />
+    </ItemGroup>
+    
+	<Copy 
+		  SourceFiles="@(DockerComposeOverrideFile)" 
+		  DestinationFiles="$(SolutionDir)\docker-compose.override.yml" 
+		  SkipUnchangedFiles="true" />
+  </Target>
+  
+  <Target Name="DockerComposeOverrideOSX" BeforeTargets="PreBuildEvent" Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <ItemGroup>
+      <DockerComposeOverrideFile Include="$(SolutionDir)\docker-compose.override.osx.yml" />
+    </ItemGroup>
+    
+	<Copy 
+		  SourceFiles="@(DockerComposeOverrideFile)" 
+		  DestinationFiles="$(SolutionDir)\docker-compose.override.yml" 
+		  SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>
