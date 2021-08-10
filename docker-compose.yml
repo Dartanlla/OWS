@@ -14,10 +14,12 @@ services:
     ports:
      - "1433:1433"
     volumes:
-     - ./Databases/MSSQL/data:/var/opt/mssql/data
-     - ./Databases/MSSQL/log:/var/opt/mssql/log
-     - ./Databases/MSSQL/secrets:/var/opt/mssql/secrets
-     - ./Databases/MSSQL/backups:/var/opt/mssql/backups
+     - mssql_data:/var/opt/mssql/data
+     - mssql_log:/var/opt/mssql/log
+     - mssql_secrets:/var/opt/mssql/secrets
+     - type: bind
+       source: ./Databases/MSSQL/backups
+       target: /var/opt/mssql/backups
 
   rabbitmq:
     image: rabbitmq:3.9.0-management-alpine
@@ -50,3 +52,8 @@ services:
     depends_on:
     - mssql
     - rabbitmq
+
+volumes:
+  mssql_data:
+  mssql_log:
+  mssql_secrets:
