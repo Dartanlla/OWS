@@ -2,14 +2,14 @@
     <br>
     <img src="img/Logo512pxWhite.png" alt="SabreDartStudios" width="120">
     <h2 align="center">Open World Server (OWS)</h2>
-    <h4 align="center"><a href="http://www.sabredartstudios.com/" target="_blank">By SabreDartStudios</a></h4>
+    <h4 align="center"><a href="http://www.sabredartstudios.com/">By SabreDartStudios</a></h4>
 </p>
 <h1></h1>
 <p align="center">
     <a href="https://github.com/Dartanlla/OWS/blob/master/LICENSE">
         <img src="https://img.shields.io/github/license/Dartanlla/ows.svg?style=flat-square">
     </a>
-    <a href="https://discord.gg/RxMkuJF" target="_blank">
+    <a href="https://discord.gg/RxMkuJF">
         <img src="https://img.shields.io/badge/Discord-%237289DA.svg?style=flat-square&logo=discord&logoColor=white" alt="Join Discord">
     </a>
     <img src="https://img.shields.io/badge/unrealengine-%23313131.svg?style=flat-square&logo=unrealengine&logoColor=white">
