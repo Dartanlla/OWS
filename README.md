@@ -9,8 +9,8 @@
     <a href="https://github.com/Dartanlla/OWS/blob/master/LICENSE">
         <img src="https://img.shields.io/github/license/Dartanlla/ows.svg?style=flat-square">
     </a>
-    <a href="https://discord.gg/RxMkuJF">
-        <img src="https://img.shields.io/badge/Discord-%237289DA.svg?style=flat-square&logo=discord&logoColor=white" alt="Join Discord" target="_blank">
+    <a href="https://discord.gg/RxMkuJF" target="_blank">
+        <img src="https://img.shields.io/badge/Discord-%237289DA.svg?style=flat-square&logo=discord&logoColor=white" alt="Join Discord">
     </a>
     <img src="https://img.shields.io/badge/unrealengine-%23313131.svg?style=flat-square&logo=unrealengine&logoColor=white">
     <img src="https://img.shields.io/badge/docker-%230db7ed.svg?style=flat-square&logo=docker&logoColor=white">
