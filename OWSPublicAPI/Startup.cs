@@ -86,15 +86,18 @@ namespace OWSPublicAPI
 
             services.AddSwaggerGen(c => {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Open World Server Authentication API", Version = "v1" });
-                //c.OperationFilter<SwaggerSecurityRequirementsDocumentFilter>();  //Dart - Removed as this breaks the new version of Swagger
 
-                c.AddSecurityDefinition("X-CustomerGUID", new OpenApiSecurityScheme()
+                c.AddSecurityDefinition("X-CustomerGUID", new OpenApiSecurityScheme
                 {
                     Description = "Authorization header using the X-CustomerGUID scheme",
                     Name = "X-CustomerGUID",
-                    In = ParameterLocation.Header
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "X-CustomerGUID"
                 });
-                
+
+                c.OperationFilter<SwaggerSecurityRequirementsDocumentFilter>();
+
                 var filePath = Path.Combine(System.AppContext.BaseDirectory, "OWSPublicAPI.xml");
                 c.IncludeXmlComments(filePath);
             });
