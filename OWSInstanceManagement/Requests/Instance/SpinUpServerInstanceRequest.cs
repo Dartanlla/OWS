@@ -22,22 +22,28 @@ namespace OWSInstanceManagement.Requests.Instance
         public string ZoneName { get; set; }
         public int Port { get; set; }
 
-        private IOptions<APIPathOptions> owsApiPathConfig;
+        private IOptions<RabbitMQOptions> _rabbitMQOptions;
         private SuccessAndErrorMessage Output;
         private Guid CustomerGUID;
         //private IServiceProvider ServiceProvider;
-        private ICharactersRepository charactersRepository;
+        private ICharactersRepository _charactersRepository;
 
-        public void SetData(IOptions<APIPathOptions> owsApiPathConfig, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
+        public void SetData(IOptions<RabbitMQOptions> rabbitMQOptions, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
         {
-            this.owsApiPathConfig = owsApiPathConfig;
-            this.charactersRepository = charactersRepository;
+            _rabbitMQOptions = rabbitMQOptions;
+            _charactersRepository = charactersRepository;
             CustomerGUID = customerGuid.CustomerGUID;
         }
 
         public async Task<IActionResult> Handle()
         {
-            var factory = new ConnectionFactory() { HostName = owsApiPathConfig.Value.InternalRabbitMQServerHostName };
+            var factory = new ConnectionFactory() 
+            { 
+                HostName = _rabbitMQOptions.Value.RabbitMQHostName,
+                Port = _rabbitMQOptions.Value.RabbitMQPort,
+                UserName = _rabbitMQOptions.Value.RabbitMQUserName, 
+                Password = _rabbitMQOptions.Value.RabbitMQPassword
+            };
 
             using (var connection = factory.CreateConnection())
             {
