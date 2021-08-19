@@ -15,6 +15,25 @@ namespace OWSShared.Implementations
             if (operation.Parameters == null)
                 operation.Parameters = new List<OpenApiParameter>();
 
+            operation.Security.Add(new OpenApiSecurityRequirement()
+            {
+                {
+                    new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "X-CustomerGUID"
+                            },
+                            Scheme = "bearer",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header,
+                        },
+                        new List<string>()
+                    }
+            });
+
+            /*
             operation.Parameters.Add(new OpenApiParameter
             {
                 Name = "X-CustomerGUID",
@@ -22,9 +41,10 @@ namespace OWSShared.Implementations
                 Required = true,
                 Schema = new OpenApiSchema
                 {
-                    Type = "String"
+                    Type = "string"
                 }
             });
+            */
         }
 
         /*

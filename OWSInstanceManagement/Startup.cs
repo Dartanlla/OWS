@@ -62,11 +62,13 @@ namespace OWSInstanceManagement
             services.AddSwaggerGen(c => {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Open World Server Instance Management API", Version = "v1" });
 
-                c.AddSecurityDefinition("X-CustomerGUID", new OpenApiSecurityScheme()
+                c.AddSecurityDefinition("X-CustomerGUID", new OpenApiSecurityScheme
                 {
                     Description = "Authorization header using the X-CustomerGUID scheme",
                     Name = "X-CustomerGUID",
-                    In = ParameterLocation.Header
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "X-CustomerGUID"
                 });
 
                 c.OperationFilter<SwaggerSecurityRequirementsDocumentFilter>();
