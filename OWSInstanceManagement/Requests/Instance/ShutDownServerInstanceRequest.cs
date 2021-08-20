@@ -18,15 +18,15 @@ namespace OWSInstanceManagement.Requests.Instance
         public int WorldServerID { get; set; }
         public int ZoneInstanceID { get; set; }
 
-        private IOptions<APIPathOptions> owsApiPathConfig;
+        private IOptions<RabbitMQOptions> _rabbitMQOptions;
         private SuccessAndErrorMessage Output;
         private Guid CustomerGUID;
-        private IInstanceManagementRepository instanceMangementRepository;
+        private IInstanceManagementRepository _instanceMangementRepository;
 
-        public void SetData(IOptions<APIPathOptions> owsApiPathConfig, IInstanceManagementRepository instanceMangementRepository, IHeaderCustomerGUID customerGuid)
+        public void SetData(IOptions<RabbitMQOptions> rabbitMQOptions, IInstanceManagementRepository instanceMangementRepository, IHeaderCustomerGUID customerGuid)
         {
-            this.owsApiPathConfig = owsApiPathConfig;
-            this.instanceMangementRepository = instanceMangementRepository;
+            _rabbitMQOptions = rabbitMQOptions;
+            _instanceMangementRepository = instanceMangementRepository;
             CustomerGUID = customerGuid.CustomerGUID;
         }
 
@@ -36,7 +36,13 @@ namespace OWSInstanceManagement.Requests.Instance
 
 
             //Send the servershutdown message to RabbitMQ
-            var factory = new ConnectionFactory() { HostName = owsApiPathConfig.Value.InternalRabbitMQServerHostName };
+            var factory = new ConnectionFactory()
+            {
+                HostName = _rabbitMQOptions.Value.RabbitMQHostName,
+                Port = _rabbitMQOptions.Value.RabbitMQPort,
+                UserName = _rabbitMQOptions.Value.RabbitMQUserName,
+                Password = _rabbitMQOptions.Value.RabbitMQPassword
+            };
 
             using (var connection = factory.CreateConnection())
             {

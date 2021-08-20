@@ -27,4 +27,10 @@
     <ProjectReference Include="..\OWSShared\OWSShared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="OWSInstanceManagement.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

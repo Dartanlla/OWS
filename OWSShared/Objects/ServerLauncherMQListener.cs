@@ -27,22 +27,24 @@ namespace OWSShared.Objects
         private Guid serverShutDownQueueNameGUID;
 
         private readonly Guid _customerGUID;
-        private readonly IOptions<OWSInstanceLauncherOptions> _OWSInstanceLauncherOptions;
-        private readonly IOptions<APIPathOptions> _OWSAPIPathOptions;
+        private readonly IOptions<OWSInstanceLauncherOptions> _owsInstanceLauncherOptions;
+        private readonly IOptions<APIPathOptions> _owsAPIPathOptions;
+        private readonly IOptions<RabbitMQOptions> _rabbitMQOptions;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IZoneServerProcessesRepository _zoneServerProcessesRepository;
         private readonly IOWSInstanceLauncherDataRepository _owsInstanceLauncherDataRepository;
         private readonly int _worldServerId;
 
-        public ServerLauncherMQListener(IOptions<OWSInstanceLauncherOptions> OWSInstanceLauncherOptions, IOptions<APIPathOptions> OWSAPIPathOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository,
+        public ServerLauncherMQListener(IOptions<OWSInstanceLauncherOptions> owsInstanceLauncherOptions, IOptions<APIPathOptions> owsAPIPathOptions, IOptions<RabbitMQOptions> rabbitMQOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository,
             IOWSInstanceLauncherDataRepository owsInstanceLauncherDataRepository)
         {
-            _OWSInstanceLauncherOptions = OWSInstanceLauncherOptions;
-            _OWSAPIPathOptions = OWSAPIPathOptions;
+            _owsInstanceLauncherOptions = owsInstanceLauncherOptions;
+            _owsAPIPathOptions = owsAPIPathOptions;
+            _rabbitMQOptions = rabbitMQOptions;
             _httpClientFactory = httpClientFactory;
             _zoneServerProcessesRepository = zoneServerProcessesRepository;
             _owsInstanceLauncherDataRepository = owsInstanceLauncherDataRepository;
-            _customerGUID = new Guid(OWSInstanceLauncherOptions.Value.OWSAPIKey);
+            _customerGUID = new Guid(owsInstanceLauncherOptions.Value.OWSAPIKey);
             _worldServerId = GetWorldServerID();
 
             InitRabbitMQ();
@@ -66,11 +68,13 @@ namespace OWSShared.Objects
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Attempting to Register OWS Instance Launcher with RabbitMQ ServerSpinUp Queue...");
 
-            var factory = new ConnectionFactory() { 
-                HostName = _OWSAPIPathOptions.Value.InternalRabbitMQServerHostName, 
-                DispatchConsumersAsync = true, 
-                UserName = _OWSInstanceLauncherOptions.Value.RabbitMQUserName, 
-                Password = _OWSInstanceLauncherOptions.Value.RabbitMQPassword 
+            var factory = new ConnectionFactory()
+            {
+                HostName = _rabbitMQOptions.Value.RabbitMQHostName,
+                Port = _rabbitMQOptions.Value.RabbitMQPort,
+                UserName = _rabbitMQOptions.Value.RabbitMQUserName,
+                Password = _rabbitMQOptions.Value.RabbitMQPassword,
+                DispatchConsumersAsync = true
             };
 
             // create connection  
@@ -124,7 +128,7 @@ namespace OWSShared.Objects
         public void DoWork()
         {
             //This will be null if there was a problem with initialization in the constructor
-            if (_OWSInstanceLauncherOptions == null)
+            if (_owsInstanceLauncherOptions == null)
             {
                 return;
             }
@@ -205,8 +209,8 @@ namespace OWSShared.Objects
             {
                 StartInfo = new System.Diagnostics.ProcessStartInfo
                 {
-                    FileName = _OWSInstanceLauncherOptions.Value.PathToDedicatedServer,
-                    Arguments = Encoding.Default.GetString(Encoding.UTF8.GetBytes(String.Format(_OWSInstanceLauncherOptions.Value.ServerArguments, mapName, port))),
+                    FileName = _owsInstanceLauncherOptions.Value.PathToDedicatedServer,
+                    Arguments = Encoding.Default.GetString(Encoding.UTF8.GetBytes(String.Format(_owsInstanceLauncherOptions.Value.ServerArguments, mapName, port))),
                     UseShellExecute = false,
                     RedirectStandardOutput = false,
                     CreateNoWindow = false
