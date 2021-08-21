@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IdentityModel.Client;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,16 +8,27 @@ namespace OWSExternalLoginProviders.Interfaces
 {
     public interface IExternalLoginProvider
     {
-        //Authenticate a user and return a token string
-        Task<string> AuthenticateAsync(string username, string password, bool rememberMe = false);
+        /// <summary>
+        /// Authenticate using Password Grant Type
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns><see cref="TokenResponse"/></returns>
+        Task<TokenResponse> AuthenticatePasswordAsync(string username, string password);
 
-        //Register a new user
-        Task<string> RegisterAsync(string username, string password, string email);
+        /// <summary>
+        /// Authenticate using Authorization Code Grant Type
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns><see cref="TokenResponse"/></returns>
+        Task<TokenResponse> AuthenticateAuthorizationCodeAsync(string code);
 
-        //Validate the Login Token returned from AuthenticateAsync
-        bool ValidateLoginToken(string token, string username);
+        /// <summary>
+        /// Authenticate using Device Token Grant Type
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns><see cref="TokenResponse"/></returns>
+        Task<TokenResponse> AuthenticateDeviceToken(string token);
 
-        //Get the error message from the token returned when there is an error
-        string GetErrorFromToken(string token);
     }
 }
