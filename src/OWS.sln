@@ -29,6 +29,10 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSExternalLoginProviders", "OWSExternalLoginProviders\OWSExternalLoginProviders.csproj", "{91B38571-93C8-43B9-82B4-FC40F35D0B0B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{73DFE6A8-4392-48EA-9D0A-97D07D6F75D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OWSTests", "Tests\OWSTests\OWSTests.csproj", "{662B33F2-7BB3-44A8-8F54-1F5B3C1FAB07}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,9 +75,16 @@ Global
 		{91B38571-93C8-43B9-82B4-FC40F35D0B0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91B38571-93C8-43B9-82B4-FC40F35D0B0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91B38571-93C8-43B9-82B4-FC40F35D0B0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{662B33F2-7BB3-44A8-8F54-1F5B3C1FAB07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{662B33F2-7BB3-44A8-8F54-1F5B3C1FAB07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{662B33F2-7BB3-44A8-8F54-1F5B3C1FAB07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{662B33F2-7BB3-44A8-8F54-1F5B3C1FAB07}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{662B33F2-7BB3-44A8-8F54-1F5B3C1FAB07} = {73DFE6A8-4392-48EA-9D0A-97D07D6F75D3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C8060178-BF56-49A5-99A4-C7AFCF07B60F}
