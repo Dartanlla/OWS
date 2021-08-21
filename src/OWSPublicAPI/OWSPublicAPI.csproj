@@ -47,10 +47,7 @@
       <DockerComposeOverrideFile Include="$(SolutionDir)\docker-compose.override.windows.yml" />
     </ItemGroup>
     
-	<Copy 
-		  SourceFiles="@(DockerComposeOverrideFile)" 
-		  DestinationFiles="$(SolutionDir)\docker-compose.override.yml" 
-		  SkipUnchangedFiles="true" />
+	<Copy SourceFiles="@(DockerComposeOverrideFile)" DestinationFiles="$(SolutionDir)\docker-compose.override.yml" SkipUnchangedFiles="true" />
   </Target>
   
   <Target Name="DockerComposeOverrideOSX" BeforeTargets="PreBuildEvent" Condition="$([MSBuild]::IsOSPlatform('OSX'))">
@@ -58,10 +55,7 @@
       <DockerComposeOverrideFile Include="$(SolutionDir)\docker-compose.override.osx.yml" />
     </ItemGroup>
     
-	<Copy 
-		  SourceFiles="@(DockerComposeOverrideFile)" 
-		  DestinationFiles="$(SolutionDir)\docker-compose.override.yml" 
-		  SkipUnchangedFiles="true" />
+	<Copy SourceFiles="@(DockerComposeOverrideFile)" DestinationFiles="$(SolutionDir)\docker-compose.override.yml" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>
