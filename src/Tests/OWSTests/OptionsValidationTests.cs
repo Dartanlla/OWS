@@ -1,15 +1,13 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using OWSShared.Extensions;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
-using System.Text;
-using OWSShared.Extensions;
 using System.Linq;
 using Xunit;
-using System.ComponentModel.DataAnnotations;
 
 namespace OWSTests
 {
@@ -63,7 +61,6 @@ namespace OWSTests
             var configBuilder = new ConfigurationBuilder().AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json"));
             _configuration = configBuilder.Build();
             _serviceCollection = new ServiceCollection();
-            _serviceCollection.AddOptions();
         }
 
         [Fact]
