@@ -6,10 +6,10 @@ namespace OWSExternalLoginProviders.Options
 {
     public class ExternalLoginProviderOptions
     {
+
         public const string SectionName = "ExternalLoginProviderConfig";
-        public string APIKey { get; set; }
-        public string SecretKey { get; set; }
-        public string LoginURL { get; set; }
-        public bool AutoRegister { get; set; }
+        public string ClientId { get; set; }
+        public string ClientSecret { get; set; }
+
     }
 }
