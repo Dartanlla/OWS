@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.Models;
+using OWSData.Models.Tables;
 
 namespace OWSData.Repositories.Implementations.MSSQL
 {
@@ -29,6 +30,22 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
+        public async Task AddOrUpdateCustomCharacterData(Guid customerGUID, AddOrUpdateCustomCharacterData addOrUpdateCustomCharacterData)
+        {
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@CharacterName", addOrUpdateCustomCharacterData.CharacterName);
+                p.Add("@CustomFieldName", addOrUpdateCustomCharacterData.CustomFieldName);
+                p.Add("@FieldValue", addOrUpdateCustomCharacterData.FieldValue);
+
+                await Connection.QuerySingleOrDefaultAsync("AddOrUpdateCustomCharacterData",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+        }
+
         public async Task<GetCharByCharName> GetCharByCharName(Guid customerGUID, string characterName)
         {
             GetCharByCharName outputCharacter;
@@ -46,6 +63,24 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
 
             return outputCharacter;
+        }
+
+        public async Task<CustomCharacterData> GetCustomCharacterData(Guid customerGUID, string characterName)
+        {
+            CustomCharacterData outputCustomCharacterData;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@CharName", characterName);
+
+                outputCustomCharacterData = await Connection.QuerySingleOrDefaultAsync<CustomCharacterData>("GetCustomCharacterData",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+            return outputCustomCharacterData;
         }
 
         public async Task<JoinMapByCharName> JoinMapByCharName(Guid customerGUID, string characterName, string zoneName, int playerGroupType)
@@ -253,6 +288,11 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     p,
                     commandType: CommandType.StoredProcedure);
             }
+        }
+
+        public Task UpdatePosition(Guid customerGUID, string playerName, string mapName, float X, float Y, float Z, float RX, float RY, float RZ)
+        {
+            return Task.CompletedTask;
         }
     }
 }
