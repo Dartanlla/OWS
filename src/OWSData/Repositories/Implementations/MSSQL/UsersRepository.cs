@@ -22,7 +22,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public UsersRepository(IOptions<StorageOptions> storageOptions)
         {
-            _storageOptions = storageOptions;            
+            _storageOptions = storageOptions;
         }
 
         public IDbConnection Connection
@@ -31,6 +31,29 @@ namespace OWSData.Repositories.Implementations.MSSQL
             {
                 return new SqlConnection(_storageOptions.Value.OWSDBConnectionString);
             }
+        }
+
+        public async Task<IEnumerable<GetAllCharacters>> GetAllCharacters(Guid customerGUID, Guid userSessionGUID)
+        {
+            IEnumerable<GetAllCharacters> outputObject = new List<GetAllCharacters>();
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("CustomerGUID", customerGUID);
+                p.Add("UserSessionGUID", userSessionGUID);
+
+                outputObject = await Connection.QueryAsync<GetAllCharacters>("GetAllCharacters",
+                p,
+                commandType: CommandType.StoredProcedure);
+
+                //await Connection.ExecuteAsync("AddCharacter",
+                //    p,
+                //    commandType: CommandType.StoredProcedure);
+                //errorMessage = p.Get<string>("ErrorMessage");
+            }
+
+            return outputObject;
         }
 
         public async Task<CreateCharacter> CreateCharacter(Guid customerGUID, Guid userSessionGUID, string characterName, string className)

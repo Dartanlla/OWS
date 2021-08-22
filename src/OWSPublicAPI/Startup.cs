@@ -65,15 +65,6 @@ namespace OWSPublicAPI
             })
             .AddViews()
             .AddApiExplorer()
-            //.AddCors()
-            //.AddJsonFormatters()
-            /*.AddJsonOptions(options => {
-                options.SerializerSettings.Converters.Add(new RequestHandlerConverter<IRequest>(container));
-            })*/
-            .AddNewtonsoftJson(o =>
-            {
-                //o.SerializerSettings.Converters.Add(new RequestHandlerConverter<IRequest>(container));
-            })
             .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
             services.AddSimpleInjector(container, options => {
