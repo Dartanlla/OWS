@@ -8,8 +8,8 @@ using OWSShared.Options;
 using OWSShared.RequestPayloads;
 using Microsoft.Extensions.Options;
 using System.Net.Http;
-using Newtonsoft.Json;
 using System.Text;
+using System.Text.Json;
 
 namespace OWSPublicAPI.Requests.Users
 {
@@ -147,7 +147,7 @@ namespace OWSPublicAPI.Requests.Users
                 Port = port
             };
 
-            var serverSpinUpPayload = new StringContent(JsonConvert.SerializeObject(spinUpServerInstanceRequestPayload), Encoding.UTF8, "application/json");
+            var serverSpinUpPayload = new StringContent(JsonSerializer.Serialize(spinUpServerInstanceRequestPayload), Encoding.UTF8, "application/json");
 
             var responseMessage = await instanceManagementHttpClient.PostAsync("api/Instance/SpinUpServerInstance", serverSpinUpPayload);
 
