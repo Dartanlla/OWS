@@ -86,6 +86,15 @@ namespace OWSData.Repositories.Implementations.Postgres
             }
         }
 
+        public async Task<IEnumerable<GetAllCharacters>> GetAllCharacters(Guid customerGUID, Guid userSessionGUID)
+        {
+            IEnumerable<GetAllCharacters> outputObject = new List<GetAllCharacters>();
+
+            //Not Implemented
+
+            return outputObject;
+        }
+
         //_PlayerGroupTypeID 0 returns all group types
         public async Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid _CustomerGUID, Guid _UserSessionGUID, string _CharacterName, int _PlayerGroupTypeID = 0)
         {

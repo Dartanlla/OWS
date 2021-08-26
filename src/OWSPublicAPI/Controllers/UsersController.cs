@@ -140,6 +140,21 @@ namespace OWSPublicAPI.Controllers
         }
 
         /// <summary>
+        /// Get All Characters for a Specific User.
+        /// </summary>
+        /// <remarks>
+        /// Send in a UserSessionGUID to specify which User to get all Characters for.
+        /// </remarks>
+        [HttpPost]
+        [Route("GetAllCharacters")]
+        [Produces(typeof(GetAllCharacters))]
+        public async Task<IActionResult> GetAllCharacters([FromBody] GetAllCharactersRequest request)
+        {
+            request.SetData(_usersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
+        /// <summary>
         /// Gets a list of Player Groups that a Character is in.
         /// </summary>
         [HttpPost]

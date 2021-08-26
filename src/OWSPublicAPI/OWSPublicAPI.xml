@@ -126,6 +126,14 @@
             that has not connected to a UE4 server yet.
             </remarks>
         </member>
+        <member name="M:OWSPublicAPI.Controllers.UsersController.GetAllCharacters(OWSPublicAPI.Requests.Users.GetAllCharactersRequest)">
+            <summary>
+            Get All Characters for a Specific User.
+            </summary>
+            <remarks>
+            Send in a UserSessionGUID to specify which User to get all Characters for.
+            </remarks>
+        </member>
         <member name="M:OWSPublicAPI.Controllers.UsersController.GetPlayerGroupsCharacterIsIn(OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest)">
             <summary>
             Gets a list of Player Groups that a Character is in.
@@ -303,6 +311,86 @@
             </summary>
             <remarks>
             Injects the dependencies for the ExternalLoginAndCreateSessionRequest.
+            </remarks>
+        </member>
+        <member name="T:OWSPublicAPI.Requests.Users.GetAllCharactersRequest">
+            <summary>
+            GetAllCharactersRequest
+            </summary>
+            <remarks>
+            This request object handles requests for api/Users/GetAllCharacters
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Users.GetAllCharactersRequest.UserSessionGUID">
+            <summary>
+            UserSessionGUID
+            </summary>
+            <remarks>
+            This is the User Session GUID to determine the User to get all Characters for.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Users.GetAllCharactersRequest.SetData(OWSData.Repositories.Interfaces.IUsersRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            SetData
+            </summary>
+            <remarks>
+            Used to pass dependencies to the Request object (for performance reasons).
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Users.GetAllCharactersRequest.Handle">
+            <summary>
+            Handle
+            </summary>
+            <remarks>
+            This handles the Request.
+            </remarks>
+        </member>
+        <member name="T:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest">
+            <summary>
+            GetPlayerGroupsCharacterIsInRequest
+            </summary>
+            <remarks>
+            This request object handles requests for api/Users/GetPlayerGroupsCharacterIsIn
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.UserSessionGUID">
+            <summary>
+            UserSessionGUID
+            </summary>
+            <remarks>
+            This is the User Session GUID to determine the User to get Player Groups for.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.CharacterName">
+            <summary>
+            CharacterName
+            </summary>
+            <remarks>
+            CharacterName filters the list of Player Groups to only return for this CharacterName.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.PlayerGroupTypeID">
+            <summary>
+            PlayerGroupTypeID
+            </summary>
+            <remarks>
+            PlayerGroupTypeID filters the list of Player Groups to only return for this PlayerGroupTypeID.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.SetData(OWSData.Repositories.Interfaces.IUsersRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            SetData
+            </summary>
+            <remarks>
+            Used to pass dependencies to the Request object (for performance reasons).
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.Handle">
+            <summary>
+            Handle
+            </summary>
+            <remarks>
+            This handles the Request.
             </remarks>
         </member>
     </members>

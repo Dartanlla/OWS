@@ -10,36 +10,22 @@ using OWSShared.Interfaces;
 namespace OWSPublicAPI.Requests.Users
 {
     /// <summary>
-    /// GetPlayerGroupsCharacterIsInRequest
+    /// GetAllCharactersRequest
     /// </summary>
     /// <remarks>
-    /// This request object handles requests for api/Users/GetPlayerGroupsCharacterIsIn
+    /// This request object handles requests for api/Users/GetAllCharacters
     /// </remarks>
-    public class GetPlayerGroupsCharacterIsInRequest : IRequestHandler<GetPlayerGroupsCharacterIsInRequest, IActionResult>, IRequest
+    public class GetAllCharactersRequest
     {
         /// <summary>
         /// UserSessionGUID
         /// </summary>
         /// <remarks>
-        /// This is the User Session GUID to determine the User to get Player Groups for.
+        /// This is the User Session GUID to determine the User to get all Characters for.
         /// </remarks>
         public Guid UserSessionGUID { get; set; }
-        /// <summary>
-        /// CharacterName
-        /// </summary>
-        /// <remarks>
-        /// CharacterName filters the list of Player Groups to only return for this CharacterName.
-        /// </remarks>
-        public string CharacterName { get; set; }
-        /// <summary>
-        /// PlayerGroupTypeID
-        /// </summary>
-        /// <remarks>
-        /// PlayerGroupTypeID filters the list of Player Groups to only return for this PlayerGroupTypeID.
-        /// </remarks>
-        public int PlayerGroupTypeID { get; set; }
 
-        private IEnumerable<GetPlayerGroupsCharacterIsIn> output;
+        private IEnumerable<GetAllCharacters> output;
         private Guid customerGUID;
         private IUsersRepository usersRepository;
 
@@ -63,7 +49,7 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
-            output = await usersRepository.GetPlayerGroupsCharacterIsIn(customerGUID, UserSessionGUID, CharacterName, PlayerGroupTypeID);
+            output = await usersRepository.GetAllCharacters(customerGUID, UserSessionGUID);
 
             return new OkObjectResult(output);
         }
