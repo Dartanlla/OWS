@@ -30,6 +30,7 @@ using OWSShared.Extensions;
 using OWSShared.Middleware;
 using OWSExternalLoginProviders.Interfaces;
 using OWSExternalLoginProviders.Options;
+using OWSExternalLoginProviders.Extensions;
 using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Hosting;
 using System.IO;
@@ -57,6 +58,7 @@ namespace OWSPublicAPI
         {
             services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo("./temp/DataProtection-Keys"));
 
+            services.AddMemoryCache();
             //services.AddMvc();
 
             services.AddMvcCore(config => {
@@ -109,7 +111,7 @@ namespace OWSPublicAPI
             services.Configure<OWSShared.Options.APIPathOptions>(Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName));
             services.Configure<OWSData.Models.StorageOptions>(Configuration.GetSection(OWSData.Models.StorageOptions.SectionName));
 
-            services.ConfigureAndValidate<EpicOnlineServicesOptions>(Configuration.GetSection(ExternalLoginProviderOptions.SectionName));
+            services.ConfigureAndValidate<EpicOnlineServicesOptions>(ExternalLoginProviderOptions.EpicOnlineServices, Configuration.GetSection($"{ExternalLoginProviderOptions.SectionName}:{ExternalLoginProviderOptions.EpicOnlineServices}"));
 
             InitializeContainer(services);
         }
@@ -161,7 +163,12 @@ namespace OWSPublicAPI
             //Register Xsolla
             //container.Register<IExternalLoginProvider, OWSExternalLoginProviders.Implementations.XsollaLoginProvider>(Lifestyle.Scoped);
             //container.Register<OWSExternalLoginProviders.Options.EpicOnlineServicesOptions>(Lifestyle.Singleton);
-            container.Register<IExternalLoginProvider, OWSExternalLoginProviders.Implementations.EpicOnlineServicesLoginProvider>(Lifestyle.Scoped);
+            //container.Register<IExternalLoginProvider, OWSExternalLoginProviders.Implementations.EpicOnlineServicesLoginProvider>(Lifestyle.Scoped);
+
+            var externalloginproviderfactory = new ExternalLoginProviderFactory(container);
+            externalloginproviderfactory.Register<OWSExternalLoginProviders.Implementations.EpicOnlineServicesLoginProvider>(ExternalLoginProviderOptions.EpicOnlineServices);
+
+            container.RegisterInstance<IExternalLoginProviderFactory>(externalloginproviderfactory);
 
             var provider = services.BuildServiceProvider();
             container.RegisterInstance<IServiceProvider>(provider);
