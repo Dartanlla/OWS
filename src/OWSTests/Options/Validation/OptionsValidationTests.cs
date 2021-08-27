@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using Xunit;
 
-namespace OWSGeneralTests.Options.Validation
+namespace OWSTests.Options.Validation
 {
     public class OptionsValidationTests
     {

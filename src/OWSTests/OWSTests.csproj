@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\OWSShared\OWSShared.csproj" />
+    <ProjectReference Include="..\OWSShared\OWSShared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

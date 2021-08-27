@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace OWSGeneralTests.Options.Validation
+namespace OWSTests.Options.Validation
 {
     public class TestOptions
     {
