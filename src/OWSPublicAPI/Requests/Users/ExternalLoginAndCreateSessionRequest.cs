@@ -58,6 +58,7 @@ namespace OWSPublicAPI.Requests.Users
         public async Task<IActionResult> Handle()
         {
             //Call external provider to get token
+            /*
             string token = await externalLoginProvider.AuthenticateAsync(Email, Password, false);
 
             if (!String.IsNullOrEmpty(token) && externalLoginProvider.ValidateLoginToken(token, Email))
@@ -72,13 +73,15 @@ namespace OWSPublicAPI.Requests.Users
 
                 return new OkObjectResult(output);
             }
+            */
 
             //Not authenticated
             output = new PlayerLoginAndCreateSession();
             output.Authenticated = false;
             output.UserSessionGuid = Guid.Empty;
-            output.ErrorMessage = externalLoginProvider.GetErrorFromToken(token);
+            //output.ErrorMessage = externalLoginProvider.GetErrorFromToken(token);
             return new OkObjectResult(output);
+            
         }
     }
 }
