@@ -37,10 +37,10 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public string Password { get; set; }
 
-        private PlayerLoginAndCreateSession output;
-        private Guid customerGUID;
-        private IUsersRepository usersRepository;
-        private IExternalLoginProvider externalLoginProvider;
+        private PlayerLoginAndCreateSession _output;
+        private Guid _customerGUID;
+        private IUsersRepository _usersRepository;
+        private IExternalLoginProviderFactory _externalLoginProviderFactory;
 
         /// <summary>
         /// Set Dependencies for ExternalLoginAndCreateSessionRequest
@@ -48,11 +48,11 @@ namespace OWSPublicAPI.Requests.Users
         /// <remarks>
         /// Injects the dependencies for the ExternalLoginAndCreateSessionRequest.
         /// </remarks>
-        public void SetData(IUsersRepository usersRepository, IExternalLoginProvider externalLoginProvider, IHeaderCustomerGUID customerGuid)
+        public void SetData(IUsersRepository usersRepository, IExternalLoginProviderFactory externalLoginProviderFactory, IHeaderCustomerGUID customerGuid)
         {
-            this.customerGUID = customerGuid.CustomerGUID;
-            this.usersRepository = usersRepository;
-            this.externalLoginProvider = externalLoginProvider;
+            _customerGUID = customerGuid.CustomerGUID;
+            _usersRepository = usersRepository;
+            _externalLoginProviderFactory = externalLoginProviderFactory;
         }
 
         public async Task<IActionResult> Handle()
@@ -76,11 +76,11 @@ namespace OWSPublicAPI.Requests.Users
             */
 
             //Not authenticated
-            output = new PlayerLoginAndCreateSession();
-            output.Authenticated = false;
-            output.UserSessionGuid = Guid.Empty;
+            _output = new PlayerLoginAndCreateSession();
+            _output.Authenticated = false;
+            _output.UserSessionGuid = Guid.Empty;
             //output.ErrorMessage = externalLoginProvider.GetErrorFromToken(token);
-            return new OkObjectResult(output);
+            return new OkObjectResult(_output);
             
         }
     }
