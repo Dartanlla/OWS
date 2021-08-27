@@ -4,52 +4,13 @@ using Microsoft.Extensions.Options;
 using OWSShared.Extensions;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Xunit;
 
-namespace OWSTests
+namespace OWSGeneralTests.Options.Validation
 {
-    public class TestOptions
-    {
-        public const string SectionName = "TestOptions";
-    }
-
-    public class TestOptionsRequired : TestOptions
-    {
-        [Required(ErrorMessage = "Field Is Required")]
-        public string Field { get; set; }
-    }
-
-    public class TestOptionsType : TestOptions
-    {
-        [DataType(DataType.Text)]
-        public string Field { get; set; }
-    }
-
-    public class TestOptionsRequiredFailed : TestOptions
-    {
-        [Required(ErrorMessage = "Field Is Required")]
-        public string FieldRequired { get; set; }
-    }
-
-    public class TestOptionsTypeFailed : TestOptions
-    {
-        [Required(ErrorMessage = "Field Is Required")]
-        [RegularExpression("^[0-9]*$", ErrorMessage = "Field is not numeric")]
-        public string Field { get; set; }
-    }
-
-    public class TestOptionsMutipleErrors : TestOptions
-    {
-        [Required(ErrorMessage = "Field1 Is Required")]
-        public string Field1 { get; set; }
-
-        [Required(ErrorMessage = "Field2 Is Required")]
-        public string Field2 { get; set; }
-    }
-
     public class OptionsValidationTests
     {
         private readonly IConfigurationRoot _configuration;
@@ -147,5 +108,6 @@ namespace OWSTests
             Assert.Equal("Field2 Is Required", errors.ElementAt(1));
             Assert.NotEmpty(errors);
         }
+
     }
 }
