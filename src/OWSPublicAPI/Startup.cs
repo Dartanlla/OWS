@@ -160,11 +160,6 @@ namespace OWSPublicAPI
             container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Transient);
             container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
 
-            //Register Xsolla
-            //container.Register<IExternalLoginProvider, OWSExternalLoginProviders.Implementations.XsollaLoginProvider>(Lifestyle.Scoped);
-            //container.Register<OWSExternalLoginProviders.Options.EpicOnlineServicesOptions>(Lifestyle.Singleton);
-            //container.Register<IExternalLoginProvider, OWSExternalLoginProviders.Implementations.EpicOnlineServicesLoginProvider>(Lifestyle.Scoped);
-
             var externalloginproviderfactory = new ExternalLoginProviderFactory(container);
             externalloginproviderfactory.Register<OWSExternalLoginProviders.Implementations.EpicOnlineServicesLoginProvider>(ExternalLoginProviderOptions.EpicOnlineServices);
 
