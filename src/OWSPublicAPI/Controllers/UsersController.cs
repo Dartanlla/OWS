@@ -33,7 +33,7 @@ namespace OWSPublicAPI.Controllers
     {
         private readonly Container _container;
         private readonly IUsersRepository _usersRepository;
-        private readonly IExternalLoginProvider _externalLoginProvider;
+        private readonly IExternalLoginProviderFactory _externalLoginProviderFactory;
         private readonly ICharactersRepository _charactersRepository;
         private readonly IHeaderCustomerGUID _customerGuid;
         private readonly IOptions<PublicAPIOptions> _owsGeneralConfig;
@@ -48,7 +48,7 @@ namespace OWSPublicAPI.Controllers
         /// </remarks>
         public UsersController(Container container, 
             IUsersRepository usersRepository,
-            IExternalLoginProvider externalLoginProvider,
+            IExternalLoginProviderFactory externalLoginProviderFactory,
             ICharactersRepository charactersRepository, 
             IHeaderCustomerGUID customerGuid,
             IOptions<PublicAPIOptions> owsGeneralConfig,
@@ -57,7 +57,7 @@ namespace OWSPublicAPI.Controllers
         {
             _container = container;
             _usersRepository = usersRepository;
-            _externalLoginProvider = externalLoginProvider;
+            _externalLoginProviderFactory = externalLoginProviderFactory;
             _charactersRepository = charactersRepository;
             _customerGuid = customerGuid;
             _owsGeneralConfig = owsGeneralConfig;
@@ -213,7 +213,7 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(PlayerLoginAndCreateSession))]
         public async Task<IActionResult> ExternalLoginAndCreateSession([FromBody] ExternalLoginAndCreateSessionRequest request)
         {
-            request.SetData(_usersRepository, _externalLoginProvider, _customerGuid);
+            request.SetData(_usersRepository, _externalLoginProviderFactory, _customerGuid);
             return await request.Handle();
         }
 
@@ -249,7 +249,7 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(GetUserSession))]
         public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest request)
         {
-            request.SetData(_usersRepository, _externalLoginProvider, _customerGuid);
+            request.SetData(_usersRepository, _externalLoginProviderFactory, _customerGuid);
             return await request.Handle();
         }
 
