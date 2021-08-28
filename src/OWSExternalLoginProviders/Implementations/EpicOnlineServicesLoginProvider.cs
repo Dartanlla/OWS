@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace OWSExternalLoginProviders.Implementations
 {
@@ -92,13 +93,19 @@ namespace OWSExternalLoginProviders.Implementations
 
         public override Task<ExternalLoginProviderResponse> AuthenticateDeviceToken(string token)
         {
-            throw new NotImplementedException();
+            var response = new ExternalLoginProviderResponse();
+            response.IsError = true;
+            response.ErrorDescription = "Authentication By Device Token Grant Is Not Support By External Login Provider.";
+            return Task.FromResult(response);
         }
 
         public override Task<ExternalLoginProviderResponse> AuthenticatePasswordAsync(string username, string password)
         {
+            var response = new ExternalLoginProviderResponse();
+            response.IsError = true;
+            response.ErrorDescription = "Authentication By Password Grant Is Not Support By External Login Provider.";
+            return Task.FromResult(response);
 
-            throw new NotImplementedException();
             /*
             
             NOT WORKING NEEDS 2FA SOLUTION FROM EPIC.
@@ -152,7 +159,10 @@ namespace OWSExternalLoginProviders.Implementations
 
         public override Task<ExternalLoginProviderResponse> TwoFactorAuthentication(string method, string code)
         {
-            throw new NotImplementedException();
+            var response = new ExternalLoginProviderResponse();
+            response.IsError = true;
+            response.ErrorDescription = "Two Factor Authentication Is Not Support By External Login Provider.";
+            return Task.FromResult(response);
         }
 
         public override async Task<bool> VerifyToken(string token)
@@ -161,7 +171,7 @@ namespace OWSExternalLoginProviders.Implementations
             var httpClient = HttpClientFactory.CreateClient();
             var request = await httpClient.IntrospectTokenAsync(new TokenIntrospectionRequest
             {
-                Address = "https://api.epicgames1.dev/epic/oauth/v1/tokenInfo",
+                Address = "https://api.epicgames.dev/epic/oauth/v1/tokenInfo",
                 Token = token
             });
 
@@ -191,13 +201,13 @@ namespace OWSExternalLoginProviders.Implementations
                     }
                 }
 
-                JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-                var jwks = new JsonWebKeySet(epicgamesjwks);
-
                 try
                 {
+                    JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+                    var jwks = new JsonWebKeySet(epicgamesjwks);
+
                     SecurityToken validatedToken;
-                    tokenHandler.ValidateToken(token, new TokenValidationParameters
+                    ClaimsPrincipal claimsPrincipal = tokenHandler.ValidateToken(token, new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
                         ValidateAudience = false,
@@ -206,7 +216,20 @@ namespace OWSExternalLoginProviders.Implementations
                         IssuerSigningKey = jwks.Keys.First()
                     }, out validatedToken);
 
-                    return validatedToken != null;
+                    if (validatedToken != null && claimsPrincipal != null && claimsPrincipal.Claims != null)
+                    {
+                        Claim clientId = claimsPrincipal.Claims.Where(x => x.Type == "aud").FirstOrDefault();
+                        Claim deploymentId = claimsPrincipal.Claims.Where(x => x.Type == "pfdid").FirstOrDefault();
+                        if (clientId != null && deploymentId != null)
+                        {
+                            if (clientId.Value == Options.ClientId && deploymentId.Value == Options.DeploymentId)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+
+                    return false;
                 }
                 catch (SecurityTokenValidationException stvex)
                 {
