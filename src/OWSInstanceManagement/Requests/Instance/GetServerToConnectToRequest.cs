@@ -118,7 +118,7 @@ namespace OWSInstanceManagement.Requests.Instance
                     return true;
                 }
 
-                System.Threading.Thread.Sleep(2);
+                System.Threading.Thread.Sleep(2000);
             }
 
             return false;
