@@ -6,6 +6,7 @@
 </p>
 <h1></h1>
 <p align="center">
+    <img src="https://app.travis-ci.com/Dartanlla/OWS.svg?branch=main">
     <a href="https://github.com/Dartanlla/OWS/blob/master/LICENSE">
         <img src="https://img.shields.io/github/license/Dartanlla/ows.svg?style=flat-square">
     </a>
