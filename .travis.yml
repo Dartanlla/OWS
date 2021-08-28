@@ -10,5 +10,4 @@ before_script:
 
 script:
 - dotnet build src/OWS.sln -c Release
-- dotnet test src/OWSTests/OWSTests.csproj
 - dotnet test src/OWS.sln -c Release -v n
