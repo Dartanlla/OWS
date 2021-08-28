@@ -7,10 +7,14 @@ namespace OWSExternalLoginProviders.Options
 {
     /// <summary>
     /// Epic Online Services
+    /// <br/><br/>
+    /// Config Format :
     /// <code>
-    /// <br>"ExternalLoginProviderConfig": {</br>
-    /// <br>  "ClientId": "Test12345",</br>
+    /// <br>"EpicOnlineServices": {</br>
+    /// <br>  "ClientId": "",</br>
     /// <br>  "ClientSecret": "",</br>
+    /// <br>  "DeploymentId": "",</br>
+    /// <br>  "RedirectUri": ""</br>
     /// <br>}</br>
     /// </code>
     /// </summary>
