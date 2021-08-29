@@ -2,15 +2,26 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace OWSData.Models.StoredProcs
 {
     public class GetCharByCharName
     {
+        public GetCharByCharName()
+        {
+            IsAdmin = false;
+            IsModerator = false;
+        }
+
         public Guid CustomerGuid { get; set; }
         public int CharacterId { get; set; }
         public Guid? UserGuid { get; set; }
         public string Email { get; set; }
+        public bool IsAdmin { get; set; }
+        public bool IsModerator { get; set; }
+
+        [JsonPropertyName("CharacterName")]
         public string CharName { get; set; }
         public string MapName { get; set; }
         public double X { get; set; }
@@ -32,6 +43,8 @@ namespace OWSData.Models.StoredProcs
         public double Hunger { get; set; }
         public int Gold { get; set; }
         public int Score { get; set; }
+
+        [JsonPropertyName("Level")]
         public short CharacterLevel { get; set; }
         public byte Gender { get; set; }
         public int Xp { get; set; }
@@ -105,7 +118,6 @@ namespace OWSData.Models.StoredProcs
         public string BaseMesh { get; set; }
 
         public int Port { get; set; }
-        public string ServerIP { get; set; }
         public int MapInstanceID { get; set; }
         public string ClassName { get; set; }
     }
