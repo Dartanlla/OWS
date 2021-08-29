@@ -76,7 +76,7 @@
             Contains user related API calls that are all publicly accessible.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.#ctor(SimpleInjector.Container,OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProvider,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,Microsoft.Extensions.Options.IOptions{OWSShared.Options.PublicAPIOptions},Microsoft.Extensions.Options.IOptions{OWSShared.Options.APIPathOptions},System.Net.Http.IHttpClientFactory)">
+        <member name="M:OWSPublicAPI.Controllers.UsersController.#ctor(SimpleInjector.Container,OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,Microsoft.Extensions.Options.IOptions{OWSShared.Options.PublicAPIOptions},Microsoft.Extensions.Options.IOptions{OWSShared.Options.APIPathOptions},System.Net.Http.IHttpClientFactory)">
             <summary>
             Constructor for Public User related API calls.
             </summary>
@@ -305,7 +305,7 @@
             The password is part of the sign in credentials.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Requests.Users.ExternalLoginAndCreateSessionRequest.SetData(OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProvider,OWSShared.Interfaces.IHeaderCustomerGUID)">
+        <member name="M:OWSPublicAPI.Requests.Users.ExternalLoginAndCreateSessionRequest.SetData(OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSShared.Interfaces.IHeaderCustomerGUID)">
             <summary>
             Set Dependencies for ExternalLoginAndCreateSessionRequest
             </summary>

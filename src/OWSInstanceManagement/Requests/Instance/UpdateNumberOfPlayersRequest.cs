@@ -10,15 +10,16 @@ using System.Threading.Tasks;
 namespace OWSInstanceManagement.Requests.Instance
 {
     /// <summary>
-    /// GetServerInstanceFromPortRequest
+    /// UpdateNumberOfPlayersRequest
     /// </summary>
     /// <remarks>
-    /// Get information on the server instance that matches the port and IP
+    /// Update the number of players on a zone instance by matching it to the port and IP
     /// </remarks>
-    public class GetServerInstanceFromPortRequest
+    public class UpdateNumberOfPlayersRequest
     {
         //Request Parameters
         public int Port { get; set; }
+        public int NumberOfConnectedPlayers { get; set; }
 
         //Private objects
         private Guid CustomerGUID;
@@ -43,7 +44,7 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            var output = await _instanceMangementRepository.GetServerInstanceFromPort(CustomerGUID, _ip, Port);
+            var output = await _instanceMangementRepository.UpdateNumberOfPlayers(CustomerGUID, _ip, Port, NumberOfConnectedPlayers);
 
             return new OkObjectResult(output);
         }

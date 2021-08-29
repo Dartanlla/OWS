@@ -12,5 +12,13 @@
             Get information on the server instance that matches the port and IP
             </remarks>
         </member>
+        <member name="T:OWSInstanceManagement.Requests.Instance.UpdateNumberOfPlayersRequest">
+            <summary>
+            UpdateNumberOfPlayersRequest
+            </summary>
+            <remarks>
+            Update the number of players on a zone instance by matching it to the port and IP
+            </remarks>
+        </member>
     </members>
 </doc>

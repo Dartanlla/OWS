@@ -155,8 +155,18 @@ namespace OWSInstanceManagement.Controllers
             return await request.Handle();
         }
 
-        
+        [HttpPost]
+        [Route("UpdateNumberOfPlayers")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        /*[SwaggerOperation("ByName")]
+        [SwaggerResponse(200)]
+        [SwaggerResponse(404)]*/
+        public async Task<IActionResult> UpdateNumberOfPlayers([FromBody] UpdateNumberOfPlayersRequest request)
+        {
+            request.SetData(_instanceManagementRepository, _customerGuid, Request.HttpContext.Connection.RemoteIpAddress.ToString());
 
-        
+            return await request.Handle();
+        }
+
     }
 }

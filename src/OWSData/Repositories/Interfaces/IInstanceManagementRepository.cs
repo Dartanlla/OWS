@@ -14,5 +14,6 @@ namespace OWSData.Repositories.Interfaces
         Task<SuccessAndErrorMessage> SetZoneInstanceStatus(Guid customerGUID, int zoneInstanceID, int instanceStatus);
         Task<SuccessAndErrorMessage> ShutDownWorldServer(Guid customerGUID, int worldServerID);
         Task<int> StartWorldServer(Guid customerGUID, string ip);
+        Task<SuccessAndErrorMessage> UpdateNumberOfPlayers(Guid customerGUID, string serverIP, int port, int numberOfPlayers);
     }
 }

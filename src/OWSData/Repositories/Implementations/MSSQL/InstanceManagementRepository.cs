@@ -132,5 +132,29 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             return worldServerId;
         }
+
+        public async Task<SuccessAndErrorMessage> UpdateNumberOfPlayers(Guid customerGUID, string serverIP, int port, int numberOfPlayers)
+        {
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@IP", serverIP);
+                p.Add("@Port", port);
+                p.Add("@NumberOfReportedPlayers", numberOfPlayers);
+
+                await Connection.ExecuteAsync("UpdateNumberOfPlayers",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+            {
+                Success = true,
+                ErrorMessage = ""
+            };
+
+            return output;
+        }
     }
 }
