@@ -17,42 +17,44 @@ namespace OWSPublicAPI.Requests.Users
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
-        private SuccessAndErrorMessage output;
-        private Guid customerGUID;
-        private IUsersRepository usersRepository;
-        private IExternalLoginProvider externalLoginProvider;
+        private SuccessAndErrorMessage _output;
+        private Guid _customerGUID;
+        private IUsersRepository _usersRepository;
+        private IExternalLoginProviderFactory _externalLoginProviderFactory;
 
-        public void SetData(IUsersRepository usersRepository, IExternalLoginProvider externalLoginProvider, IHeaderCustomerGUID customerGuid)
+        public void SetData(IUsersRepository usersRepository, IExternalLoginProviderFactory externalLoginProviderFactory, IHeaderCustomerGUID customerGuid)
         {
-            customerGUID = customerGuid.CustomerGUID;
-            this.usersRepository = usersRepository;
-            this.externalLoginProvider = externalLoginProvider;
+            _customerGUID = customerGuid.CustomerGUID;
+            _usersRepository = usersRepository;
+            _externalLoginProviderFactory = externalLoginProviderFactory;
         }
 
         public async Task<IActionResult> Handle()
         {
             //Check for duplicate account before creating a new one:
-            var foundUser = await usersRepository.GetUserFromEmail(customerGUID, Email);
+            var foundUser = await _usersRepository.GetUserFromEmail(_customerGUID, Email);
 
             //This user already exists
             if (foundUser != null)
             {
-                output = new SuccessAndErrorMessage();
-                output.Success = false;
-                output.ErrorMessage = "Duplicate Account!";
+                _output = new SuccessAndErrorMessage();
+                _output.Success = false;
+                _output.ErrorMessage = "Duplicate Account!";
 
-                return new OkObjectResult(output);
+                return new OkObjectResult(_output);
             }
 
-            output = await usersRepository.RegisterUser(customerGUID, Email, Password, FirstName, LastName);
+            _output = await _usersRepository.RegisterUser(_customerGUID, Email, Password, FirstName, LastName);
 
-            if (externalLoginProvider != null)
+            /*
+            if (externalLoginProviderFactory != null)
             {
                 //This method will do nothing if AutoRegister isn't set to true
-                await externalLoginProvider.RegisterAsync(Email, Password, Email);
+                //await externalLoginProvider.RegisterAsync(Email, Password, Email);
             }
+            */
 
-            return new OkObjectResult(output);
+            return new OkObjectResult(_output);
         }
     }
 }
