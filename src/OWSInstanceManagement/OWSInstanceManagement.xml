@@ -4,5 +4,13 @@
         <name>OWSInstanceManagement</name>
     </assembly>
     <members>
+        <member name="T:OWSInstanceManagement.Requests.Instance.GetServerInstanceFromPortRequest">
+            <summary>
+            GetServerInstanceFromPortRequest
+            </summary>
+            <remarks>
+            Get information on the server instance that matches the port and IP
+            </remarks>
+        </member>
     </members>
 </doc>

@@ -16,7 +16,17 @@ namespace OWSInstanceManagement.Requests.Instance
         public void SetData(IInstanceManagementRepository instanceManagementRepository, string ip, IHeaderCustomerGUID customerGuid)
         {
             _instanceManagementRepository = instanceManagementRepository;
-            _ip = ip;
+
+            //If running locally in docker the IP will contain "::", so switch it to 127.0.0.1 as this is running locally
+            if (ip.Contains("::"))
+            {
+                _ip = "127.0.0.1";
+            }
+            else
+            {
+                _ip = ip;
+            }
+
             _customerGUID = customerGuid.CustomerGUID;
         }
 
