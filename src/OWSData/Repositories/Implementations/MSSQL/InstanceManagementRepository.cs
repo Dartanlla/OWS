@@ -30,6 +30,25 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
+        public async Task<GetServerInstanceFromPort> GetServerInstanceFromPort(Guid customerGUID, string serverIP, int port)
+        {
+            GetServerInstanceFromPort output;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@ServerIP", serverIP);
+                p.Add("@Port", port);
+
+                output = await Connection.QuerySingleAsync<GetServerInstanceFromPort>("GetServerInstanceFromPort",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+            return output;
+        }
+
         public async Task<IEnumerable<GetZoneInstancesForWorldServer>> GetZoneInstancesForWorldServer(Guid customerGUID, int worldServerID)
         {
             IEnumerable<GetZoneInstancesForWorldServer> output;

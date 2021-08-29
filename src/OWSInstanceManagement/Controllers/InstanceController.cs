@@ -13,6 +13,7 @@ using OWSInstanceManagement.Requests.Instance;
 using OWSData.Models.Composites;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Options;
+using System.Net.Http;
 
 namespace OWSInstanceManagement.Controllers
 {
@@ -124,6 +125,19 @@ namespace OWSInstanceManagement.Controllers
         public async Task<IActionResult> GetServerToConnectToRequest([FromBody] GetServerToConnectToRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
+
+            return await request.Handle();
+        }
+
+        [HttpPost]
+        [Route("GetServerInstanceFromPort")]
+        [Produces(typeof(GetServerInstanceFromPort))]
+        /*[SwaggerOperation("ByName")]
+        [SwaggerResponse(200)]
+        [SwaggerResponse(404)]*/
+        public async Task<IActionResult> GetServerInstanceFromPort([FromBody] GetServerInstanceFromPortRequest request)
+        {
+            request.SetData(_instanceManagementRepository, _customerGuid, Request.HttpContext.Connection.RemoteIpAddress.ToString());
 
             return await request.Handle();
         }
