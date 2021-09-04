@@ -5,6 +5,7 @@ using OWSExternalLoginProviders.Interfaces;
 using OWSExternalLoginProviders.Options;
 using OWSExternalLoginProviders.Responses;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OWSExternalLoginProviders.Internal
@@ -50,43 +51,49 @@ namespace OWSExternalLoginProviders.Internal
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="password">Password</param>
+        /// <param name="cancellationToken"></param>
         /// <returns><see cref="ExternalLoginProviderResponse"/></returns>
-        public abstract Task<ExternalLoginProviderResponse> AuthenticatePasswordAsync(string username, string password);
+        public abstract Task<ExternalLoginProviderResponse> AuthenticatePasswordAsync(string username, string password, CancellationToken cancellationToken);
 
         /// <summary>
         /// Authenticate using Authorization Exchange Grant Type
         /// </summary>
         /// <param name="exchange_code">Exchange Code</param>
+        /// <param name="cancellationToken"></param>
         /// <returns><see cref="ExternalLoginProviderResponse"/></returns>
-        public abstract Task<ExternalLoginProviderResponse> AuthenticateAuthorizationExchangeAsync(string exchange_code);
+        public abstract Task<ExternalLoginProviderResponse> AuthenticateAuthorizationExchangeAsync(string exchange_code, CancellationToken cancellationToken);
 
         /// <summary>
         /// Authenticate using Authorization Code Grant Type
         /// </summary>
         /// <param name="code">Authorization Code</param>
+        /// <param name="cancellationToken"></param>
         /// <returns><see cref="ExternalLoginProviderResponse"/></returns>
-        public abstract Task<ExternalLoginProviderResponse> AuthenticateAuthorizationCodeAsync(string authorization_code);
+        public abstract Task<ExternalLoginProviderResponse> AuthenticateAuthorizationCodeAsync(string authorization_code, CancellationToken cancellationToken);
 
         /// <summary>
         /// Authenticate using Device Token Grant Type
         /// </summary>
         /// <param name="token">Device Token</param>
+        /// <param name="cancellationToken"></param>
         /// <returns><see cref="ExternalLoginProviderResponse"/></returns>
-        public abstract Task<ExternalLoginProviderResponse> AuthenticateDeviceToken(string token);
+        public abstract Task<ExternalLoginProviderResponse> AuthenticateDeviceToken(string token, CancellationToken cancellationToken);
 
         /// <summary>
         /// Two Factor Authentication
         /// </summary>
         /// <param name="method">The Authentication Method</param>
         /// <param name="code">The Authentication Code</param>
+        /// <param name="cancellationToken"></param>
         /// <returns><see cref="ExternalLoginProviderResponse"/></returns>
-        public abstract Task<ExternalLoginProviderResponse> TwoFactorAuthentication(string method, string code);
+        public abstract Task<ExternalLoginProviderResponse> TwoFactorAuthentication(string method, string code, CancellationToken cancellationToken);
 
         /// <summary>
         /// Verify Authentication Token
         /// </summary>
         /// <param name="token">Token to be verified.</param>
+        /// <param name="cancellationToken"></param>
         /// <returns><see cref="bool"/></returns>
-        public abstract Task<bool> VerifyToken(string token);
+        public abstract Task<bool> VerifyToken(string token, CancellationToken cancellationToken);
     }
 }
