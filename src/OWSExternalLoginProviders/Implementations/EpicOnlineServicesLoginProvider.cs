@@ -17,6 +17,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Threading;
 
 namespace OWSExternalLoginProviders.Implementations
 {
@@ -33,7 +34,7 @@ namespace OWSExternalLoginProviders.Implementations
             return new RedirectResult(url);
         }
 
-        public override async Task<ExternalLoginProviderResponse> AuthenticateAuthorizationCodeAsync(string authorization_code)
+        public override async Task<ExternalLoginProviderResponse> AuthenticateAuthorizationCodeAsync(string authorization_code, CancellationToken cancellationToken)
         {
             var httpClient = HttpClientFactory.CreateClient();
             httpClient.SetBasicAuthentication(Options.ClientId, Options.ClientSecret);
@@ -48,7 +49,7 @@ namespace OWSExternalLoginProviders.Implementations
                     { "deployment_id", Options.DeploymentId },
                     { "scope", "basic profile"}
                 }
-            });
+            }, cancellationToken);
 
             var response = new ExternalLoginProviderResponse();
 
@@ -63,7 +64,7 @@ namespace OWSExternalLoginProviders.Implementations
             return response;
         }
 
-        public override async Task<ExternalLoginProviderResponse> AuthenticateAuthorizationExchangeAsync(string exchange_code)
+        public override async Task<ExternalLoginProviderResponse> AuthenticateAuthorizationExchangeAsync(string exchange_code, CancellationToken cancellationToken)
         {
             var httpClient = HttpClientFactory.CreateClient();
             httpClient.SetBasicAuthentication(Options.ClientId, Options.ClientSecret);
@@ -78,7 +79,7 @@ namespace OWSExternalLoginProviders.Implementations
                     { "deployment_id", Options.DeploymentId },
                     { "scope", "basic profile"}
                 }
-            });
+            }, cancellationToken);
 
             var response = new ExternalLoginProviderResponse();
 
@@ -91,7 +92,7 @@ namespace OWSExternalLoginProviders.Implementations
             return response;
         }
 
-        public override Task<ExternalLoginProviderResponse> AuthenticateDeviceToken(string token)
+        public override Task<ExternalLoginProviderResponse> AuthenticateDeviceToken(string token, CancellationToken cancellationToken)
         {
             var response = new ExternalLoginProviderResponse();
             response.IsError = true;
@@ -99,7 +100,7 @@ namespace OWSExternalLoginProviders.Implementations
             return Task.FromResult(response);
         }
 
-        public override Task<ExternalLoginProviderResponse> AuthenticatePasswordAsync(string username, string password)
+        public override Task<ExternalLoginProviderResponse> AuthenticatePasswordAsync(string username, string password, CancellationToken cancellationToken)
         {
             var response = new ExternalLoginProviderResponse();
             response.IsError = true;
@@ -157,7 +158,7 @@ namespace OWSExternalLoginProviders.Implementations
             */
         }
 
-        public override Task<ExternalLoginProviderResponse> TwoFactorAuthentication(string method, string code)
+        public override Task<ExternalLoginProviderResponse> TwoFactorAuthentication(string method, string code, CancellationToken cancellationToken)
         {
             var response = new ExternalLoginProviderResponse();
             response.IsError = true;
@@ -165,7 +166,7 @@ namespace OWSExternalLoginProviders.Implementations
             return Task.FromResult(response);
         }
 
-        public override async Task<bool> VerifyToken(string token)
+        public override async Task<bool> VerifyToken(string token, CancellationToken cancellationToken)
         {
             // Online Verification
             var httpClient = HttpClientFactory.CreateClient();
@@ -173,7 +174,7 @@ namespace OWSExternalLoginProviders.Implementations
             {
                 Address = "https://api.epicgames.dev/epic/oauth/v1/tokenInfo",
                 Token = token
-            });
+            }, cancellationToken);
 
             if (!request.IsError)
             {
@@ -185,7 +186,7 @@ namespace OWSExternalLoginProviders.Implementations
                 string epicgamesjwks;
                 if (!MemoryCache.TryGetValue("epicgames.jwks", out epicgamesjwks))
                 {
-                    var jwks_request = await httpClient.GetAsync("https://api.epicgames.dev/epic/oauth/v1/.well-known/jwks.json");
+                    var jwks_request = await httpClient.GetAsync("https://api.epicgames.dev/epic/oauth/v1/.well-known/jwks.json", cancellationToken);
                     if (jwks_request.IsSuccessStatusCode)
                     {
                         string jwks_result = await jwks_request.Content.ReadAsStringAsync();
