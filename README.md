@@ -30,7 +30,7 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 - OWS Public API - This API handles all API calls that come directly from player clients such as registration, login, and connecting to the game.
 - OWS Shared - This project houses various miscellaneous code that multiple other projects require.
 
-# Additional Files Needed
+# Additional Files Needed (not required for the Docker version of OWS)
 - OWS 1 Web API: https://drive.google.com/file/d/1usSUaohEKJv1yPJKV2CVFuhyeocDt6Is/view?usp=sharing  (this will be needed until we replace all of the OWS 1 functionality)
 - OWS 1 MSSQL 2017 DB: https://drive.google.com/file/d/1pEXNK1fK5e4fLzSFARzdKvY7ESMkY9Ru/view?usp=sharing (this will be needed until we break out the DB into separate microservice respositories)
 
@@ -39,7 +39,7 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 * [Naming Guidelines](https://docs.microsoft.com/en-us/dotnet/standard/design-guidelines/naming-guidelines)
 * [Coding Style](https://github.com/dotnet/corefx/blob/368fdfd86ee3a3bf1bca2a6c339ee590f3d6505d/Documentation/coding-guidelines/coding-style.md)
 
-# Windows Server Setup Instructions
+# Windows Server Setup Instructions (These instructions are not complete)
 - Install Erlang (https://www.erlang.org/downloads) - must be a version your RabbitMQ version supports
 - Install RabbitMQ (https://www.rabbitmq.com/install-windows.html)
 - Enable the RabbitMQ Admin Web Console - rabbitmq-plugins enable rabbitmq_management
@@ -56,6 +56,7 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 - Download Or Clone OWS
 - [.Net Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet/3.1)
 - [.Net 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0) - Required For Mac & Linux
+- [SQL Server Management Studio](https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver15)
 
 ## Windows
 1. Download and Install [Docker Desktop For Windows](https://www.docker.com/products/docker-desktop)
@@ -67,6 +68,20 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 4. **(Optional)** Running Docker Compose without Visual Studio Debugger, Enter the following Command Prompt from the OWS root directory.
     ```
     docker-compose -f docker-compose.yml -f docker-compose.override.windows.yml up -d
+    ```
+5. Open SQL Server Management Studio and connect to localhost with sa / yourStrong(!)Password
+6. Run the following SQL statment against the Open World Server database.  Be sure to replace the values CustomerName, FirstName, LastName, Email, and Password.
+    ```
+    EXEC [dbo].[AddNewCustomer] 'CustomerName', 'FirstName', 'LastName', 'Email', 'Password'
+    ```
+7. Run the following SQL statment against the Open World Server database to get your API key.  Save this for later.
+    ```
+    SELECT TOP 1 CustomerGUID FROM Customers
+    ```
+8. Run the following SQL statment against the Open World Server database to add your local PC as a World Server.  Replace [CustomerGUID] with the API key from the previous step.
+    ```
+    INSERT INTO WorldServers (CustomerGUID, ServerIP, MaxNumberOfInstances, ActiveStartTime, Port, ServerStatus, InternalServerIP, StartingMapInstancePort)
+    VALUES ([CustomerGUID], '127.0.0.1', 10, NULL, '8081', '127.0.0.1', '7778')
     ```
 ## OSX
 1. Download and Install [Docker Desktop For Mac](https://www.docker.com/products/docker-desktop)
