@@ -81,7 +81,7 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 8. Run the following SQL statment against the Open World Server database to add your local PC as a World Server.  Replace [CustomerGUID] with the API key from the previous step.
     ```
     INSERT INTO WorldServers (CustomerGUID, ServerIP, MaxNumberOfInstances, ActiveStartTime, Port, ServerStatus, InternalServerIP, StartingMapInstancePort)
-    VALUES ([CustomerGUID], '127.0.0.1', 10, NULL, '8081', '127.0.0.1', '7778')
+    VALUES ([CustomerGUID], '127.0.0.1', 10, NULL, '8081', 0, '127.0.0.1', '7778')
     ```
 ## OSX
 1. Download and Install [Docker Desktop For Mac](https://www.docker.com/products/docker-desktop)
