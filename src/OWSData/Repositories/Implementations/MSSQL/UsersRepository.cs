@@ -110,8 +110,8 @@ namespace OWSData.Repositories.Implementations.MSSQL
             {
                 var p = new DynamicParameters();
                 p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", userSessionGUID);
-                p.Add("@UserSessionGUID", characterName);
+                p.Add("@CharName", characterName);
+                p.Add("@UserSessionGUID", userSessionGUID);
                 p.Add("@PlayerGroupTypeID", playerGroupTypeID);
 
                 outputObject = await Connection.QueryAsync<GetPlayerGroupsCharacterIsIn>("GetPlayerGroupsCharacterIsIn",
