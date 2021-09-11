@@ -42,7 +42,7 @@ namespace OWSCharacterPersistence.Requests.Characters
                 float RY = float.Parse(sRY);
                 float RZ = float.Parse(sRZ);
 
-                await charactersRepository.AddOrUpdateCustomCharacterData(customerGUID, SerializedPlayerLocationData);
+                
             }
 
             return;
