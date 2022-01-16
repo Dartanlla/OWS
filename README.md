@@ -102,7 +102,7 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 1. Download and Install [Docker Engine For Linux](https://www.docker.com/products/docker-desktop)
 2. Close all Web Browsers
 3. Download and Run [dotnet-dev-certificate-linux](https://github.com/CodewareGames/dotnet-dev-certificate-linux) to install Development HTTPS Certificate.
-4. Run the following  command in an terminal from the OWS root directory.
+4. Run the following  command in an terminal from the OWS src directory.
     ```
     sudo docker-compose -f docker-compose.yml -f docker-compose.override.linux.yml up -d
     ```
