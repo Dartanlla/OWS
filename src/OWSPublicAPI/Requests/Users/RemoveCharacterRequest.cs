@@ -1,21 +1,21 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OWSData.Models.Composites;
+using OWSData.Repositories.Interfaces;
+using OWSShared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using OWSData.Models.Composites;
-using OWSData.Repositories.Interfaces;
-using OWSShared.Interfaces;
 
 namespace OWSPublicAPI.Requests.Users
 {
     /// <summary>
-    /// CreateCharacterRequest Handler
+    /// RemoveCharacterRequest Handler
     /// </summary>
     /// <remarks>
-    /// Handles api/Users/CreateCharacter requests.
+    /// Handles api/Users/RemoveCharacter requests.
     /// </remarks>
-    public class CreateCharacterRequest : IRequestHandler<CreateCharacterRequest, IActionResult>, IRequest
+    public class RemoveCharacterRequest
     {
         /// <summary>
         /// UserSessionGUID Request Paramater.
@@ -31,15 +31,7 @@ namespace OWSPublicAPI.Requests.Users
         /// Contains the Character Name from the request.  This is the new Character Name to create.
         /// </remarks>
         public string CharacterName { get; set; }
-        /// <summary>
-        /// ClassName Request Paramater.
-        /// </summary>
-        /// <remarks>
-        /// Contains the Class Name from the request.  This sets the default values for the new Character.
-        /// </remarks>
-        public string ClassName { get; set; }
 
-        private CreateCharacter Output;
         private Guid CustomerGUID;
         private IUsersRepository usersRepository;
         private IPublicAPIInputValidation publicAPIInputValidation;
@@ -50,11 +42,10 @@ namespace OWSPublicAPI.Requests.Users
         /// <remarks>
         /// Injects the dependencies for the CreateCharacterRequest.
         /// </remarks>
-        public void SetData(IUsersRepository usersRepository, IPublicAPIInputValidation publicAPIInputValidation, IHeaderCustomerGUID customerGuid)
+        public void SetData(IUsersRepository usersRepository, IHeaderCustomerGUID customerGuid)
         {
             CustomerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
-            this.publicAPIInputValidation = publicAPIInputValidation;
         }
 
         /// <summary>
@@ -65,19 +56,11 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
-            //Validate Character Name
-            string errorMessage = publicAPIInputValidation.ValidateCharacterName(CharacterName);
+            SuccessAndErrorMessage output;
 
-            if (!String.IsNullOrEmpty(errorMessage))
-            {
-                CreateCharacter createCharacterErrorMessage = new CreateCharacter();
-                createCharacterErrorMessage.ErrorMessage = errorMessage;
-                return new OkObjectResult(createCharacterErrorMessage);
-            }
+            output = await usersRepository.RemoveCharacter(CustomerGUID, UserSessionGUID, CharacterName);
 
-            Output = await usersRepository.CreateCharacter(CustomerGUID, UserSessionGUID, CharacterName, ClassName);
-
-            return new OkObjectResult(Output);
+            return new OkObjectResult(output);
         }
     }
 }

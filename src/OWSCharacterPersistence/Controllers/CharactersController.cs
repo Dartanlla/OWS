@@ -8,9 +8,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OWSData.Models.Tables;
+using OWSData.Models.Composites;
 
 namespace OWSCharacterPersistence.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class CharactersController : Controller
     {
         private readonly ICharactersRepository _charactersRepository;
@@ -21,11 +24,6 @@ namespace OWSCharacterPersistence.Controllers
         {
             _charactersRepository = charactersRepository;
             _customerGuid = customerGuid;
-        }
-
-        public IActionResult Index()
-        {
-            return View();
         }
 
         [HttpPost]
@@ -49,7 +47,7 @@ namespace OWSCharacterPersistence.Controllers
 
         [HttpPost]
         [Route("GetCustomData")]
-        [Produces(typeof(CustomCharacterData))]
+        [Produces(typeof(CustomCharacterDataRows))]
         public async Task<IActionResult> GetCustomData([FromBody] GetCustomDataRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
@@ -58,23 +56,29 @@ namespace OWSCharacterPersistence.Controllers
 
         [HttpPost]
         [Route("UpdateAllPlayerPositions")]
-        public async Task UpdateAllPlayerPositions([FromBody] UpdateAllPlayerPositionsRequest request)
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<SuccessAndErrorMessage> UpdateAllPlayerPositions([FromBody] UpdateAllPlayerPositionsRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
-            await request.Handle();
-
-            return;
+            return await request.Handle();
         }
 
         [HttpPost]
         [Route("UpdateCharacterStats")]
-        public async Task UpdateCharacterStats([FromBody] UpdateCharacterStatsRequest request)
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<SuccessAndErrorMessage> UpdateCharacterStats([FromBody] UpdateCharacterStatsRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
-            await request.Handle();
-
-            return;
+            return await request.Handle();
         }
-        
+
+        [HttpPost]
+        [Route("PlayerLogout")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<SuccessAndErrorMessage> PlayerLogout([FromBody] PlayerLogoutRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
     }
 }

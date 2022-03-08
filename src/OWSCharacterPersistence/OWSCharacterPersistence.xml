@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>OWSCharacterPersistence</name>
+    </assembly>
+    <members>
+        <member name="T:OWSCharacterPersistence.Requests.Abilities.GetAbilityBarsAndAbilitiesRequest">
+            <summary>
+            Get Ability Bars And Abilities
+            </summary>
+            <remarks>
+            Get a flattened list of ability bars and the abilities on those bars for this character.
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Abilities.GetAbilityBarsAndAbilitiesRequest.CharacterName">
+            <summary>
+            Character Name
+            </summary>
+            <remarks>
+            This is the name of the character to get ability bars and abilities for.
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Abilities.GetAbilityBarsRequest">
+            <summary>
+            Get Ability Bars
+            </summary>
+            <remarks>
+            Get a list of ability bars this character has.
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Abilities.GetAbilityBarsRequest.CharacterName">
+            <summary>
+            Character Name
+            </summary>
+            <remarks>
+            This is the name of the character to get ability bars for.
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Abilities.GetCharacterAbilitiesRequest">
+            <summary>
+            Get Character Abilities
+            </summary>
+            <remarks>
+            Get a list of the abilities this character has.
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Abilities.GetCharacterAbilitiesRequest.CharacterName">
+            <summary>
+            Character Name
+            </summary>
+            <remarks>
+            This is the name of the character to get abilities for.
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Characters.GetCustomDataRequest">
+            <summary>
+            Get Custom Data
+            </summary>
+            <remarks>
+            Get a list of all Custom Data fields for this character with their Field Values.  Characters can have zero or more Custom Data fields.
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Characters.GetCustomDataRequest.CharacterName">
+            <summary>
+            Character Name
+            </summary>
+            <remarks>
+            This is the name of the character to get Custom Data fields for.
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Statuses.GetCharacterStatusesRequest">
+            <summary>
+            GetCharacterStatusesRequest
+            </summary>
+            <remarks>
+            This request object handles requests for api/Characters/GetCharacterStatuses
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Statuses.GetCharacterStatusesRequest.CharacterName">
+            <summary>
+            CharacterName
+            </summary>
+            <remarks>
+            The CharacterName to get statses for.
+            </remarks>
+        </member>
+        <member name="M:OWSCharacterPersistence.Requests.Statuses.GetCharacterStatusesRequest.SetData(OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            SetData
+            </summary>
+            <remarks>
+            This handles the Request.
+            </remarks>
+        </member>
+        <member name="M:OWSCharacterPersistence.Requests.Statuses.GetCharacterStatusesRequest.Handle">
+            <summary>
+            Handle
+            </summary>
+            <remarks>
+            This handles the Request.
+            </remarks>
+        </member>
+    </members>
+</doc>

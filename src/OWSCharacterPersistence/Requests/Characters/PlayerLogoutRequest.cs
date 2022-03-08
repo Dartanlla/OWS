@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OWSData.Models.Composites;
-using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 using System;
@@ -10,10 +9,11 @@ using System.Threading.Tasks;
 
 namespace OWSCharacterPersistence.Requests.Characters
 {
-    public class UpdateCharacterStatsRequest
+    public class PlayerLogoutRequest
     {
-        public UpdateCharacterStats updateCharacterStats { get; set; }
+        public string CharacterName { get; set; }
 
+        private SuccessAndErrorMessage output;
         private Guid customerGUID;
         private ICharactersRepository charactersRepository;
 
@@ -25,20 +25,12 @@ namespace OWSCharacterPersistence.Requests.Characters
 
         public async Task<SuccessAndErrorMessage> Handle()
         {
-            SuccessAndErrorMessage successAndErrorMessage = new SuccessAndErrorMessage();
-            successAndErrorMessage.Success = true;
+            await charactersRepository.PlayerLogout(customerGUID, CharacterName);
 
-            try
-            {
-                await charactersRepository.UpdateCharacterStats(updateCharacterStats);
-            }
-            catch (Exception ex)
-            {
-                successAndErrorMessage.ErrorMessage = ex.Message;
-                successAndErrorMessage.Success = false;
-            }
-
-            return successAndErrorMessage;
+            SuccessAndErrorMessage output = new SuccessAndErrorMessage();
+            output.Success = true;
+            output.ErrorMessage = "";
+            return output;
         }
     }
 }

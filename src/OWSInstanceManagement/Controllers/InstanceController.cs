@@ -168,5 +168,24 @@ namespace OWSInstanceManagement.Controllers
             return await request.Handle();
         }
 
+        [HttpPost]
+        [Route("GetZoneInstancesForZone")]
+        [Produces(typeof(IEnumerable<GetZoneInstancesForZone>))]
+        public async Task<IActionResult> GetZoneInstancesForZone([FromBody] GetZoneInstancesForZoneRequest request)
+        {
+            request.SetData(_instanceManagementRepository, _customerGuid);
+
+            return await request.Handle();
+        }
+
+        [HttpPost]
+        [Route("GetCurrentWorldTime")]
+        [Produces(typeof(GetCurrentWorldTime))]
+        public async Task<IActionResult> GetCurrentWorldTime([FromBody] GetCurrentWorldTimeRequest request)
+        {
+            request.SetData(_instanceManagementRepository, _customerGuid);
+
+            return await request.Handle();
+        }
     }
 }

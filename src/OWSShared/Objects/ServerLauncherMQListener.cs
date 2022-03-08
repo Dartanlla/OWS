@@ -78,7 +78,14 @@ namespace OWSShared.Objects
             };
 
             // create connection  
-            connection = factory.CreateConnection();
+            try
+            {
+                connection = factory.CreateConnection();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error connecting to RabbitMQ: {ex.Message}");
+            }
 
             // create channel for server spin up  
             serverSpinUpChannel = connection.CreateModel();
@@ -282,28 +289,37 @@ namespace OWSShared.Objects
 
         private int StartInstanceLauncherRequest()
         {
-            var instanceManagementHttpClient = _httpClientFactory.CreateClient("OWSInstanceManagement");
-
-            var responseMessageAsync = instanceManagementHttpClient.GetAsync("api/Instance/StartInstanceLauncher");
-            var responseMessage = responseMessageAsync.Result;
-
-            if (responseMessage == null)
+            try
             {
-                return -1;
+                var instanceManagementHttpClient = _httpClientFactory.CreateClient("OWSInstanceManagement");
+
+                var responseMessageAsync = instanceManagementHttpClient.GetAsync("api/Instance/StartInstanceLauncher");
+                var responseMessage = responseMessageAsync.Result;
+
+                if (responseMessage == null)
+                {
+                    return -1;
+                }
+
+                if (!responseMessage.IsSuccessStatusCode)
+                {
+                    return -1;
+                }
+
+                var responseContentAsync = responseMessage.Content.ReadAsStringAsync();
+                string responseContentString = responseContentAsync.Result;
+
+                int worldServerID = -1;
+                if (Int32.TryParse(responseContentString, out worldServerID))
+                {
+                    return worldServerID;
+                }
             }
-
-            if (!responseMessage.IsSuccessStatusCode)
+            catch (Exception ex)
             {
-                return -1;
-            }
-
-            var responseContentAsync = responseMessage.Content.ReadAsStringAsync();
-            string responseContentString = responseContentAsync.Result;
-
-            int worldServerID = -1;
-            if (Int32.TryParse(responseContentString, out worldServerID))
-            {
-                return worldServerID;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Error connecting to Instance Management API: {ex.Message} - {ex.InnerException}");
+                Console.ForegroundColor = ConsoleColor.White;
             }
 
             return -1;

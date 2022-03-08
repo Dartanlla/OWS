@@ -10,11 +10,41 @@ using System.Threading.Tasks;
 
 namespace OWSPublicAPI.Requests.Users
 {
+    /// <summary>
+    /// Register a User
+    /// </summary>
+    /// <remarks>
+    /// Register a user with the system.  You can control validation with a custom IIPublicAPIInputValidation implementation.  See DefaultPublicAPIInputValidation for an example.
+    /// </remarks>
     public class RegisterUserRequest : IRequestHandler<RegisterUserRequest, IActionResult>, IRequest
     {
+        /// <summary>
+        /// Email
+        /// </summary>
+        /// <remarks>
+        /// Email for the user.  This value is not meant to be displayed in game.
+        /// </remarks>
         public string Email { get; set; }
+        /// <summary>
+        /// Password
+        /// </summary>
+        /// <remarks>
+        /// Password for the user.  Passwords are one way encrypted with SHA 256 and a 25 character Salt when using the MSSQL implementation of UsersRepository.
+        /// </remarks>
         public string Password { get; set; }
+        /// <summary>
+        /// First Name
+        /// </summary>
+        /// <remarks>
+        /// First Name for the user.  This value is not meant to be displayed in game.
+        /// </remarks>
         public string FirstName { get; set; }
+        /// <summary>
+        /// Last Name
+        /// </summary>
+        /// <remarks>
+        /// Last Name for the user.  This value is not meant to be displayed in game.
+        /// </remarks>
         public string LastName { get; set; }
 
         private SuccessAndErrorMessage _output;

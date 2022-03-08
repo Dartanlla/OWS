@@ -35,7 +35,7 @@ namespace OWSPublicAPI.Requests.Users
         /// PlayerGroupTypeID
         /// </summary>
         /// <remarks>
-        /// PlayerGroupTypeID filters the list of Player Groups to only return for this PlayerGroupTypeID.
+        /// PlayerGroupTypeID filters the list of Player Groups to only return for this PlayerGroupTypeID.  Set this parameter to zero to remove the Player Group Type filter.
         /// </remarks>
         public int PlayerGroupTypeID { get; set; }
 

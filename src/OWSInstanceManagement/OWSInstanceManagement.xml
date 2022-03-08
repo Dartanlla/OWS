@@ -4,12 +4,36 @@
         <name>OWSInstanceManagement</name>
     </assembly>
     <members>
+        <member name="T:OWSInstanceManagement.Requests.Instance.GetCurrentWorldTimeRequest">
+            <summary>
+            GetCurrentWorldTimeRequest
+            </summary>
+            <remarks>
+            Get the Current World Time based on the StartTime stored in the WorldSettings table.  The format is in seconds since 1/1/1970.
+            </remarks>
+        </member>
         <member name="T:OWSInstanceManagement.Requests.Instance.GetServerInstanceFromPortRequest">
             <summary>
             GetServerInstanceFromPortRequest
             </summary>
             <remarks>
             Get information on the server instance that matches the port and IP
+            </remarks>
+        </member>
+        <member name="T:OWSInstanceManagement.Requests.Instance.GetZoneInstancesForZoneRequest">
+            <summary>
+            Get a list of Zone Instances for a Zone
+            </summary>
+            <remarks>
+            Get a list of running Zone Instances for a Zone. This list can be used to allow players to pick which instance of a Zone they want to switch to.
+            </remarks>
+        </member>
+        <member name="P:OWSInstanceManagement.Requests.Instance.GetZoneInstancesForZoneRequest.Request">
+            <summary>
+            Request - ZoneName
+            </summary>
+            <remarks>
+            This Request object contains a field for sending in the ZoneName to get a list of running Zone Instances for.
             </remarks>
         </member>
         <member name="T:OWSInstanceManagement.Requests.Instance.UpdateNumberOfPlayersRequest">

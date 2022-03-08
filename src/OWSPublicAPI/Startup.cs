@@ -158,6 +158,7 @@ namespace OWSPublicAPI
         {
             container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MSSQL.CharactersRepository>(Lifestyle.Transient);
             container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Transient);
+            container.Register<IPublicAPIInputValidation, OWSShared.Implementations.DefaultPublicAPIInputValidation>(Lifestyle.Singleton);
             container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
 
             var externalloginproviderfactory = new ExternalLoginProviderFactory(container);

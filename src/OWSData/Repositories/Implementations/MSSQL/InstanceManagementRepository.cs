@@ -156,5 +156,42 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             return output;
         }
+
+        public async Task<IEnumerable<GetZoneInstancesForZone>> GetZoneInstancesOfZone(Guid customerGUID, string ZoneName)
+        {
+            IEnumerable<GetZoneInstancesForZone> output;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@ZoneName", ZoneName);
+
+                output = await Connection.QueryAsync<GetZoneInstancesForZone>("GetZoneInstancesOfZone",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+
+            return output;
+        }
+
+        public async Task<GetCurrentWorldTime> GetCurrentWorldTime(Guid customerGUID)
+        {
+            GetCurrentWorldTime output;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+
+                output = await Connection.QuerySingleOrDefaultAsync<GetCurrentWorldTime>("GetWorldStartTime",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+            return output;
+        }
+
     }
 }

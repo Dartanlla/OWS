@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "TestCore2": {
+    "OWSPublicAPI": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "api/values",

@@ -1,4 +1,5 @@
-﻿using OWSData.Repositories.Interfaces;
+﻿using OWSData.Models.Composites;
+using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -21,8 +22,10 @@ namespace OWSCharacterPersistence.Requests.Characters
             customerGUID = customerGuid.CustomerGUID;
         }
 
-        public async Task Handle()
+        public async Task<SuccessAndErrorMessage> Handle()
         {
+            SuccessAndErrorMessage successAndErrorMessage = new SuccessAndErrorMessage();
+
             foreach (string PlayerDataString in SerializedPlayerLocationData.Split('|'))
             {
                 string[] PlayerDataValues = PlayerDataString.Split(':');
@@ -42,10 +45,12 @@ namespace OWSCharacterPersistence.Requests.Characters
                 float RY = float.Parse(sRY);
                 float RZ = float.Parse(sRZ);
 
-                
+                await charactersRepository.UpdatePosition(customerGUID, PlayerName, MapName, X, Y, Z, RX, RY, RZ);
             }
 
-            return;
+            successAndErrorMessage.Success = true;
+
+            return successAndErrorMessage;
         }
     }
 }

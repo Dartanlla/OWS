@@ -30,20 +30,59 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
+        public async Task AddCharacterToMapInstanceByCharName(Guid customerGUID, string characterName, int mapInstanceID)
+        {
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@CharName", characterName);
+                p.Add("@MapInstanceID", mapInstanceID);
+
+                await Connection.QuerySingleOrDefaultAsync("AddCharacterToMapInstanceByCharName",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+        }
+
         public async Task AddOrUpdateCustomCharacterData(Guid customerGUID, AddOrUpdateCustomCharacterData addOrUpdateCustomCharacterData)
         {
             using (Connection)
             {
                 var p = new DynamicParameters();
                 p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharacterName", addOrUpdateCustomCharacterData.CharacterName);
+                p.Add("@CharName", addOrUpdateCustomCharacterData.CharacterName);
                 p.Add("@CustomFieldName", addOrUpdateCustomCharacterData.CustomFieldName);
                 p.Add("@FieldValue", addOrUpdateCustomCharacterData.FieldValue);
 
-                await Connection.QuerySingleOrDefaultAsync("AddOrUpdateCustomCharacterData",
+                await Connection.ExecuteAsync("AddOrUpdateCustomCharData",
                     p,
                     commandType: CommandType.StoredProcedure);
             }
+        }
+
+        public async Task<CheckMapInstanceStatus> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID)
+        {
+            CheckMapInstanceStatus outputObject = new CheckMapInstanceStatus();
+
+            int mapInstanceStatus = 0;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@MapInstanceID", mapInstanceID);
+                p.Add("@MapInstanceStatus", mapInstanceStatus, DbType.Int32, ParameterDirection.Output);
+
+                await Connection.QuerySingleOrDefaultAsync("CheckMapInstanceStatus",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+
+                mapInstanceStatus = p.Get<int>("@MapInstanceStatus");
+            }
+
+            outputObject = new CheckMapInstanceStatus(mapInstanceStatus);
+            return outputObject;
         }
 
         public async Task<GetCharByCharName> GetCharByCharName(Guid customerGUID, string characterName)
@@ -65,9 +104,9 @@ namespace OWSData.Repositories.Implementations.MSSQL
             return outputCharacter;
         }
 
-        public async Task<CustomCharacterData> GetCustomCharacterData(Guid customerGUID, string characterName)
+        public async Task<IEnumerable<CustomCharacterData>> GetCustomCharacterData(Guid customerGUID, string characterName)
         {
-            CustomCharacterData outputCustomCharacterData;
+            IEnumerable<CustomCharacterData> outputCustomCharacterDataRows;
 
             using (Connection)
             {
@@ -75,12 +114,12 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 p.Add("@CustomerGUID", customerGUID);
                 p.Add("@CharName", characterName);
 
-                outputCustomCharacterData = await Connection.QuerySingleOrDefaultAsync<CustomCharacterData>("GetCustomCharacterData",
+                outputCustomCharacterDataRows = await Connection.QueryAsync<CustomCharacterData>("GetCustomCharData",
                     p,
                     commandType: CommandType.StoredProcedure);
             }
 
-            return outputCustomCharacterData;
+            return outputCustomCharacterDataRows;
         }
 
         public async Task<JoinMapByCharName> JoinMapByCharName(Guid customerGUID, string characterName, string zoneName, int playerGroupType)
@@ -151,45 +190,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
             };
 
             return outputObject;
-        }
-
-        public async Task<CheckMapInstanceStatus> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID)
-        {
-            CheckMapInstanceStatus outputObject = new CheckMapInstanceStatus();
-
-            int mapInstanceStatus = 0;
-
-            using (Connection)
-            {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@MapInstanceID", mapInstanceID);
-                p.Add("@MapInstanceStatus", mapInstanceStatus, DbType.Int32, ParameterDirection.Output);
-
-                await Connection.QuerySingleOrDefaultAsync("CheckMapInstanceStatus",
-                    p,
-                    commandType: CommandType.StoredProcedure);
-
-                mapInstanceStatus = p.Get<int>("@MapInstanceStatus");
-            }
-
-            outputObject = new CheckMapInstanceStatus(mapInstanceStatus);
-            return outputObject;
-        }
-
-        public async Task AddCharacterToMapInstanceByCharName(Guid customerGUID, string characterName, int mapInstanceID)
-        {
-            using (Connection)
-            {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
-                p.Add("@MapInstanceID", mapInstanceID);
-
-                await Connection.QuerySingleOrDefaultAsync("AddCharacterToMapInstanceByCharName",
-                    p,
-                    commandType: CommandType.StoredProcedure);
-            }
         }
 
         public async Task UpdateCharacterStats(UpdateCharacterStats updateCharacterStats)
@@ -290,9 +290,93 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
-        public Task UpdatePosition(Guid customerGUID, string playerName, string mapName, float X, float Y, float Z, float RX, float RY, float RZ)
+        public async Task UpdatePosition(Guid customerGUID, string characterName, string mapName, float X, float Y, float Z, float RX, float RY, float RZ)
         {
-            return Task.CompletedTask;
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@CharName", characterName);
+                p.Add("@MapName", mapName);
+                p.Add("@X", X);
+                p.Add("@Y", Y);
+                p.Add("@Z", Z);
+                p.Add("@RX", RX);
+                p.Add("@RY", RY);
+                p.Add("@RZ", RZ);
+
+                await Connection.ExecuteAsync("UpdatePositionOfCharacterByName",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+        }
+
+        public async Task PlayerLogout(Guid customerGUID, string characterName)
+        {
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@CharName", characterName);
+
+                await Connection.ExecuteAsync("PlayerLogout",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+        }
+
+        public async Task<IEnumerable<GetCharacterAbilities>> GetCharacterAbilities(Guid customerGUID, string characterName)
+        {
+            IEnumerable<GetCharacterAbilities> outputGetCharacterAbilities;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@CharName", characterName);
+
+                outputGetCharacterAbilities = await Connection.QueryAsync<GetCharacterAbilities>("GetCharacterAbilities",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+            return outputGetCharacterAbilities;
+        }
+
+        public async Task<IEnumerable<GetAbilityBars>> GetAbilityBars(Guid customerGUID, string characterName)
+        {
+            IEnumerable<GetAbilityBars> outputGetAbilityBars;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@CharName", characterName);
+
+                outputGetAbilityBars = await Connection.QueryAsync<GetAbilityBars>("GetAbilityBars",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+            return outputGetAbilityBars;
+        }
+
+        public async Task<IEnumerable<GetAbilityBarsAndAbilities>> GetAbilityBarsAndAbilities(Guid customerGUID, string characterName)
+        {
+            IEnumerable<GetAbilityBarsAndAbilities> outputGetAbilityBarsAndAbilities;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@CharName", characterName);
+
+                outputGetAbilityBarsAndAbilities = await Connection.QueryAsync<GetAbilityBarsAndAbilities>("GetAbilityBarsAndAbilities",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+            return outputGetAbilityBarsAndAbilities;
         }
     }
 }

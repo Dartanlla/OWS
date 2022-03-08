@@ -27,7 +27,7 @@ namespace OWSCharacterPersistence.Controllers
         [HttpPost]
         [Route("GetCharacterStatuses")]
         [Produces(typeof(GetCharByCharName))]
-        public async Task<IActionResult> CreateCharacter([FromBody] GetCharacterStatusesRequest request)
+        public async Task<IActionResult> GetCharacterStatuses([FromBody] GetCharacterStatusesRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();

@@ -24,15 +24,12 @@ namespace OWSData.Repositories.Implementations.Postgres
         public UsersRepository(IOptions<StorageOptions> storageOptions)
         {
             this.storageOptions = storageOptions;
-            //var connection = App @"Server=desktop-rvdfpao\sqlexpress;Database=d20;Trusted_Connection=True;ConnectRetryCount=0";
-            //this.ConnectionString = connection;
         }
 
         public IDbConnection Connection
         {
             get
             {
-                //"OWSDBConnectionString": "Server=127.0.0.1;Port=5432;Database=OWSTest;User Id=postgres;Password=Elf1nM@gic;"
                 return new NpgsqlConnection(storageOptions.Value.OWSDBConnectionString);
             }
         }
@@ -234,20 +231,29 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<SuccessAndErrorMessage> RegisterUser(Guid _CustomerGUID, string _UserName, string _Password, string _FirstName, string _LastName)
         {
-            SuccessAndErrorMessage OutputObject = new SuccessAndErrorMessage();
+            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
 
             //Add Implementation
 
-            return OutputObject;
+            return outputObject;
         }
 
         public async Task<GetUserSession> GetUserFromEmail(Guid _CustomerGUID, string _Email)
         {
-            GetUserSession OutputObject = new GetUserSession();
+            GetUserSession outputObject = new GetUserSession();
 
             //Add Implementation
 
-            return OutputObject;
+            return outputObject;
+        }
+
+        public async Task<SuccessAndErrorMessage> RemoveCharacter(Guid _CustomerGUID, Guid _UserSessionGUID, string _CharacterName)
+        {
+            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+
+            //Add Implementation
+
+            return outputObject;
         }
     }
     

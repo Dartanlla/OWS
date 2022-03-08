@@ -53,6 +53,18 @@ services:
     - mssql
     - rabbitmq
 
+  owscharacterpersistence:
+    image: ${REGISTRY:-ows}/owscharacterpersistence:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: OWSCharacterPersistence/Dockerfile
+    ports:
+    - "44323:80"
+    - "44324:443"
+    depends_on:
+    - mssql
+    - rabbitmq
+
 volumes:
   mssql_data:
   mssql_log:

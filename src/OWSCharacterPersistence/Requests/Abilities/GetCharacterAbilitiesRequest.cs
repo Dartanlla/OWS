@@ -9,22 +9,22 @@ using System.Threading.Tasks;
 namespace OWSCharacterPersistence.Requests.Abilities
 {
     /// <summary>
-    /// Get Ability Bars And Abilities
+    /// Get Character Abilities
     /// </summary>
     /// <remarks>
-    /// Get a flattened list of ability bars and the abilities on those bars for this character.
+    /// Get a list of the abilities this character has.
     /// </remarks>
-    public class GetAbilityBarsAndAbilitiesRequest
+    public class GetCharacterAbilitiesRequest
     {
         /// <summary>
         /// Character Name
         /// </summary>
         /// <remarks>
-        /// This is the name of the character to get ability bars and abilities for.
+        /// This is the name of the character to get abilities for.
         /// </remarks>
         public string CharacterName { get; set; }
 
-        private IEnumerable<OWSData.Models.StoredProcs.GetAbilityBarsAndAbilities> output;
+        private IEnumerable<OWSData.Models.StoredProcs.GetCharacterAbilities> output;
         private Guid customerGUID;
         private ICharactersRepository charactersRepository;
 
@@ -36,7 +36,7 @@ namespace OWSCharacterPersistence.Requests.Abilities
 
         public async Task<IActionResult> Handle()
         {
-            output = await charactersRepository.GetAbilityBarsAndAbilities(customerGUID, CharacterName);
+            output = await charactersRepository.GetCharacterAbilities(customerGUID, CharacterName);
 
             return new OkObjectResult(output);
         }

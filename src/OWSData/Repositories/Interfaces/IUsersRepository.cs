@@ -22,7 +22,7 @@ namespace OWSData.Repositories.Interfaces
         Task<SuccessAndErrorMessage> UserSessionSetSelectedCharacter(Guid customerGUID, Guid userSessionGUID, string selectedCharacterName);
         Task<SuccessAndErrorMessage> RegisterUser(Guid customerGUID, string userName, string password, string firstName, string lastName);
         Task<GetUserSession> GetUserFromEmail(Guid customerGUID, string email);
-
+        Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGUID, Guid userSessionGUID, string characterName);
         
     }
 }

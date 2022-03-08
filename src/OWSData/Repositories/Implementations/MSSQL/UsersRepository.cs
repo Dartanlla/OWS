@@ -46,11 +46,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 outputObject = await Connection.QueryAsync<GetAllCharacters>("GetAllCharacters",
                 p,
                 commandType: CommandType.StoredProcedure);
-
-                //await Connection.ExecuteAsync("AddCharacter",
-                //    p,
-                //    commandType: CommandType.StoredProcedure);
-                //errorMessage = p.Get<string>("ErrorMessage");
             }
 
             return outputObject;
@@ -74,11 +69,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     outputObject = await Connection.QuerySingleAsync<CreateCharacter>("AddCharacter",
                     p,
                     commandType: CommandType.StoredProcedure);
-
-                    //await Connection.ExecuteAsync("AddCharacter",
-                    //    p,
-                    //    commandType: CommandType.StoredProcedure);
-                    //errorMessage = p.Get<string>("ErrorMessage");
                 }
 
                 if (String.IsNullOrEmpty(outputObject.ErrorMessage))
@@ -291,6 +281,38 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
 
             return outputObject;
+        }
+
+        public async Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGUID, Guid userSessionGUID, string characterName)
+        {
+            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@UserSessionGUID", userSessionGUID);
+                    p.Add("@CharacterName", characterName);
+
+                    await Connection.ExecuteAsync("RemoveUser",
+                        p,
+                        commandType: CommandType.StoredProcedure);
+                }
+
+                outputObject.Success = true;
+                outputObject.ErrorMessage = "";
+
+                return outputObject;
+            }
+            catch (Exception ex)
+            {
+                outputObject.Success = false;
+                outputObject.ErrorMessage = ex.Message;
+
+                return outputObject;
+            }
         }
     }
 }

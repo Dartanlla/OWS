@@ -35,6 +35,7 @@ namespace OWSPublicAPI.Controllers
         private readonly IUsersRepository _usersRepository;
         private readonly IExternalLoginProviderFactory _externalLoginProviderFactory;
         private readonly ICharactersRepository _charactersRepository;
+        private readonly IPublicAPIInputValidation _publicAPIInputValidation;
         private readonly IHeaderCustomerGUID _customerGuid;
         private readonly IOptions<PublicAPIOptions> _owsGeneralConfig;
         private readonly IOptions<APIPathOptions> _owsApiPathConfig;
@@ -49,7 +50,8 @@ namespace OWSPublicAPI.Controllers
         public UsersController(Container container, 
             IUsersRepository usersRepository,
             IExternalLoginProviderFactory externalLoginProviderFactory,
-            ICharactersRepository charactersRepository, 
+            ICharactersRepository charactersRepository,
+            IPublicAPIInputValidation publicAPIInputValidation,
             IHeaderCustomerGUID customerGuid,
             IOptions<PublicAPIOptions> owsGeneralConfig,
             IOptions<APIPathOptions> owsApiPathConfig,
@@ -59,6 +61,7 @@ namespace OWSPublicAPI.Controllers
             _usersRepository = usersRepository;
             _externalLoginProviderFactory = externalLoginProviderFactory;
             _charactersRepository = charactersRepository;
+            _publicAPIInputValidation = publicAPIInputValidation;
             _customerGuid = customerGuid;
             _owsGeneralConfig = owsGeneralConfig;
             _owsApiPathConfig = owsApiPathConfig;
@@ -135,15 +138,16 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(GetServerToConnectTo))]
         public async Task<IActionResult> CreateCharacter([FromBody] CreateCharacterRequest request)
         {
-            request.SetData(_usersRepository, _customerGuid);
+            request.SetData(_usersRepository, _publicAPIInputValidation, _customerGuid);
             return await request.Handle();
         }
 
         /// <summary>
-        /// Get All Characters for a Specific User.
+        /// Get All Characters for a specified User.
         /// </summary>
         /// <remarks>
-        /// Send in a UserSessionGUID to specify which User to get all Characters for.
+        /// Send in a UserSessionGUID to specify which User to get all Characters for.  Use GetAllCharactersWithCustomData to also get all attached custom data with the same API call.
+        /// Users may have zero or more Characters.
         /// </remarks>
         [HttpPost]
         [Route("GetAllCharacters")]
@@ -157,6 +161,11 @@ namespace OWSPublicAPI.Controllers
         /// <summary>
         /// Gets a list of Player Groups that a Character is in.
         /// </summary>
+        /// <remarks>
+        /// Send a UserSessionGUID, a Character's CharacterName, and a PlayerGroupTypeID to get a list of groups the player is in.  Set the PlayerGroupTypeID parameter to zero to remove the Player Group Type filter.
+        /// Player Groups are persistent across player sessions and can be used to manage Party groups, Raid groups, Guilds, etc.
+        /// See the PlayerGroupTypes table for a list of Player Group Types.
+        /// </remarks>
         [HttpPost]
         [Route("GetPlayerGroupsCharacterIsIn")]
         [Produces(typeof(GetPlayerGroupsCharacterIsIn))]
@@ -170,7 +179,8 @@ namespace OWSPublicAPI.Controllers
         /// Gets the server to connect to for a specific character or zonename.
         /// </summary>
         /// <remarks>
-        /// Get the Zone Server to travel to based on the User referenced by the UserSessionGUID. Send in an empty ZoneName or ZoneName set to "GETLASTZONENAME" to use the last zone the Character was on rather than specifying a ZoneName.
+        /// Get the Zone Server to travel to based on the User referenced by the UserSessionGUID.  Prior to calling this API, you MUST set the Selected Character to connect with using the UserSessionSetSelectedCharacter API for the UserSessionGUID passed into this API.
+        /// Send in an empty ZoneName or ZoneName set to "GETLASTZONENAME" to use the last zone the Character was on rather than specifying a ZoneName.
         /// </remarks>
         [HttpPost]
         [Route("GetServerToConnectTo")]
@@ -184,6 +194,9 @@ namespace OWSPublicAPI.Controllers
         /// <summary>
         /// Gets the User Session from a UserSessionGUID.
         /// </summary>
+        /// <remarks>
+        /// Get the User Session object (some values may be null if a selected character is not set).
+        /// </remarks>
         [HttpGet]
         [Route("GetUserSession")]
         [Produces(typeof(GetUserSession))]
@@ -194,8 +207,11 @@ namespace OWSPublicAPI.Controllers
         }
 
         /// <summary>
-        /// Login and create a User Session.
+        /// Login and create a User Session that you can reference via a UserSessionGUID.
         /// </summary>
+        /// <remarks>
+        /// Login by passing an Email and Password.  See ExternalLoginAndCreateSession when using an external login provider (such as Epic Game Store or Xsolla).
+        /// </remarks>
         [HttpPost]
         [Route("LoginAndCreateSession")]
         [Produces(typeof(PlayerLoginAndCreateSession))]
@@ -206,7 +222,7 @@ namespace OWSPublicAPI.Controllers
         }
 
         /// <summary>
-        /// Login and create a User Session using an External Login Provider (such as Xsolla).
+        /// Login and create a User Session using an External Login Provider (such as Epic Game Store or Xsolla).
         /// </summary>
         [HttpPost]
         [Route("ExternalLoginAndCreateSession")]
@@ -218,8 +234,11 @@ namespace OWSPublicAPI.Controllers
         }
 
         /// <summary>
-        /// Set the Character that has been selected to play for a User Session.
+        /// Set the Character that has been selected to play for a User Session (UserSessionGUID).
         /// </summary>
+        /// <remarks>
+        /// This method MUST be called on a User Session before calling the GetServerToConnectTo API.
+        /// </remarks>
         [HttpPost]
         [Route("UserSessionSetSelectedCharacter")]
         [Produces(typeof(SuccessAndErrorMessage))]
@@ -230,7 +249,7 @@ namespace OWSPublicAPI.Controllers
         }
 
         /// <summary>
-        /// Set the Character that has been selected to play for a User Session and Get the User Session all in one call.
+        /// Set the Character that has been selected to play for a User Session (UserSessionGUID) and get the complete User Session object all in one API call.
         /// </summary>
         [HttpPost]
         [Route("SetSelectedCharacterAndGetUserSession")]
@@ -242,8 +261,11 @@ namespace OWSPublicAPI.Controllers
         }
 
         /// <summary>
-        /// Register a new User account.
+        /// Register a new User account by sending FirstName, LastName, Email, and Password.
         /// </summary>
+        /// <remarks>
+        /// Implement your own IPublicAPIInputValidation to specify your specific validation rules for FirstName, LastName, Email, and Password.  You can wire up the dependency injection for your custom IPublicAPIInputValidation in Startup.cs.
+        /// </remarks>
         [HttpPost]
         [Route("RegisterUser")]
         [Produces(typeof(GetUserSession))]
@@ -253,5 +275,19 @@ namespace OWSPublicAPI.Controllers
             return await request.Handle();
         }
 
+        /// <summary>
+        /// Remove a Character from this User (UserSessionGUID).
+        /// </summary>
+        /// <remarks>
+        /// Removes a Character from the User.  This method permanently deletes the character and all associated data.  In the future, it might make sense to modify this to only mark the character as removed to support restoring an accidentally removed character.
+        /// </remarks>
+        [HttpPost]
+        [Route("RemoveCharacter")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<IActionResult> RemoveCharacter([FromBody] RemoveCharacterRequest request)
+        {
+            request.SetData(_usersRepository, _customerGuid);
+            return await request.Handle();
+        }
     }
 }

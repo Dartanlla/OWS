@@ -43,8 +43,6 @@ namespace OWSData.Models.StoredProcs
         public double Hunger { get; set; }
         public int Gold { get; set; }
         public int Score { get; set; }
-
-        [JsonPropertyName("Level")]
         public short CharacterLevel { get; set; }
         public byte Gender { get; set; }
         public int Xp { get; set; }
