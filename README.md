@@ -81,7 +81,7 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 8. Run the following SQL statment against the Open World Server database to add your local PC as a World Server.  Replace [CustomerGUID] with the API key from the previous step.
     ```
     INSERT INTO WorldServers (CustomerGUID, ServerIP, MaxNumberOfInstances, ActiveStartTime, Port, ServerStatus, InternalServerIP, StartingMapInstancePort)
-    VALUES ([CustomerGUID], '127.0.0.1', 10, NULL, '8081', 0, '127.0.0.1', '7778')
+    VALUES ('[CustomerGUID]', '127.0.0.1', 10, NULL, '8081', 0, '127.0.0.1', '7778')
     ```
 ## OSX
 1. Download and Install [Docker Desktop For Mac](https://www.docker.com/products/docker-desktop)
@@ -102,7 +102,7 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 1. Download and Install [Docker Engine For Linux](https://www.docker.com/products/docker-desktop)
 2. Close all Web Browsers
 3. Download and Run [dotnet-dev-certificate-linux](https://github.com/CodewareGames/dotnet-dev-certificate-linux) to install Development HTTPS Certificate.
-4. Run the following  command in an terminal from the OWS root directory.
+4. Run the following  command in an terminal from the OWS src directory.
     ```
     sudo docker-compose -f docker-compose.yml -f docker-compose.override.linux.yml up -d
     ```
