@@ -28,44 +28,12 @@
             Checks for an empty IHeaderCustomerGUID.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Controllers.CharactersController.Get(System.Int32)">
-            <summary>
-            Get Character Data by CharacterID.
-            </summary>
-            <remarks>
-            Gets all character data by Character ID.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.CharactersController.GetByUserGUID(System.String)">
-            <summary>
-            Get Characters Data by UserGUID.
-            </summary>
-            <remarks>
-            Gets a list of Characters by UserGUID.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.CharactersController.GetByUserEmail(System.String)">
-            <summary>
-            Get Characters Data by Email.
-            </summary>
-            <remarks>
-            Gets a list of Characters by Email.
-            </remarks>
-        </member>
         <member name="M:OWSPublicAPI.Controllers.CharactersController.GetByName(OWSPublicAPI.Requests.Characters.GetByNameRequest)">
             <summary>
             Get Characters Data by Character Name.
             </summary>
             <remarks>
             Gets a Characters by Name.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.CharactersController.Delete(System.Int32)">
-            <summary>
-            Delete a Character Permanently.
-            </summary>
-            <remarks>
-            Deletes a character by CharacterID.
             </remarks>
         </member>
         <member name="T:OWSPublicAPI.Controllers.UsersController">
@@ -82,38 +50,6 @@
             </summary>
             <remarks>
             All dependencies are injected.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.Get">
-            <summary>
-            Get a list of all Users.
-            </summary>
-            <remarks>
-            Get a list of all OWS Users.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.Get(System.Guid)">
-            <summary>
-            Get all User Information.
-            </summary>
-            <remarks>
-            Get all OWS User data.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.Put(System.Int32,System.String)">
-            <summary>
-            Save a User.
-            </summary>
-            <remarks>
-            Save OWS User data.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.Delete(System.Int32)">
-            <summary>
-            Delete a User from OWS.
-            </summary>
-            <remarks>
-            Delete an OWS User permanently.
             </remarks>
         </member>
         <member name="M:OWSPublicAPI.Controllers.UsersController.CreateCharacter(OWSPublicAPI.Requests.Users.CreateCharacterRequest)">

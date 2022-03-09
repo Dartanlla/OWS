@@ -69,63 +69,6 @@ namespace OWSPublicAPI.Controllers
         }
 
         /// <summary>
-        /// Get a list of all Users.
-        /// </summary>
-        /// <remarks>
-        /// Get a list of all OWS Users.
-        /// </remarks>
-        // GET: api/Users
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
-        /// <summary>
-        /// Get all User Information.
-        /// </summary>
-        /// <remarks>
-        /// Get all OWS User data.
-        /// </remarks>
-        // GET: api/Users/5
-     //   [HttpGet("{id}", Name = "Get")]
-     //   public string Get(int id)
-     //   {
-     //       return "value";
-     //   }
-        [HttpGet("{id}", Name = "Get")]
-        [Produces(typeof(User))]
-        public async Task<IActionResult> Get(Guid id)
-        {
-            GetUserRequest request = new GetUserRequest();
-            request.SetData(id, _usersRepository, _customerGuid);
-            return await request.Handle();
-        }
-        /// <summary>
-        /// Save a User.
-        /// </summary>
-        /// <remarks>
-        /// Save OWS User data.
-        /// </remarks>
-        // PUT: api/Users/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        /// <summary>
-        /// Delete a User from OWS.
-        /// </summary>
-        /// <remarks>
-        /// Delete an OWS User permanently.
-        /// </remarks>
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
-
-        /// <summary>
         /// Creates a new Character.
         /// </summary>
         /// <remarks>

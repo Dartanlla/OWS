@@ -60,44 +60,6 @@ namespace OWSPublicAPI.Controllers
         }
 
         /// <summary>
-        /// Get Character Data by CharacterID.
-        /// </summary>
-        /// <remarks>
-        /// Gets all character data by Character ID.
-        /// </remarks>
-        [HttpGet("{id}")]
-        public void Get([FromQuery] int value)
-        {
-
-        }
-
-        /// <summary>
-        /// Get Characters Data by UserGUID.
-        /// </summary>
-        /// <remarks>
-        /// Gets a list of Characters by UserGUID.
-        /// </remarks>
-        [HttpGet]
-        [Route("ByUserGUID")]
-        public void GetByUserGUID([FromQuery] string UserGuid)
-        {
-
-        }
-
-        /// <summary>
-        /// Get Characters Data by Email.
-        /// </summary>
-        /// <remarks>
-        /// Gets a list of Characters by Email.
-        /// </remarks>
-        [HttpGet]
-        [Route("ByUserEmail")]
-        public void GetByUserEmail([FromQuery] string Email)
-        {
-
-        }
-
-        /// <summary>
         /// Get Characters Data by Character Name.
         /// </summary>
         /// <remarks>
@@ -115,17 +77,5 @@ namespace OWSPublicAPI.Controllers
             return await request.Handle();
         }
 
-
-        /// <summary>
-        /// Delete a Character Permanently.
-        /// </summary>
-        /// <remarks>
-        /// Deletes a character by CharacterID.
-        /// </remarks>
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
     }
 }
