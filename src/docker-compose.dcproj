@@ -8,9 +8,6 @@
     <DockerServiceName>OWS</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="docker-compose.override.linux.yml" />
-    <None Include="docker-compose.override.osx.yml" />
-    <None Include="docker-compose.override.windows.yml" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>

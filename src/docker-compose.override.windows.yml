@@ -5,8 +5,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=crypticpassword
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/root/.aspnet/https/ows.pfx
     ports:
       - "80"
       - "443"
@@ -17,8 +15,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=crypticpassword
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/root/.aspnet/https/ows.pfx
     ports:
       - "80"
       - "443"
@@ -29,8 +25,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=crypticpassword
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/root/.aspnet/https/ows.pfx
     ports:
       - "80"
       - "443"
