@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>5f287243-b8be-4d52-a0d5-8c329ba8d881</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
@@ -25,7 +25,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.0.4" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.0.4" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.0.4" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.5.0" />
   </ItemGroup>
 
   <ItemGroup>
