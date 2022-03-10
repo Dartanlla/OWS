@@ -4,6 +4,38 @@
         <name>OWSInstanceManagement</name>
     </assembly>
     <members>
+        <member name="T:OWSInstanceManagement.Controllers.ZonesController">
+            <summary>
+            Zones Controller
+            </summary>
+            <remarks>
+            Controller for Handling Zone related requests.
+            </remarks>
+        </member>
+        <member name="M:OWSInstanceManagement.Controllers.ZonesController.OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext)">
+            <summary>
+            Zones Controller - OnActionExecuting
+            </summary>
+            <remarks>
+            OnActionExecuting
+            </remarks>
+        </member>
+        <member name="M:OWSInstanceManagement.Controllers.ZonesController.#ctor(SimpleInjector.Container,OWSData.Repositories.Interfaces.IInstanceManagementRepository,OWSData.Repositories.Interfaces.ICharactersRepository,Microsoft.Extensions.Options.IOptions{OWSShared.Options.RabbitMQOptions},OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            Zones Controller - Constructor
+            </summary>
+            <remarks>
+            Setup for dependency injection.
+            </remarks>
+        </member>
+        <member name="M:OWSInstanceManagement.Controllers.ZonesController.AddZone(OWSInstanceManagement.Requests.Zones.AddZoneRequest)">
+            <summary>
+            Add a Zone
+            </summary>
+            <remarks>
+            Add a Zone to the Maps table.
+            </remarks>
+        </member>
         <member name="T:OWSInstanceManagement.Requests.Instance.GetCurrentWorldTimeRequest">
             <summary>
             GetCurrentWorldTimeRequest
