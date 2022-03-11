@@ -33,6 +33,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSTests", "OWSTests\OWSTes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MSSQLUpdateScripts", "MSSQLUpdateScripts", "{0CB17282-9426-4A9C-B6E4-FCF24B1DF2CD}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSStatus", "OWSStatus\OWSStatus.csproj", "{A445B990-85B8-44A1-86BD-9674D3611F28}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +81,10 @@ Global
 		{ABE0555E-7D6A-4B1E-8991-490F8ADC2F42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ABE0555E-7D6A-4B1E-8991-490F8ADC2F42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ABE0555E-7D6A-4B1E-8991-490F8ADC2F42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A445B990-85B8-44A1-86BD-9674D3611F28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A445B990-85B8-44A1-86BD-9674D3611F28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A445B990-85B8-44A1-86BD-9674D3611F28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A445B990-85B8-44A1-86BD-9674D3611F28}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
