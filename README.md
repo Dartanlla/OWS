@@ -71,6 +71,8 @@ Open World Server (OWS) is a server instance manager designed to create large wo
     INSERT INTO WorldServers (CustomerGUID, ServerIP, MaxNumberOfInstances, ActiveStartTime, Port, ServerStatus, InternalServerIP, StartingMapInstancePort)
     VALUES ('[CustomerGUID]', '127.0.0.1', 10, NULL, '8081', 0, '127.0.0.1', '7778')
     ```
+9. Follow the instructions here to setup the OWS Starter Project and connect it to your OWS API.  [Instructions for OWS Starter Project](http://rpgwebapi.sabredartstudios.com/Docs/Install)
+    
 ## OSX
 1. Download and Install [Docker Desktop For Mac](https://www.docker.com/products/docker-desktop)
 2. Open OWS Project in [Visual Studio For Mac](https://visualstudio.microsoft.com/vs/mac/)
