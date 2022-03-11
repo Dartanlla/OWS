@@ -65,7 +65,17 @@ services:
     - mssql
     - rabbitmq
 
+  owsstatus:
+    image: ${REGISTRY:-ows}/owsstatus:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: OWSStatus/Dockerfile
+    ports:
+    - "44102:80"
+    - "44103:443"
+
 volumes:
   mssql_data:
   mssql_log:
   mssql_secrets:
+
