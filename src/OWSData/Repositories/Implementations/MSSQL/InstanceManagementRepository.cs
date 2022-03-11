@@ -193,5 +193,33 @@ namespace OWSData.Repositories.Implementations.MSSQL
             return output;
         }
 
+        public async Task<SuccessAndErrorMessage> AddZone(Guid customerGUID, string mapName, string zoneName, string worldCompContainsFilter, string worldCompListFilter, int softPlayerCap, int hardPlayerCap, int mapMode)
+        {
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@MapName", mapName);
+                p.Add("@MapData", null);
+                p.Add("@ZoneName", zoneName);
+                p.Add("@WorldCompContainsFilter", worldCompContainsFilter);
+                p.Add("@WorldCompListFilter", worldCompListFilter);
+                p.Add("@SoftPlayerCap", softPlayerCap);
+                p.Add("@HardPlayerCap", hardPlayerCap);
+                p.Add("@MapMode", mapMode);
+
+                await Connection.ExecuteAsync("UpdateNumberOfPlayers",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+            {
+                Success = true,
+                ErrorMessage = ""
+            };
+
+            return output;
+        }
     }
 }
