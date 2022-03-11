@@ -195,31 +195,88 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<SuccessAndErrorMessage> AddZone(Guid customerGUID, string mapName, string zoneName, string worldCompContainsFilter, string worldCompListFilter, int softPlayerCap, int hardPlayerCap, int mapMode)
         {
-            using (Connection)
+            try
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@MapName", mapName);
-                p.Add("@MapData", null);
-                p.Add("@ZoneName", zoneName);
-                p.Add("@WorldCompContainsFilter", worldCompContainsFilter);
-                p.Add("@WorldCompListFilter", worldCompListFilter);
-                p.Add("@SoftPlayerCap", softPlayerCap);
-                p.Add("@HardPlayerCap", hardPlayerCap);
-                p.Add("@MapMode", mapMode);
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@MapID", 0);
+                    p.Add("@MapName", mapName);
+                    p.Add("@MapData", new byte[1]);
+                    p.Add("@ZoneName", zoneName);
+                    p.Add("@WorldCompContainsFilter", worldCompContainsFilter);
+                    p.Add("@WorldCompListFilter", worldCompListFilter);
+                    p.Add("@SoftPlayerCap", softPlayerCap);
+                    p.Add("@HardPlayerCap", hardPlayerCap);
+                    p.Add("@MapMode", mapMode);
 
-                await Connection.ExecuteAsync("UpdateNumberOfPlayers",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                    await Connection.ExecuteAsync("AddOrUpdateMapZone",
+                        p,
+                        commandType: CommandType.StoredProcedure);
+                }
+
+                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                {
+                    Success = true,
+                    ErrorMessage = ""
+                };
+
+                return output;
             }
-
-            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+            catch (Exception ex)
             {
-                Success = true,
-                ErrorMessage = ""
-            };
+                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
 
-            return output;
+                return output;
+            }
+        }
+
+        public async Task<SuccessAndErrorMessage> UpdateZone(Guid customerGUID, int mapId, string mapName, string zoneName, string worldCompContainsFilter, string worldCompListFilter, int softPlayerCap, int hardPlayerCap, int mapMode)
+        {
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@MapID", mapId);
+                    p.Add("@MapName", mapName);
+                    p.Add("@MapData", new byte[1]);
+                    p.Add("@ZoneName", zoneName);
+                    p.Add("@WorldCompContainsFilter", worldCompContainsFilter);
+                    p.Add("@WorldCompListFilter", worldCompListFilter);
+                    p.Add("@SoftPlayerCap", softPlayerCap);
+                    p.Add("@HardPlayerCap", hardPlayerCap);
+                    p.Add("@MapMode", mapMode);
+
+                    await Connection.ExecuteAsync("AddOrUpdateMapZone",
+                        p,
+                        commandType: CommandType.StoredProcedure);
+                }
+
+                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                {
+                    Success = true,
+                    ErrorMessage = ""
+                };
+
+                return output;
+            }
+            catch (Exception ex)
+            {
+                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
+
+                return output;
+            }
         }
     }
 }
