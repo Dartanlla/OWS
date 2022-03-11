@@ -114,6 +114,8 @@ namespace OWSPublicAPI
             // Register And Validate External Login Provider Options
             // services.ConfigureAndValidate<EpicOnlineServicesOptions>(ExternalLoginProviderOptions.EpicOnlineServices, Configuration.GetSection($"{ExternalLoginProviderOptions.SectionName}:{ExternalLoginProviderOptions.EpicOnlineServices}"));
 
+            services.AddCustomHealthCheck(Configuration);
+
             InitializeContainer(services);
         }
 
@@ -139,6 +141,9 @@ namespace OWSPublicAPI
 
             //app.UseStaticFiles();
             app.UseRouting();
+
+            app.UseCustomHealthCheck();
+
             app.UseMvc();
 
             app.UseSwagger(/*c =>
