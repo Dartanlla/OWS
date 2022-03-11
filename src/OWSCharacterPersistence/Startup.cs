@@ -15,6 +15,7 @@ using OWSData.Repositories.Interfaces;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
 using OWSShared.Middleware;
+using OWSShared.Extensions;
 using SimpleInjector;
 
 namespace OWSCharacterPersistence
@@ -80,6 +81,8 @@ namespace OWSCharacterPersistence
             services.Configure<OWSShared.Options.APIPathOptions>(Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName));
             services.Configure<OWSShared.Options.RabbitMQOptions>(Configuration.GetSection(OWSShared.Options.RabbitMQOptions.SectionName));
 
+            services.AddCustomHealthCheck(Configuration);
+
             InitializeContainer(services);
         }
 
@@ -105,6 +108,8 @@ namespace OWSCharacterPersistence
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseCustomHealthCheck();
 
             //app.UseAuthorization();
 

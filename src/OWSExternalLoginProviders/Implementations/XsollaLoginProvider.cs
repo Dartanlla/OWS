@@ -10,7 +10,6 @@ using OWSExternalLoginProviders.Implementations;
 using OWSExternalLoginProviders.Interfaces;
 using OWSExternalLoginProviders.Options;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 
 namespace OWSExternalLoginProviders.Implementations
 {
