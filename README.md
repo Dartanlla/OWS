@@ -57,6 +57,10 @@ Open World Server (OWS) is a server instance manager designed to create large wo
     ```
     docker-compose -f docker-compose.yml -f docker-compose.override.windows.yml up -d
     ```
+    For a fresh build use the following command
+    ```
+    docker-compose -f docker-compose.yml -f docker-compose.override.windows.yml up -d --build --no-cache
+    ```
 5. Open SQL Server Management Studio and connect to localhost with sa / yourStrong(!)Password
 6. Run the following SQL statment against the Open World Server database.  Be sure to replace the values CustomerName, FirstName, LastName, Email, and Password.
     ```
@@ -88,6 +92,10 @@ Open World Server (OWS) is a server instance manager designed to create large wo
     ```
     docker-compose -f docker-compose.yml -f docker-compose.override.osx.yml up -d
     ```
+    For a fresh build use the following command
+    ```
+    docker-compose -f docker-compose.yml -f docker-compose.override.osx.yml up -d --build --no-cache
+    ```
 ## Linux
 1. Download and Install [Docker Engine For Linux](https://www.docker.com/products/docker-desktop)
 2. Close all Web Browsers
@@ -95,4 +103,8 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 4. Run the following  command in an terminal from the OWS src directory.
     ```
     sudo docker-compose -f docker-compose.yml -f docker-compose.override.linux.yml up -d
+    ```
+    For a fresh build use the following command
+    ```
+    sudo docker-compose -f docker-compose.yml -f docker-compose.override.linux.yml up -d --build --no-cache
     ```
