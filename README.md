@@ -28,6 +28,7 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 - OWS Instance Launcher - This project builds our Instance Launcher that replaces the RPG World Server in OWS 1.
 - OWS Instance Management - This API manages Zone Instances and the OWS Instance Launchers.
 - OWS Public API - This API handles all API calls that come directly from player clients such as registration, login, and connecting to the game.
+- OWS Status - This service provides Monitoring & Health Checking (Beta)
 - OWS Shared - This project houses various miscellaneous code that multiple other projects require.
 
 # Additional Files Needed (not required for the Docker version of OWS)
@@ -42,8 +43,7 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 # Docker Setup Instructions
 ### Requirements
 - Download Or Clone OWS
-- [.Net Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet/3.1)
-- [.Net 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0) - Required For Mac & Linux
+- [.Net 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
 - [SQL Server Management Studio](https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver15)
 
 ## Windows
