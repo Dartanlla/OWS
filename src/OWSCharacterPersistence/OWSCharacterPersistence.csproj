@@ -18,14 +18,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.7" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.4" />
-    <PackageReference Include="SimpleInjector" Version="5.3.2" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2" />
+    <PackageReference Include="SimpleInjector" Version="5.3.3" />
     <PackageReference Include="SimpleInjector.Integration.AspNetCore.Mvc" Version="5.3.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.0.4" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.0.4" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.0.4" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.0.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.3.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.3.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.3.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.3.0" />
   </ItemGroup>
 
   <ItemGroup>

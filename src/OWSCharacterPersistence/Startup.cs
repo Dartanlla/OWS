@@ -48,8 +48,7 @@ namespace OWSCharacterPersistence
                 //config.ModelBinderProviders.Insert(0, new QueryModelBinderProvider(container));
             })
             .AddViews()
-            .AddApiExplorer()
-            .AddNewtonsoftJson();
+            .AddApiExplorer();
 
             services.AddSimpleInjector(container, options => {
                 options.AddAspNetCore()
