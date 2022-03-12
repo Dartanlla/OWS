@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using OWSPublicAPI;
-using OWSData.Models.StoredProcs;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace OWSBenchmarks
 {

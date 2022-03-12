@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <Content Include="ows.css">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 

@@ -5,13 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.7" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.4" />
-    <PackageReference Include="RabbitMQ.Client" Version="6.2.1" />
-    <PackageReference Include="SimpleInjector" Version="4.8.1" />
-    <PackageReference Include="SimpleInjector.Integration.AspNetCore.Mvc" Version="4.8.1" />
-    <PackageReference Include="SimpleInjector.Integration.GenericHost" Version="4.8.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.2.4" />
+    <PackageReference Include="SimpleInjector" Version="5.3.3" />
+    <PackageReference Include="SimpleInjector.Integration.AspNetCore.Mvc" Version="5.3.0" />
+    <PackageReference Include="SimpleInjector.Integration.GenericHost" Version="5.3.0" />
   </ItemGroup>
 
   <ItemGroup>

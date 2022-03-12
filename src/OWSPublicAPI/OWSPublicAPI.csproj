@@ -17,14 +17,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="1.50.7" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.13" />
-    <PackageReference Include="SimpleInjector" Version="5.3.2" />
+    <PackageReference Include="Dapper" Version="2.0.123" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
+    <PackageReference Include="SimpleInjector" Version="5.3.3" />
     <PackageReference Include="SimpleInjector.Integration.AspNetCore.Mvc" Version="5.3.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.0.4" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.0.4" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.0.4" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.0.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.3.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.3.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.3.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.3.0" />
   </ItemGroup>
 
   <ItemGroup>

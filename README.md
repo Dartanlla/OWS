@@ -28,6 +28,7 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 - OWS Instance Launcher - This project builds our Instance Launcher that replaces the RPG World Server in OWS 1.
 - OWS Instance Management - This API manages Zone Instances and the OWS Instance Launchers.
 - OWS Public API - This API handles all API calls that come directly from player clients such as registration, login, and connecting to the game.
+- OWS Status - This service provides Monitoring & Health Checking (Beta)
 - OWS Shared - This project houses various miscellaneous code that multiple other projects require.
 
 # Additional Files Needed (not required for the Docker version of OWS)
@@ -42,8 +43,7 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 # Docker Setup Instructions
 ### Requirements
 - Download Or Clone OWS
-- [.Net Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet/3.1)
-- [.Net 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0) - Required For Mac & Linux
+- [.Net 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
 - [SQL Server Management Studio](https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver15)
 
 ## Windows
@@ -56,6 +56,10 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 4. **(Optional)** Running Docker Compose without Visual Studio Debugger, Enter the following Command Prompt from the OWS root directory.
     ```
     docker-compose -f docker-compose.yml -f docker-compose.override.windows.yml up -d
+    ```
+    For a fresh build use the following command
+    ```
+    docker-compose -f docker-compose.yml -f docker-compose.override.windows.yml up -d --build --no-cache
     ```
 5. Open SQL Server Management Studio and connect to localhost with sa / yourStrong(!)Password
 6. Run the following SQL statment against the Open World Server database.  Be sure to replace the values CustomerName, FirstName, LastName, Email, and Password.
@@ -88,6 +92,10 @@ Open World Server (OWS) is a server instance manager designed to create large wo
     ```
     docker-compose -f docker-compose.yml -f docker-compose.override.osx.yml up -d
     ```
+    For a fresh build use the following command
+    ```
+    docker-compose -f docker-compose.yml -f docker-compose.override.osx.yml up -d --build --no-cache
+    ```
 ## Linux
 1. Download and Install [Docker Engine For Linux](https://www.docker.com/products/docker-desktop)
 2. Close all Web Browsers
@@ -95,4 +103,8 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 4. Run the following  command in an terminal from the OWS src directory.
     ```
     sudo docker-compose -f docker-compose.yml -f docker-compose.override.linux.yml up -d
+    ```
+    For a fresh build use the following command
+    ```
+    sudo docker-compose -f docker-compose.yml -f docker-compose.override.linux.yml up -d --build --no-cache
     ```
