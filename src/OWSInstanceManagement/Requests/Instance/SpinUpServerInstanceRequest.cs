@@ -61,7 +61,7 @@ namespace OWSInstanceManagement.Requests.Instance
                     serverSpinUpMessage.MapName = ZoneName;
                     serverSpinUpMessage.Port = Port;
 
-                    var body = serverSpinUpMessage.SerialiseIntoBinary();
+                    var body = serverSpinUpMessage.Serialize();
 
                     channel.BasicPublish(exchange: "ows.serverspinup",
                                          routingKey: String.Format("ows.serverspinup.{0}", WorldServerID),

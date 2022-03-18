@@ -15,9 +15,9 @@ namespace OWSShared.Messages
         public string MapName { get; set; }
         public int Port { get; set; }
 
-        public byte[] SerialiseIntoBinary()
+        public byte[] Serialize()
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(this));
+            byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(this);
             return bytes;
         }
 

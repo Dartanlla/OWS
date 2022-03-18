@@ -13,17 +13,9 @@ namespace OWSShared.Messages
         public int WorldServerID { get; set; }
         public int ZoneInstanceID { get; set; }
 
-        public byte[] SerialiseIntoBinary()
+        public byte[] Serialize()
         {
-            /*
-            MemoryStream memoryStream = new MemoryStream();
-            BinaryFormatter binaryFormatter = new BinaryFormatter();
-            binaryFormatter.Serialize(memoryStream, this);
-            memoryStream.Flush();
-            memoryStream.Seek(0, SeekOrigin.Begin);
-            return memoryStream.GetBuffer();
-            */
-            byte[] bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(this));
+            byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(this);
             return bytes;
         }
 
@@ -33,22 +25,6 @@ namespace OWSShared.Messages
 
             string json = Encoding.UTF8.GetString(data);
             messageToReturn = JsonSerializer.Deserialize<MQShutDownServerMessage>(json);
-
-            /*
-            BinaryFormatter binaryFormatter = new BinaryFormatter();
-            using (MemoryStream memoryStream = new MemoryStream(data))
-            {
-                try
-                {
-                    messageToReturn = (MQShutDownServerMessage)binaryFormatter.Deserialize(memoryStream);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-
-            }
-            */
 
             return messageToReturn;
         }

@@ -57,7 +57,7 @@ namespace OWSInstanceManagement.Requests.Instance
                     serverSpinUpMessage.CustomerGUID = CustomerGUID;
                     serverSpinUpMessage.ZoneInstanceID = ZoneInstanceID;
                     
-                    var body = serverSpinUpMessage.SerialiseIntoBinary();
+                    var body = serverSpinUpMessage.Serialize();
 
                     channel.BasicPublish(exchange: "ows.servershutdown",
                                          routingKey: String.Format("ows.servershutdown.{0}", WorldServerID),

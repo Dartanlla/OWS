@@ -70,7 +70,7 @@ namespace OWSInstanceManagement.Requests.Instance
                         testMessage.MapName = ZoneName;
                         testMessage.Port = joinMapByCharacterName.WorldServerPort;
 
-                        var body = testMessage.SerialiseIntoBinary();
+                        var body = testMessage.Serialize();
 
                         channel.BasicPublish(exchange: "ServerSpinUp",
                                              routingKey: String.Format("ServerSpinUp.{0}" + joinMapByCharacterName.WorldServerID),
