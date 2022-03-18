@@ -114,14 +114,14 @@ namespace OWSInstanceLauncher
         {
             services.AddRazorPages();
 
-            services.AddMvcCore(config => {
+            services.AddMvcCore(config =>
+            {
                 //IHttpRequestStreamReaderFactory readerFactory = services.BuildServiceProvider().GetRequiredService<IHttpRequestStreamReaderFactory>();
                 //config.ModelBinderProviders.Insert(0, new Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider(config.InputFormatters, readerFactory));
                 //config.ModelBinderProviders.Insert(0, new QueryModelBinderProvider(container));
             })
             .AddViews()
-            .AddApiExplorer()
-            .AddNewtonsoftJson();
+            .AddApiExplorer();
             //.AddCors()
             /*.AddJsonFormatters()
             .AddJsonOptions(options => {
