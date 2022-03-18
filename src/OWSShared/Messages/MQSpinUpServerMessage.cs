@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
+using System.Text.Json;
 
 namespace OWSShared.Messages
 {
@@ -15,31 +17,16 @@ namespace OWSShared.Messages
 
         public byte[] SerialiseIntoBinary()
         {
-            MemoryStream memoryStream = new MemoryStream();
-            BinaryFormatter binaryFormatter = new BinaryFormatter();
-            binaryFormatter.Serialize(memoryStream, this);
-            memoryStream.Flush();
-            memoryStream.Seek(0, SeekOrigin.Begin);
-            return memoryStream.GetBuffer();
+            byte[] bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(this));
+            return bytes;
         }
 
         public static MQSpinUpServerMessage Deserialize(byte[] data)
         {
             MQSpinUpServerMessage messageToReturn = new MQSpinUpServerMessage();
 
-            BinaryFormatter binaryFormatter = new BinaryFormatter();
-            using (MemoryStream memoryStream = new MemoryStream(data))
-            {
-                try
-                {
-                    messageToReturn = (MQSpinUpServerMessage)binaryFormatter.Deserialize(memoryStream);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-
-            }
+            string json = Encoding.UTF8.GetString(data);
+            messageToReturn = JsonSerializer.Deserialize<MQSpinUpServerMessage>(json);
 
             return messageToReturn;
         }
