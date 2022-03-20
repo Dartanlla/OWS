@@ -19,7 +19,6 @@ namespace OWSInstanceManagement.Requests.Instance
 
         private JoinMapByCharName Output;
         private Guid CustomerGUID;
-        //private IServiceProvider ServiceProvider;
         private ICharactersRepository charactersRepository;
 
         public void SetData(ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
@@ -54,21 +53,17 @@ namespace OWSInstanceManagement.Requests.Instance
                 {
                     using (var channel = connection.CreateModel())
                     {
-                        channel.ExchangeDeclare(exchange: "ServerSpinUp", 
-                            type: "direct", 
-                            durable: false, 
+                        channel.ExchangeDeclare(exchange: "ServerSpinUp",
+                            type: "direct",
+                            durable: false,
                             autoDelete: false);
 
-                        /*channel.QueueDeclare(queue: "ServerSpinUp",
-                            durable: false,
-                            exclusive: false,
-                            autoDelete: false,
-                            arguments: null);*/
-
-                        MQSpinUpServerMessage testMessage = new MQSpinUpServerMessage();
-                        testMessage.WorldServerID = joinMapByCharacterName.WorldServerID;
-                        testMessage.MapName = ZoneName;
-                        testMessage.Port = joinMapByCharacterName.WorldServerPort;
+                        MQSpinUpServerMessage testMessage = new()
+                        {
+                            WorldServerID = joinMapByCharacterName.WorldServerID,
+                            MapName = ZoneName,
+                            Port = joinMapByCharacterName.WorldServerPort
+                        };
 
                         var body = testMessage.Serialize();
 
