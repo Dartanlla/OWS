@@ -36,7 +36,7 @@ namespace OWSInstanceManagement.Requests.Instance
 
 
             //Send the servershutdown message to RabbitMQ
-            var factory = new ConnectionFactory()
+            ConnectionFactory factory = new()
             {
                 HostName = _rabbitMQOptions.Value.RabbitMQHostName,
                 Port = _rabbitMQOptions.Value.RabbitMQPort,
@@ -53,9 +53,11 @@ namespace OWSInstanceManagement.Requests.Instance
                         durable: false,
                         autoDelete: false);
 
-                    MQShutDownServerMessage serverSpinUpMessage = new MQShutDownServerMessage();
-                    serverSpinUpMessage.CustomerGUID = CustomerGUID;
-                    serverSpinUpMessage.ZoneInstanceID = ZoneInstanceID;
+                    MQShutDownServerMessage serverSpinUpMessage = new() 
+                    {
+                        CustomerGUID = CustomerGUID,
+                        ZoneInstanceID = ZoneInstanceID
+                    };
                     
                     var body = serverSpinUpMessage.Serialize();
 

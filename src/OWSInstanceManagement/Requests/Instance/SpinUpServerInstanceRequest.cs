@@ -37,7 +37,7 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            var factory = new ConnectionFactory() 
+            ConnectionFactory factory = new() 
             { 
                 HostName = _rabbitMQOptions.Value.RabbitMQHostName,
                 Port = _rabbitMQOptions.Value.RabbitMQPort,
@@ -54,12 +54,14 @@ namespace OWSInstanceManagement.Requests.Instance
                         durable: false,
                         autoDelete: false);
 
-                    MQSpinUpServerMessage serverSpinUpMessage = new MQSpinUpServerMessage();
-                    serverSpinUpMessage.CustomerGUID = CustomerGUID;
-                    serverSpinUpMessage.WorldServerID = WorldServerID;
-                    serverSpinUpMessage.ZoneInstanceID = ZoneInstanceID;
-                    serverSpinUpMessage.MapName = ZoneName;
-                    serverSpinUpMessage.Port = Port;
+                    MQSpinUpServerMessage serverSpinUpMessage = new()
+                    {
+                        CustomerGUID = CustomerGUID,
+                        WorldServerID = WorldServerID,
+                        ZoneInstanceID = ZoneInstanceID,
+                        MapName = ZoneName,
+                        Port = Port
+                    };
 
                     var body = serverSpinUpMessage.Serialize();
 
