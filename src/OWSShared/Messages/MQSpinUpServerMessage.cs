@@ -17,18 +17,12 @@ namespace OWSShared.Messages
 
         public byte[] Serialize()
         {
-            byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(this);
-            return bytes;
+            return JsonSerializer.SerializeToUtf8Bytes(this);
         }
 
         public static MQSpinUpServerMessage Deserialize(byte[] data)
         {
-            MQSpinUpServerMessage messageToReturn = new MQSpinUpServerMessage();
-
-            string json = Encoding.UTF8.GetString(data);
-            messageToReturn = JsonSerializer.Deserialize<MQSpinUpServerMessage>(json);
-
-            return messageToReturn;
+            return JsonSerializer.Deserialize<MQSpinUpServerMessage>(Encoding.UTF8.GetString(data));
         }
     }
 }
