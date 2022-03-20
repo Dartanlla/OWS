@@ -122,18 +122,11 @@ namespace OWSInstanceLauncher
             })
             .AddViews()
             .AddApiExplorer();
-            //.AddCors()
-            /*.AddJsonFormatters()
-            .AddJsonOptions(options => {
-                options.SerializerSettings.Converters.Add(new RequestHandlerConverter<IRequest>(container));
-            });*/
 
             services.Configure<OWSData.Models.OWSInstanceLauncherOptions>(Configuration.GetSection(OWSData.Models.OWSInstanceLauncherOptions.SectionName));
             services.Configure<OWSShared.Options.APIPathOptions>(Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName));
             services.Configure<OWSShared.Options.RabbitMQOptions>(Configuration.GetSection(OWSShared.Options.RabbitMQOptions.SectionName));
 
-            //owsInstanceLauncherOptions = new OWSData.Models.OWSInstanceLauncherOptions();
-            //Configuration.GetSection(OWSData.Models.OWSInstanceLauncherOptions.SectionName).Bind(owsInstanceLauncherOptions);
             var apiPathOptions = new OWSShared.Options.APIPathOptions();
             Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName).Bind(apiPathOptions);
 
