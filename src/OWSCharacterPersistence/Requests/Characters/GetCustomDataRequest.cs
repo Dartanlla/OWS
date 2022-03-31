@@ -34,13 +34,13 @@ namespace OWSCharacterPersistence.Requests.Characters
             customerGUID = customerGuid.CustomerGUID;
         }
 
-        public async Task<IActionResult> Handle()
+        public async Task<CustomCharacterDataRows> Handle()
         {
             CustomCharacterDataRows output = new CustomCharacterDataRows();
 
             output.Rows = await charactersRepository.GetCustomCharacterData(customerGUID, CharacterName);
 
-            return new OkObjectResult(output);
+            return output;
         }
 
     }

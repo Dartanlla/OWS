@@ -11,6 +11,5 @@ namespace OWSData.Models.Tables
         public string CustomFieldName { get; set; }
         public string FieldValue { get; set; }
 
-        public Characters C { get; set; }
     }
 }

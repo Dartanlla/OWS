@@ -48,7 +48,7 @@ namespace OWSCharacterPersistence.Controllers
         [HttpPost]
         [Route("GetCustomData")]
         [Produces(typeof(CustomCharacterDataRows))]
-        public async Task<IActionResult> GetCustomData([FromBody] GetCustomDataRequest request)
+        public async Task<CustomCharacterDataRows> GetCustomData([FromBody] GetCustomDataRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();

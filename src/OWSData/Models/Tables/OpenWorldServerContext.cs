@@ -476,11 +476,11 @@ namespace OWSData.Models.Tables
                     .IsRequired()
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.C)
+                /*entity.HasOne(d => d.C)
                     .WithMany(p => p.CustomCharacterData)
                     .HasForeignKey(d => new { d.CustomerGuid, d.CharacterId })
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_CustomCharacterData_WrathCharID");
+                    .HasConstraintName("FK_CustomCharacterData_WrathCharID");*/
             });
 
             modelBuilder.Entity<Customers>(entity =>
