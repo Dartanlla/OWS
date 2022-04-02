@@ -10,6 +10,8 @@ services:
     volumes:
       - ~/.microsoft/usersecrets:/root/.microsoft/usersecrets:ro
       - /usr/.aspnet/https:/root/.aspnet/https:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   owsinstancemanagement:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
@@ -19,6 +21,8 @@ services:
     volumes:
       - ~/.microsoft/usersecrets:/root/.microsoft/usersecrets:ro
       - /usr/.aspnet/https:/root/.aspnet/https:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   owscharacterpersistence:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
@@ -28,6 +32,8 @@ services:
     volumes:
       - ~/.microsoft/usersecrets:/root/.microsoft/usersecrets:ro
       - /usr/.aspnet/https:/root/.aspnet/https:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   owsstatus:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
@@ -37,3 +43,5 @@ services:
     volumes:
       - ~/.microsoft/usersecrets:/root/.microsoft/usersecrets:ro
       - /usr/.aspnet/https:/root/.aspnet/https:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
