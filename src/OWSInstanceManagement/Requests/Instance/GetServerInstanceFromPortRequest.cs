@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 using System;
@@ -41,11 +42,11 @@ namespace OWSInstanceManagement.Requests.Instance
             }
         }
 
-        public async Task<IActionResult> Handle()
+        public async Task<GetServerInstanceFromPort> Handle()
         {
-            var output = await _instanceMangementRepository.GetServerInstanceFromPort(CustomerGUID, _ip, Port);
+            GetServerInstanceFromPort output = await _instanceMangementRepository.GetServerInstanceFromPort(CustomerGUID, _ip, Port);
 
-            return new OkObjectResult(output);
+            return output;
         }
     }
 }

@@ -135,7 +135,7 @@ namespace OWSInstanceManagement.Controllers
         /*[SwaggerOperation("ByName")]
         [SwaggerResponse(200)]
         [SwaggerResponse(404)]*/
-        public async Task<IActionResult> GetServerInstanceFromPort([FromBody] GetServerInstanceFromPortRequest request)
+        public async Task<GetServerInstanceFromPort> GetServerInstanceFromPort([FromBody] GetServerInstanceFromPortRequest request)
         {
             request.SetData(_instanceManagementRepository, _customerGuid, Request.HttpContext.Connection.RemoteIpAddress.ToString());
 
