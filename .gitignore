@@ -356,3 +356,11 @@ MigrationBackup/
 # Docker temp files
 temp/
 docker-compose.override.yml
+
+# Don't include plugin binaries
+plugins/OWSPlugin/Binaries/
+plugins/OWSPlugin/Intermediate/
+plugins/OWSPlugin/Saved/
+plugins/OWSPluginUE5/Binaries/
+plugins/OWSPluginUE5/Intermediate/
+plugins/OWSPluginUE5/Saved/

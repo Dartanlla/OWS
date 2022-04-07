@@ -1,0 +1,34 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.3",
+  "FriendlyName": "OWSPlugin",
+  "Description": "Open World Server",
+  "Category": "Other",
+  "CreatedBy": "Sabre Dart Studios",
+  "CreatedByURL": "http://www.sabredartstudios.com",
+  "DocsURL": "http://rpgwebapi.sabredartstudios.com/Docs/API",
+  "MarketplaceURL": "",
+  "SupportURL": "",
+  "EngineVersion": "4.27.0",
+  "CanContainContent": true,
+  "IsBetaVersion": false,
+  "Installed": true,
+  "Modules": [
+    {
+      "Name": "OWSPlugin",
+      "Type": "Runtime",
+      "LoadingPhase": "PreDefault"
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "GameplayAbilities",
+      "Enabled": true
+    },
+    {
+      "Name": "ReplicationGraph",
+      "Enabled": true
+    }
+  ]
+}
