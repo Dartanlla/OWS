@@ -199,7 +199,45 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             return output;
         }
+        public async Task<SuccessAndErrorMessage> RegisterLauncher(Guid customerGUID, string launcherGUID, string ServerIP, int MaxNumberOfInstances, string InternalServerIP, int StartingInstancePort)
+        {
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@LauncherGUID", launcherGUID);
+                    p.Add("@ServerIP", ServerIP);
+                    p.Add("@MaxNumberOfInstances", MaxNumberOfInstances);
+                    p.Add("@InternalServerIP", InternalServerIP);
+                    p.Add("@StartingMapInstancePort", StartingInstancePort);
+                  
 
+                    await Connection.ExecuteAsync("RegisterLauncher",
+                        p,
+                        commandType: CommandType.StoredProcedure);
+                }
+
+                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                {
+                    Success = true,
+                    ErrorMessage = ""
+                };
+
+                return output;
+            }
+            catch (Exception ex)
+            {
+                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
+
+                return output;
+            }
+        }
         public async Task<SuccessAndErrorMessage> AddZone(Guid customerGUID, string mapName, string zoneName, string worldCompContainsFilter, string worldCompListFilter, int softPlayerCap, int hardPlayerCap, int mapMode)
         {
             try

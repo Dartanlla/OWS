@@ -18,16 +18,18 @@ namespace OWSInstanceManagement.Requests.Instance
             _instanceManagementRepository = instanceManagementRepository;
 
             //If running locally in docker the IP will contain "::", so switch it to 127.0.0.1 as this is running locally
-            if (ip.Contains("::"))
-            {
+            /*  if (ip.Contains("::"))
+              {
                 _ip = "127.0.0.1";
-            }
-            else
-            {
-                _ip = ip;
-            }
+              }
+              else
+              {
+                  _ip = ip;
+              }
+            */
 
-            _customerGUID = customerGuid.CustomerGUID;
+            _ip = ip;
+          _customerGUID = customerGuid.CustomerGUID;
         }
 
         public async Task<IActionResult> Handle()

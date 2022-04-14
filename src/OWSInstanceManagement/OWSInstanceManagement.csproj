@@ -12,6 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="C:\Users\Ben\dev\OWS\src\OWSShared\RequestPayloads\RegisterLauncherRequestPayload.cs" Link="RegisterLauncherRequestPayload.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\.dockerignore" Link=".dockerignore">
       <DependentUpon>$(DockerDefaultDockerfile)</DependentUpon>
     </None>

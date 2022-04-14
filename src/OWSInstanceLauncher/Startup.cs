@@ -40,13 +40,18 @@ namespace OWSInstanceLauncher
 
             //Check appsettings.json file for potential errors
             bool thereWasAStartupError = false;
-
+           
             Console.ForegroundColor = ConsoleColor.Red;
             //Abort if there is not a valid OWSAPIKey in appsettings.json
             if (String.IsNullOrEmpty(owsInstanceLauncherOptions.OWSAPIKey))
             {
                 thereWasAStartupError = true;
                 Console.WriteLine("Please enter a valid OWSAPIKey in appsettings.json!");
+            }
+            //Abort if there is not a valid LauncherID in appsettings.json -- This is ignored now due to auto-genereted guid
+            else if (String.IsNullOrEmpty(owsInstanceLauncherOptions.LauncherGuid))
+            {
+              
             }
             //Abort if there is not a valid PathToDedicatedServer in appsettings.json
             else if (String.IsNullOrEmpty(owsInstanceLauncherOptions.PathToDedicatedServer))
@@ -107,6 +112,25 @@ namespace OWSInstanceLauncher
                 Console.WriteLine("Error encountered.  Shutting down...");
                 Environment.Exit(-1);
             }
+
+            RegisterLauncherGuid();
+        }
+
+        public void RegisterLauncherGuid()
+        {
+           
+            if (File.Exists("Guid.txt"))
+            {
+                var _launcherGuid = File.ReadAllText("Guid.txt");
+                owsInstanceLauncherOptions.LauncherGuid = _launcherGuid.ToString();
+            }
+            else
+            {
+               var _launcherGuid = Guid.NewGuid();
+                File.WriteAllTextAsync("Guid.txt", _launcherGuid.ToString());
+                owsInstanceLauncherOptions.LauncherGuid = _launcherGuid.ToString();
+            }
+
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -136,6 +160,7 @@ namespace OWSInstanceLauncher
                 c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 c.DefaultRequestHeaders.Add("User-Agent", "OWSInstanceLauncher");
                 c.DefaultRequestHeaders.Add("X-CustomerGUID", owsInstanceLauncherOptions.OWSAPIKey);
+                c.DefaultRequestHeaders.Add("X-LauncherGUID", owsInstanceLauncherOptions.LauncherGuid);
             });
 
             services.AddSimpleInjector(container, options => {

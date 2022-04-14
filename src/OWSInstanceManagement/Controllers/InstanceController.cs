@@ -26,18 +26,21 @@ namespace OWSInstanceManagement.Controllers
         private readonly ICharactersRepository _charactersRepository;
         private readonly IOptions<RabbitMQOptions> _rabbitMQOptions;
         private readonly IHeaderCustomerGUID _customerGuid;
+        private readonly IHeaderCustomerGUID _launcherGuid;
 
         public InstanceController(Container container,
             IInstanceManagementRepository instanceManagementRepository,
             ICharactersRepository charactersRepository,
             IOptions<RabbitMQOptions> rabbitMQOptions,
-            IHeaderCustomerGUID customerGuid)
+            IHeaderCustomerGUID customerGuid,
+            IHeaderCustomerGUID launcherGuid)
         {
             _container = container;
             _instanceManagementRepository = instanceManagementRepository;
             _charactersRepository = charactersRepository;
             _rabbitMQOptions = rabbitMQOptions;
             _customerGuid = customerGuid;
+            _launcherGuid = launcherGuid;
         }
 
         public override void OnActionExecuting(ActionExecutingContext context)
@@ -89,6 +92,19 @@ namespace OWSInstanceManagement.Controllers
             return await request.Handle();
         }
 
+        [HttpPost]
+        [Route("RegisterLauncher")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        /*[SwaggerOperation("ByName")]
+        [SwaggerResponse(200)]
+        [SwaggerResponse(404)]*/
+        public async Task<IActionResult> RegisterLauncher([FromBody] RegisterInstanceLauncherRequest request)
+        {
+         
+            request.SetData(_instanceManagementRepository, _customerGuid);
+            return await request.Handle();
+        }
+
         [HttpGet]
         [Route("StartInstanceLauncher")]
         [Produces(typeof(int))]
@@ -98,7 +114,23 @@ namespace OWSInstanceManagement.Controllers
         public async Task<IActionResult> StartInstanceLauncher()
         {
             StartInstanceLauncherRequest request = new StartInstanceLauncherRequest();
-            request.SetData(_instanceManagementRepository, Request.HttpContext.Connection.RemoteIpAddress.ToString(), _customerGuid);
+
+            //var ext_ip = Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            var launcherguid = Request.Headers["X-LauncherGUID"].FirstOrDefault();
+            if (string.IsNullOrEmpty(launcherguid))
+            {
+                launcherguid = Request.HttpContext.Connection.RemoteIpAddress.ToString();
+            }
+            else
+            {
+                Console.WriteLine("LauncherGUID: " + launcherguid);
+            }
+
+            request.SetData(_instanceManagementRepository, launcherguid, _customerGuid);
+          
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("ServerIP: " + launcherguid);
+            Console.ForegroundColor = ConsoleColor.White;
 
             return await request.Handle();
         }

@@ -17,6 +17,8 @@ using OWSShared.Interfaces;
 using OWSShared.Middleware;
 using OWSShared.Extensions;
 using SimpleInjector;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Net;
 
 namespace OWSInstanceManagement
 {
@@ -79,6 +81,13 @@ namespace OWSInstanceManagement
             services.Configure<OWSData.Models.StorageOptions>(Configuration.GetSection(OWSData.Models.StorageOptions.SectionName));
             services.Configure<OWSShared.Options.APIPathOptions>(Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName));
             services.Configure<OWSShared.Options.RabbitMQOptions>(Configuration.GetSection(OWSShared.Options.RabbitMQOptions.SectionName));
+            //Ben added code for docker real ip
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("::ffff:172.19.0.0"), 12));
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                                           ForwardedHeaders.XForwardedProto;
+            });
 
             services.AddCustomHealthCheck(Configuration);
 
@@ -88,6 +97,8 @@ namespace OWSInstanceManagement
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            //Ben added code
+            app.UseForwardedHeaders();
             app.UseSimpleInjector(container);
 
             app.UseMiddleware<StoreCustomerGUIDMiddleware>(container);

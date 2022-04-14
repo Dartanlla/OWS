@@ -17,8 +17,8 @@ namespace OWSData.Repositories.Interfaces
         Task<SuccessAndErrorMessage> UpdateNumberOfPlayers(Guid customerGUID, string serverIP, int port, int numberOfPlayers);
         Task<IEnumerable<GetZoneInstancesForZone>> GetZoneInstancesOfZone(Guid customerGUID, string ZoneName);
         Task<GetCurrentWorldTime> GetCurrentWorldTime(Guid customerGUID);
-
-        Task<SuccessAndErrorMessage> AddZone(Guid customerGUID, string mapName,	string zoneName, string worldCompContainsFilter, string worldCompListFilter, int softPlayerCap, int hardPlayerCap, int mapMode);
+        Task<SuccessAndErrorMessage> AddZone(Guid customerGUID, string mapName, string zoneName, string worldCompContainsFilter, string worldCompListFilter, int softPlayerCap, int hardPlayerCap, int mapMode);
+        Task<SuccessAndErrorMessage> RegisterLauncher(Guid customerGUID, string launcherGUID, string ServerIP, int MaxNumberOfInstances, string InternalServerIP, int StartingInstancePort);
         Task<SuccessAndErrorMessage> UpdateZone(Guid customerGUID, int mapId, string mapName, string zoneName, string worldCompContainsFilter, string worldCompListFilter, int softPlayerCap, int hardPlayerCap, int mapMode);
     }
 }

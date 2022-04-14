@@ -8,6 +8,7 @@ namespace OWSData.Repositories.Implementations.InMemory
     public class OWSInstanceLauncherDataRepository : IOWSInstanceLauncherDataRepository
     {
         private int worldServerID;
+        private Guid launcherGUID;
 
         public void SetWorldServerID(int worldServerID)
         {
@@ -20,6 +21,18 @@ namespace OWSData.Repositories.Implementations.InMemory
         public int GetWorldServerID()
         {
             return worldServerID;
+        }
+
+        public void SetLauncherGuid(Guid launcherGUID)
+        {
+
+            this.launcherGUID = launcherGUID;
+     
+        }
+
+        public Guid GetLauncherGUID()
+        {
+            return launcherGUID;
         }
     }
 }
