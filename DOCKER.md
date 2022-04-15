@@ -32,7 +32,7 @@
 
 # macOS
 1. Download and Install [Docker Desktop For Mac](https://www.docker.com/products/docker-desktop)
-2. Open OWS Project in [Visual Studio For Mac](https://visualstudio.microsoft.com/vs/mac/)  The ASP.NET and Web Development workload is required.
+2. Open OWS Project in [Visual Studio For Mac](https://visualstudio.microsoft.com/vs/mac/).  The ASP.NET and Web Development workload is required.
 3. Run the following command in an terminal to install the Development Certificates
     ```shell
     dotnet dev-certs https --trust
