@@ -121,15 +121,23 @@ void AOWSPlayerController::NotifyGetCharacterStats(TSharedPtr<FJsonObject> JsonO
 	UE_LOG(OWS, Verbose, TEXT("AOWSPlayerController - NotifyGetCharacterStats Started"));
 	AOWSCharacterWithAbilities* OWSCharacterWithAbilities = Cast<AOWSCharacterWithAbilities>(GetPawn());
 
-	OWSCharacterWithAbilities->LoadCharacterStatsFromJSON(JsonObject);
-	OWSCharacterWithAbilities->LoadAttributesFromJSON(JsonObject);
-
-	if (OWSCharacterWithAbilities->bShouldAutoLoadCustomCharacterStats)
+	if (OWSCharacterWithAbilities)
 	{
-		OWSCharacterWithAbilities->LoadCustomCharacterStats();
+		OWSCharacterWithAbilities->LoadCharacterStatsFromJSON(JsonObject);
+		OWSCharacterWithAbilities->LoadAttributesFromJSON(JsonObject);
+
+		if (OWSCharacterWithAbilities->bShouldAutoLoadCustomCharacterStats)
+		{
+			OWSCharacterWithAbilities->LoadCustomCharacterStats();
+		}
+		OWSCharacterWithAbilities->UpdateCharacterStatsAfterLoading();
+		OWSCharacterWithAbilities->OnOWSAttributeInitalizationComplete();
 	}
-	OWSCharacterWithAbilities->UpdateCharacterStatsAfterLoading();
-	OWSCharacterWithAbilities->OnOWSAttributeInitalizationComplete();
+	else
+	{
+		AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
+		OWSCharacter->LoadCharacterStatsFromJSON(JsonObject);
+	}
 }
 
 void AOWSPlayerController::NotifyUpdateCharacterStats()
