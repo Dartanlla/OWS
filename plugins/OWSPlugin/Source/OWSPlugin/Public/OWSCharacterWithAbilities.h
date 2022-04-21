@@ -110,7 +110,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Stats")
 		void GetCharacterStats();
 
-	void OnGetCharacterStatsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	//void OnGetCharacterStatsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 	//Update Character Stats
 	UFUNCTION(BlueprintCallable, Category = "Stats")

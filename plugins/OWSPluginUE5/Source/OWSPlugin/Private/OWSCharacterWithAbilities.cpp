@@ -440,6 +440,7 @@ void AOWSCharacterWithAbilities::GetCharacterStats()
 	}
 }
 
+/*
 void AOWSCharacterWithAbilities::OnGetCharacterStatsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
 	if (bWasSuccessful)
@@ -466,6 +467,7 @@ void AOWSCharacterWithAbilities::OnGetCharacterStatsResponseReceived(FHttpReques
 		UE_LOG(OWS, Error, TEXT("OnGetCharacterStatsResponseReceived Error accessing server!"));
 	}
 }
+*/
 
 
 void AOWSCharacterWithAbilities::LoadAttributesFromJSON(TSharedPtr<FJsonObject> JsonObject)
