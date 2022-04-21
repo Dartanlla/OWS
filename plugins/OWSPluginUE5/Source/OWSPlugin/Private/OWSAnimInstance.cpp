@@ -22,7 +22,7 @@ float UOWSAnimInstance::GetStartTimeByDistance(UAnimSequence* AnimSequence, floa
 
     int keys = DistanceCurve.FloatCurve.GetNumKeys();
     float min; float max; DistanceCurve.FloatCurve.GetValueRange(min, max);
-    if (keys > 0) {
+    if (keys > 1) {
         if (distance > max) {
             return DistanceCurve.FloatCurve.Keys[keys - 1].Time;
         }
@@ -31,7 +31,7 @@ float UOWSAnimInstance::GetStartTimeByDistance(UAnimSequence* AnimSequence, floa
         }
         else {
 
-            for (int x = 0; x < keys - 1; x++) {
+            for (int x = 1; x < keys - 1; x++) {
                 if (DistanceCurve.FloatCurve.Keys[x].Value > distance) {
 
                     //Exact Value (linear)
