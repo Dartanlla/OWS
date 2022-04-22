@@ -18,11 +18,22 @@ namespace OWSShared.Extensions
             var OWSStorageConfig = configuration.GetSection("OWSStorageConfig");
             if (OWSStorageConfig.Exists())
             {
-                hcBuilder.AddSqlServer(connectionString: OWSStorageConfig.GetValue<string>("OWSDBConnectionString"),
-                    healthQuery: "SELECT 1;",
-                    failureStatus: HealthStatus.Degraded,
-                    name: "MSSQL",
-                    tags: new string[] { "db", "sql", "sqlserver" });
+                if (OWSStorageConfig.GetValue<string>("OWSDBConnectionString").Contains("User ID")) // MSSQL
+                {
+                    hcBuilder.AddSqlServer(connectionString: OWSStorageConfig.GetValue<string>("OWSDBConnectionString"),
+                        healthQuery: "SELECT 1;",
+                        failureStatus: HealthStatus.Degraded,
+                        name: "MSSQL",
+                        tags: new string[] { "db", "sql", "sqlserver" });
+                };
+                if (OWSStorageConfig.GetValue<string>("OWSDBConnectionString").Contains("Username")) //Postgres
+                {
+                    hcBuilder.AddNpgSql(npgsqlConnectionString: OWSStorageConfig.GetValue<string>("OWSDBConnectionString"),
+                        healthQuery: "SELECT 1;",
+                        failureStatus: HealthStatus.Degraded,
+                        name: "Postgres",
+                        tags: new string[] { "db", "sql", "postgres" });
+                };
             }
 
             var RabbitMQOptions = configuration.GetSection("RabbitMQOptions");

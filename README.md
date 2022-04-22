@@ -39,3 +39,6 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 
 # Setup Instructions
 [Docker Setup Instructions](DOCKER.md)
+
+# Alternative Databse Instructions
+[Using Postgres Instructions](DOCKER-POSTGRES.md)
