@@ -18,7 +18,7 @@ namespace OWSShared.Extensions
             var OWSStorageConfig = configuration.GetSection("OWSStorageConfig");
             if (OWSStorageConfig.Exists())
             {
-                if (OWSStorageConfig.GetValue<string>("OWSDBConnectionString").Contains("User ID")) // MSSQL
+                if (OWSStorageConfig.GetValue<string>("OWSDBBackend").Contains("mssql")) // MSSQL
                 {
                     hcBuilder.AddSqlServer(connectionString: OWSStorageConfig.GetValue<string>("OWSDBConnectionString"),
                         healthQuery: "SELECT 1;",
@@ -26,7 +26,7 @@ namespace OWSShared.Extensions
                         name: "MSSQL",
                         tags: new string[] { "db", "sql", "sqlserver" });
                 };
-                if (OWSStorageConfig.GetValue<string>("OWSDBConnectionString").Contains("Username")) //Postgres
+                if (OWSStorageConfig.GetValue<string>("OWSDBBackend").Contains("postgres")) // Postgres
                 {
                     hcBuilder.AddNpgSql(npgsqlConnectionString: OWSStorageConfig.GetValue<string>("OWSDBConnectionString"),
                         healthQuery: "SELECT 1;",

@@ -162,8 +162,19 @@ namespace OWSPublicAPI
 
         private void InitializeContainer(IServiceCollection services)
         {
-            container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MSSQL.CharactersRepository>(Lifestyle.Transient);
-            container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Transient);
+            var OWSStorageConfig = Configuration.GetSection("OWSStorageConfig");
+            if (OWSStorageConfig.Exists())
+            {
+                if (OWSStorageConfig.GetValue<string>("OWSDBBackend").Contains("mssql")) // MSSQL
+                {
+                    container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MSSQL.CharactersRepository>(Lifestyle.Transient);
+                    container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Transient);
+                } else if (OWSStorageConfig.GetValue<string>("OWSDBBackend").Contains("ostgres")) // Postgres
+                {
+                    container.Register<ICharactersRepository, OWSData.Repositories.Implementations.Postgres.CharactersRepository>(Lifestyle.Transient);
+                    container.Register<IUsersRepository, OWSData.Repositories.Implementations.Postgres.UsersRepository>(Lifestyle.Transient);
+                }
+            }
             container.Register<IPublicAPIInputValidation, OWSShared.Implementations.DefaultPublicAPIInputValidation>(Lifestyle.Singleton);
             container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
 

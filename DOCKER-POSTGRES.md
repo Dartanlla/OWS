@@ -7,89 +7,14 @@
 
 # Using Postgres as an alternative to MSSQL
 
-1. Open docker-compose.yml and replace
-```
-  mssql:
-    build:
-      context: .
-      dockerfile: .docker/mssql/Dockerfile
-    environment:
-     - ACCEPT_EULA=Y
-     # Developer, Express, Standard, Enterprise, EnterpriseCore
-     - MSSQL_PID=Developer
-     - SA_PASSWORD=yourStrong(!)Password
-    ports:
-     - "1433:1433"
-    volumes:
-     - mssql_data:/var/opt/mssql/data
-     - mssql_log:/var/opt/mssql/log
-     - mssql_secrets:/var/opt/mssql/secrets
-     - type: bind
-       source: .docker/mssql/backups
-       target: /var/opt/mssql/backups
-```
-with
-```
-  postgres:
-    build:
-      context: .
-      dockerfile: .docker/postgres/Dockerfile
-    environment:
-     - POSTGRES_PASSWORD=yourStrong(!)Password
-    ports:
-     - "5432:5432"
-    volumes:
-     - postgres_data:/var/lib/postgresql/data
-```
-2. Replace
-```
-volumes:
-  mssql_data:
-  mssql_log:
-  mssql_secrets:
-```
-
-with
-```
-volumes:
-  postgres_data:
-```
-3. In `src/OWSCharacterPersistence/Startup.cs` under `InitializeContainer` replace
-```
-            container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MSSQL.CharactersRepository>(Lifestyle.Scoped);
-            container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Scoped);
-```
-with
-```
-            container.Register<ICharactersRepository, OWSData.Repositories.Implementations.Postgres.CharactersRepository>(Lifestyle.Scoped);
-            container.Register<IUsersRepository, OWSData.Repositories.Implementations.Postgres.UsersRepository>(Lifestyle.Scoped);
-```
-4. In `src/OWSInstanceManagement/Startup.cs` under `InitializeContainer` replace
-```
-            container.Register<IInstanceManagementRepository, OWSData.Repositories.Implementations.MSSQL.InstanceManagementRepository>(Lifestyle.Scoped);
-            container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MSSQL.CharactersRepository>(Lifestyle.Scoped);
-            container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Scoped);
-```
-
-with
-```
-            container.Register<IInstanceManagementRepository, OWSData.Repositories.Implementations.Postgres.InstanceManagementRepository>(Lifestyle.Scoped);
-            container.Register<ICharactersRepository, OWSData.Repositories.Implementations.Postgres.CharactersRepository>(Lifestyle.Scoped);
-            container.Register<IUsersRepository, OWSData.Repositories.Implementations.Postgres.UsersRepository>(Lifestyle.Scoped);
-```
-5. In `src/OWSPublicAPI/Startup.cs` under `InitializeContainer` replace
-```
-            container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MSSQL.CharactersRepository>(Lifestyle.Transient);
-            container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Transient);
-```
-
-with
-```
-            container.Register<ICharactersRepository, OWSData.Repositories.Implementations.Postgres.CharactersRepository>(Lifestyle.Transient);
-            container.Register<IUsersRepository, OWSData.Repositories.Implementations.Postgres.UsersRepository>(Lifestyle.Transient);
-```
-6. In `src/OWSInstanceLauncher/appsettings.json`, `src/OWSInstanceManagement/appsettings.json`, and `src/OWSPublicAPI/appsettings.json` replace the `OWSDBConnectionString` with `Host=host.docker.internal;Port=5432;Database=OpenWorldServer;Username=postgres;Password=yourStrong(!)Password;`.
-7. Follow the steps in [Docker Setup Instructions](DOCKER.md) until "Create Api Key" (See below for Postgres version)
+1. Open `docker-compose.yml`.
+2. Comment out the `Microsoft SQL Database` service and uncomment the `PostgreSQL Database` service.
+3. In all `depends_on` sections, comment out `mssql` and uncomment `postgres`
+4. Comment out all 3 volumes for `mssql_*` and uncomment `postgres_data`.
+5. Open `src/OWSInstanceLauncher/appsettings.json`, `src/OWSInstanceManagement/appsettings.json`, and `src/OWSPublicAPI/appsettings.json`.
+6. Replace the `OWSDBConnectionString` with `Host=host.docker.internal;Port=5432;Database=OpenWorldServer;Username=postgres;Password=yourStrong(!)Password;`.
+7. Replace the value in `OWSDBBackend` with `postgres`.
+8. Follow the steps in [Docker Setup Instructions](DOCKER.md) until "Create Api Key" (See below for Postgres version)
 
 
 # Create Api Key

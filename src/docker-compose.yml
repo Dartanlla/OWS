@@ -2,6 +2,7 @@ version: '3.4'
 
 services:
 
+### Microsoft SQL Database
   mssql:
     build:
       context: .
@@ -21,6 +22,18 @@ services:
        source: .docker/mssql/backups
        target: /var/opt/mssql/backups
 
+### PostgreSQL Database
+#  postgres:
+#    build:
+#      context: .
+#      dockerfile: .docker/postgres/Dockerfile
+#    environment:
+#      - POSTGRES_PASSWORD=yourStrong(!)Password
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+
   rabbitmq:
     image: rabbitmq:3.9.0-management-alpine
     ports:
@@ -38,7 +51,9 @@ services:
     - "44302:80"
     - "44303:443"
     depends_on:
+    ### Uncomment the appropriate Database Backend (mssql/postgres)
     - mssql
+#    - postgres
     - rabbitmq
 
   owsinstancemanagement:
@@ -50,8 +65,10 @@ services:
     - "44328:80"
     - "44329:443"
     depends_on:
-    - mssql
-    - rabbitmq
+      ### Uncomment the appropriate Database Backend (mssql/postgres)
+      - mssql
+#      - postgres
+      - rabbitmq
 
   owscharacterpersistence:
     image: ${REGISTRY:-ows}/owscharacterpersistence:${PLATFORM:-linux}-${TAG:-latest}
@@ -62,8 +79,10 @@ services:
     - "44323:80"
     - "44324:443"
     depends_on:
-    - mssql
-    - rabbitmq
+      ### Uncomment the appropriate Database Backend (mssql/postgres)
+      - mssql
+#      - postgres
+      - rabbitmq
 
   owsstatus:
     image: ${REGISTRY:-ows}/owsstatus:${PLATFORM:-linux}-${TAG:-latest}
@@ -75,7 +94,8 @@ services:
     - "44103:443"
 
 volumes:
+  ### Uncomment the appropriate Database Backend (mssql_*/postgres_*)
   mssql_data:
   mssql_log:
   mssql_secrets:
-
+#  postgres_data:
