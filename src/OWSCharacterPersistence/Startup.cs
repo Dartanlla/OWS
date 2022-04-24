@@ -130,8 +130,19 @@ namespace OWSCharacterPersistence
 
         private void InitializeContainer(IServiceCollection services)
         {
-            container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MSSQL.CharactersRepository>(Lifestyle.Scoped);
-            container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Scoped);
+            var OWSStorageConfig = Configuration.GetSection("OWSStorageConfig");
+            if (OWSStorageConfig.Exists())
+            {
+                if (OWSStorageConfig.GetValue<string>("OWSDBBackend").Contains("mssql")) // MSSQL
+                {
+                    container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MSSQL.CharactersRepository>(Lifestyle.Scoped);
+                    container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Scoped);
+                } else if (OWSStorageConfig.GetValue<string>("OWSDBBackend").Contains("ostgres")) // Postgres
+                {
+                    container.Register<ICharactersRepository, OWSData.Repositories.Implementations.Postgres.CharactersRepository>(Lifestyle.Scoped);
+                    container.Register<IUsersRepository, OWSData.Repositories.Implementations.Postgres.UsersRepository>(Lifestyle.Scoped);
+                }
+            }
             container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
 
             var provider = services.BuildServiceProvider();
