@@ -296,7 +296,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     p.Add("@UserSessionGUID", userSessionGUID);
                     p.Add("@CharacterName", characterName);
 
-                    await Connection.ExecuteAsync("RemoveUser",
+                    await Connection.ExecuteAsync("RemoveCharacter",
                         p,
                         commandType: CommandType.StoredProcedure);
                 }
