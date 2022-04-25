@@ -165,16 +165,21 @@ namespace OWSPublicAPI
             var OWSStorageConfig = Configuration.GetSection("OWSStorageConfig");
             if (OWSStorageConfig.Exists())
             {
-                if (OWSStorageConfig.GetValue<string>("OWSDBBackend").Contains("mssql")) // MSSQL
+                string dbBackend = OWSStorageConfig.GetValue<string>("OWSDBBackend");
+
+                switch (dbBackend)
                 {
-                    container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MSSQL.CharactersRepository>(Lifestyle.Transient);
-                    container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Transient);
-                } else if (OWSStorageConfig.GetValue<string>("OWSDBBackend").Contains("ostgres")) // Postgres
-                {
-                    container.Register<ICharactersRepository, OWSData.Repositories.Implementations.Postgres.CharactersRepository>(Lifestyle.Transient);
-                    container.Register<IUsersRepository, OWSData.Repositories.Implementations.Postgres.UsersRepository>(Lifestyle.Transient);
+                    case "postgres":
+                        container.Register<ICharactersRepository, OWSData.Repositories.Implementations.Postgres.CharactersRepository>(Lifestyle.Transient);
+                        container.Register<IUsersRepository, OWSData.Repositories.Implementations.Postgres.UsersRepository>(Lifestyle.Transient);
+                        break;
+                    default: // Default to MSSQL
+                        container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MSSQL.CharactersRepository>(Lifestyle.Transient);
+                        container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Transient);
+                        break;
                 }
             }
+
             container.Register<IPublicAPIInputValidation, OWSShared.Implementations.DefaultPublicAPIInputValidation>(Lifestyle.Singleton);
             container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
 

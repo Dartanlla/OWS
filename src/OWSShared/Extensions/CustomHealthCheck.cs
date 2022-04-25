@@ -18,22 +18,25 @@ namespace OWSShared.Extensions
             var OWSStorageConfig = configuration.GetSection("OWSStorageConfig");
             if (OWSStorageConfig.Exists())
             {
-                if (OWSStorageConfig.GetValue<string>("OWSDBBackend").Contains("mssql")) // MSSQL
+                string dbBackend = OWSStorageConfig.GetValue<string>("OWSDBBackend");
+
+                switch (dbBackend)
                 {
-                    hcBuilder.AddSqlServer(connectionString: OWSStorageConfig.GetValue<string>("OWSDBConnectionString"),
-                        healthQuery: "SELECT 1;",
-                        failureStatus: HealthStatus.Degraded,
-                        name: "MSSQL",
-                        tags: new string[] { "db", "sql", "sqlserver" });
-                };
-                if (OWSStorageConfig.GetValue<string>("OWSDBBackend").Contains("postgres")) // Postgres
-                {
-                    hcBuilder.AddNpgSql(npgsqlConnectionString: OWSStorageConfig.GetValue<string>("OWSDBConnectionString"),
-                        healthQuery: "SELECT 1;",
-                        failureStatus: HealthStatus.Degraded,
-                        name: "Postgres",
-                        tags: new string[] { "db", "sql", "postgres" });
-                };
+                    case "postgres":
+                        hcBuilder.AddNpgSql(npgsqlConnectionString: OWSStorageConfig.GetValue<string>("OWSDBConnectionString"),
+                            healthQuery: "SELECT 1;",
+                            failureStatus: HealthStatus.Degraded,
+                            name: "Postgres",
+                            tags: new string[] { "db", "sql", "postgres" });
+                        break;
+                    default: // Default to MSSQL
+                        hcBuilder.AddSqlServer(connectionString: OWSStorageConfig.GetValue<string>("OWSDBConnectionString"),
+                            healthQuery: "SELECT 1;",
+                            failureStatus: HealthStatus.Degraded,
+                            name: "MSSQL",
+                            tags: new string[] { "db", "sql", "sqlserver" });
+                        break;
+                }
             }
 
             var RabbitMQOptions = configuration.GetSection("RabbitMQOptions");
