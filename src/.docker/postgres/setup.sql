@@ -1339,7 +1339,7 @@ BEGIN
     INTO _CharacterID;
 
 
-    IF (CONCAT(_CharacterID, 0)::INT > 0) THEN
+    IF (COALESCE(_CharacterID, 0)::INT > 0) THEN
 
         DELETE FROM CharOnMapInstance WHERE CharacterID = _CharacterID AND CustomerGUID = _CustomerGUID;
 
@@ -1694,7 +1694,7 @@ BEGIN
 
     DELETE
     FROM CharOnMapInstance
-    WHERE CustomerGUID = CustomerGUID
+    WHERE CustomerGUID = _CustomerGUID
       AND CharacterID IN (SELECT C.CharacterID
                           FROM Characters C
                                    INNER JOIN Users U
@@ -1716,12 +1716,12 @@ BEGIN
 
     DELETE
     FROM CharOnMapInstance
-    WHERE CustomerGUID = CustomerGUID
+    WHERE CustomerGUID = _CustomerGUID
       AND MapInstanceID IN (SELECT MapInstanceID FROM temp_CleanUp);
 
     DELETE
     FROM MapInstances
-    WHERE CustomerGUID = CustomerGUID
+    WHERE CustomerGUID = _CustomerGUID
       AND MapInstanceID IN (SELECT MapInstanceID FROM temp_CleanUp);
 
 END
@@ -2641,7 +2641,7 @@ BEGIN
 
             INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
             VALUES (NOW(), 'Joined Existing Map: ' || COALESCE(_ZoneName, '') || ' - ' || COALESCE(_CharName, '') ||
-                           ' - ' || COALESCE(ServerIP, ''),
+                           ' - ' || COALESCE(_ServerIP, ''),
                     _CustomerGUID);
         ELSE --Spin up a new map
 
@@ -2659,8 +2659,8 @@ BEGIN
             VALUES (NOW(),
                     'SpinUpMapInstance returned: ' || COALESCE(_ZoneName, '') || ' CharName: ' ||
                     COALESCE(_CharName, '') || ' ServerIP: ' ||
-                    COALESCE(ServerIP, '') ||
-                    ' WorldServerPort: ' || CAST(COALESCE(WorldServerPort, -1) AS VARCHAR), _CustomerGUID);
+                    COALESCE(_ServerIP, '') ||
+                    ' WorldServerPort: ' || CAST(COALESCE(_WorldServerPort, -1) AS VARCHAR), _CustomerGUID);
 
 
             INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
@@ -2924,7 +2924,7 @@ BEGIN
         --_WorldServerID := -1;
 
         INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
-        VALUES (NOW(), 'StartWorldServer Sucess (Local): ' || CAST(_WorldServerID AS VARCHAR) || ' IncomingIP: ' ||
+        VALUES (NOW(), 'StartWorldServer Success (Local): ' || CAST(_WorldServerID AS VARCHAR) || ' IncomingIP: ' ||
                        CAST(_ServerIP AS VARCHAR), _CustomerGUID);
     ELSE
         INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
