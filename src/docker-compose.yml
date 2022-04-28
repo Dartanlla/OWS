@@ -34,6 +34,18 @@ services:
 #    volumes:
 #      - postgres_data:/var/lib/postgresql/data
 
+### MyQL Database
+#  mysql:
+#    build:
+#      context: .
+#      dockerfile: .docker/mysql/Dockerfile
+#    environment:
+#      - MYSQL_ROOT_PASSWORD=yourStrong(!)Password
+#    ports:
+#      - "3306:3306"
+#    volumes:
+#      - mysql_data:/var/lib/mysql
+
   rabbitmq:
     image: rabbitmq:3.9.0-management-alpine
     ports:
@@ -54,6 +66,7 @@ services:
     ### Uncomment the appropriate Database Backend (mssql/postgres)
     - mssql
 #    - postgres
+#    - mysql
     - rabbitmq
 
   owsinstancemanagement:
@@ -68,6 +81,7 @@ services:
       ### Uncomment the appropriate Database Backend (mssql/postgres)
       - mssql
 #      - postgres
+#      - mysql
       - rabbitmq
 
   owscharacterpersistence:
@@ -82,6 +96,7 @@ services:
       ### Uncomment the appropriate Database Backend (mssql/postgres)
       - mssql
 #      - postgres
+#      - mysql
       - rabbitmq
 
   owsstatus:
@@ -99,3 +114,4 @@ volumes:
   mssql_log:
   mssql_secrets:
 #  postgres_data:
+#  mysql_data:
