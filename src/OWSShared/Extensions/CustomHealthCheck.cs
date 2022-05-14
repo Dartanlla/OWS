@@ -29,6 +29,12 @@ namespace OWSShared.Extensions
                             name: "Postgres",
                             tags: new string[] { "db", "sql", "postgres" });
                         break;
+                    case "mysql":
+                        hcBuilder.AddMySql(connectionString: OWSStorageConfig.GetValue<string>("OWSDBConnectionString"),
+                            failureStatus: HealthStatus.Degraded,
+                            name: "MySQL",
+                            tags: new string[] { "db", "sql", "mysql" });
+                        break;
                     default: // Default to MSSQL
                         hcBuilder.AddSqlServer(connectionString: OWSStorageConfig.GetValue<string>("OWSDBConnectionString"),
                             healthQuery: "SELECT 1;",
