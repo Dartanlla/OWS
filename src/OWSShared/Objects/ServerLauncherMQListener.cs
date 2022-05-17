@@ -11,6 +11,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -27,15 +28,20 @@ namespace OWSShared.Objects
         private Guid serverShutDownQueueNameGUID;
 
         private readonly Guid _customerGUID;
-        private readonly IOptions<OWSInstanceLauncherOptions> _owsInstanceLauncherOptions;
+        private readonly Guid _launcherGUID;
+        private readonly IWritableOptions<OWSInstanceLauncherOptions> _owsInstanceLauncherOptions;
         private readonly IOptions<APIPathOptions> _owsAPIPathOptions;
         private readonly IOptions<RabbitMQOptions> _rabbitMQOptions;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IZoneServerProcessesRepository _zoneServerProcessesRepository;
         private readonly IOWSInstanceLauncherDataRepository _owsInstanceLauncherDataRepository;
         private readonly int _worldServerId;
+        private readonly string _serverIP;
+        private readonly int _MaxNumberOfInstances;
+        private readonly string _InternalServerIP;
+        private readonly int _StartingInstancePort;
 
-        public ServerLauncherMQListener(IOptions<OWSInstanceLauncherOptions> owsInstanceLauncherOptions, IOptions<APIPathOptions> owsAPIPathOptions, IOptions<RabbitMQOptions> rabbitMQOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository,
+        public ServerLauncherMQListener(IWritableOptions<OWSInstanceLauncherOptions> owsInstanceLauncherOptions, IOptions<APIPathOptions> owsAPIPathOptions, IOptions<RabbitMQOptions> rabbitMQOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository,
             IOWSInstanceLauncherDataRepository owsInstanceLauncherDataRepository)
         {
             _owsInstanceLauncherOptions = owsInstanceLauncherOptions;
@@ -44,11 +50,56 @@ namespace OWSShared.Objects
             _httpClientFactory = httpClientFactory;
             _zoneServerProcessesRepository = zoneServerProcessesRepository;
             _owsInstanceLauncherDataRepository = owsInstanceLauncherDataRepository;
-            _customerGUID = new Guid(owsInstanceLauncherOptions.Value.OWSAPIKey);
+            _customerGUID = Guid.Parse(owsInstanceLauncherOptions.Value.OWSAPIKey);
+            if (String.IsNullOrEmpty(owsInstanceLauncherOptions.Value.LauncherGuid))
+            {
+                _launcherGUID = Guid.NewGuid();
+                _owsInstanceLauncherOptions.Update(x => x.LauncherGuid = _launcherGUID.ToString());
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("New Launcher GUID Generated: " + _launcherGUID.ToString());
+            }
+            else
+            {
+                _launcherGUID = Guid.Parse(owsInstanceLauncherOptions.Value.LauncherGuid);
+            }
+            _serverIP = owsInstanceLauncherOptions.Value.ServerIP;
+            _MaxNumberOfInstances = owsInstanceLauncherOptions.Value.MaxNumberOfInstances;
+            _InternalServerIP = owsInstanceLauncherOptions.Value.InternalServerIP;
+            _StartingInstancePort = owsInstanceLauncherOptions.Value.StartingInstancePort;
+
+            RegisterLauncher();
+
             _worldServerId = GetWorldServerID();
 
             InitRabbitMQ();
         }
+
+        public void RegisterLauncher()
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Attempting to register Launcher GUID: " + _launcherGUID.ToString());
+
+            var isregistered = RegisterInstanceLauncherRequest();
+
+            if (isregistered == 1)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Success!  Registered: " + _launcherGUID.ToString());
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Error Registering: " + _launcherGUID.ToString());
+
+            }
+        }
+
+        /*
+        private Guid GetLauncherGuid()
+        {
+            return Guid.Parse(File.ReadAllText("Guid.txt"));
+        }
+        */
 
         private int GetWorldServerID()
         {
@@ -287,13 +338,66 @@ namespace OWSShared.Objects
             }
         }
 
+        private int RegisterInstanceLauncherRequest()
+        {
+            try
+            {
+                var instanceManagementHttpClient = _httpClientFactory.CreateClient("OWSInstanceManagement");
+
+                var RegisterLauncherPayload = new
+                {
+                    request = new RegisterInstanceLauncherRequestPayload
+                    {
+                        launcherGUID = _launcherGUID.ToString(),
+                        ServerIP = _serverIP,
+                        MaxNumberOfInstances = _MaxNumberOfInstances,
+                        InternalServerIP = _InternalServerIP,
+                        StartingInstancePort = _StartingInstancePort
+                    }
+                };
+
+                var RegisterLauncherPayloadRequest = new StringContent(JsonConvert.SerializeObject(RegisterLauncherPayload), Encoding.UTF8, "application/json");
+
+                var responseMessageAsync = instanceManagementHttpClient.PostAsync("api/Instance/RegisterLauncher", RegisterLauncherPayloadRequest);
+                var responseMessage = responseMessageAsync.Result;
+                var responseContentAsync = responseMessage.Content.ReadAsStringAsync();
+
+                if (responseMessage == null)
+                {
+                    return -1;
+                }
+
+                if (!responseMessage.IsSuccessStatusCode)
+                {
+                    return -1;
+                }
+
+                return 1;
+            }
+
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Error connecting to Instance Management API: {ex.Message} - {ex.InnerException}");
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+
+            return -1;
+        }
+
         private int StartInstanceLauncherRequest()
         {
             try
             {
                 var instanceManagementHttpClient = _httpClientFactory.CreateClient("OWSInstanceManagement");
 
-                var responseMessageAsync = instanceManagementHttpClient.GetAsync("api/Instance/StartInstanceLauncher");
+                var request = new HttpRequestMessage()
+                {
+                    RequestUri = new Uri(instanceManagementHttpClient.BaseAddress + "api/Instance/StartInstanceLauncher"),
+                    Method = HttpMethod.Get
+                };
+                request.Headers.Add("X-LauncherGUID", _launcherGUID.ToString());
+                var responseMessageAsync = instanceManagementHttpClient.SendAsync(request);
                 var responseMessage = responseMessageAsync.Result;
 
                 if (responseMessage == null)
@@ -339,7 +443,15 @@ namespace OWSShared.Objects
 
             var shutDownInstanceLauncherRequest = new StringContent(JsonConvert.SerializeObject(worldServerIDRequestPayload), Encoding.UTF8, "application/json");
 
-            var responseMessage = await instanceManagementHttpClient.PostAsync("api/Instance/ShutDownInstanceLauncher", shutDownInstanceLauncherRequest);
+            var request = new HttpRequestMessage()
+            {
+                RequestUri = new Uri(instanceManagementHttpClient.BaseAddress + "api/Instance/ShutDownInstanceLauncher"),
+                Method = HttpMethod.Post,
+                Content = shutDownInstanceLauncherRequest
+            };
+            request.Headers.Add("X-LauncherGUID", _launcherGUID.ToString());
+
+            var responseMessage = await instanceManagementHttpClient.SendAsync(request);
 
             return;
         }

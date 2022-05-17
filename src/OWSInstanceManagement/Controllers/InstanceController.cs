@@ -77,6 +77,19 @@ namespace OWSInstanceManagement.Controllers
         }
 
         [HttpPost]
+        [Route("RegisterLauncher")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        /*[SwaggerOperation("ByName")]
+        [SwaggerResponse(200)]
+        [SwaggerResponse(404)]*/
+        public async Task<SuccessAndErrorMessage> RegisterLauncher([FromBody] RegisterInstanceLauncherRequest request)
+        {
+            request.SetData(_instanceManagementRepository, _customerGuid);
+
+            return await request.Handle();
+        }
+
+        [HttpPost]
         [Route("SpinUpServerInstance")]
         [Produces(typeof(SuccessAndErrorMessage))]
         /*[SwaggerOperation("ByName")]
@@ -98,7 +111,14 @@ namespace OWSInstanceManagement.Controllers
         public async Task<IActionResult> StartInstanceLauncher()
         {
             StartInstanceLauncherRequest request = new StartInstanceLauncherRequest();
-            request.SetData(_instanceManagementRepository, Request.HttpContext.Connection.RemoteIpAddress.ToString(), _customerGuid);
+
+            var launcherGuid = Request.Headers["X-LauncherGUID"].FirstOrDefault();
+            if (string.IsNullOrEmpty(launcherGuid))
+            {
+                Console.WriteLine("Http Header X-LauncherGUID is empty!");
+            }
+
+            request.SetData(_instanceManagementRepository, launcherGuid, _customerGuid);
 
             return await request.Handle();
         }
@@ -111,6 +131,12 @@ namespace OWSInstanceManagement.Controllers
         [SwaggerResponse(404)]*/
         public async Task<IActionResult> ShutDownInstanceLauncher([FromBody] ShutDownInstanceLauncherRequest request)
         {
+            var launcherGuid = Request.Headers["X-LauncherGUID"].FirstOrDefault();
+            if (string.IsNullOrEmpty(launcherGuid))
+            {
+                Console.WriteLine("Http Header X-LauncherGUID is empty!");
+            }
+
             request.SetData(_instanceManagementRepository, _customerGuid);
 
             return await request.Handle();

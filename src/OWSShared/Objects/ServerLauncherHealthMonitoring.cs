@@ -56,6 +56,10 @@ namespace OWSShared.Objects
             //Get a list of ZoneInstances from api/Instance/GetZoneInstancesForWorldServer
             List<GetZoneInstancesForWorldServer> zoneInstances = GetZoneInstancesForWorldServer(worldServerID);
 
+            foreach (var zoneInstance in zoneInstances)
+            {
+
+            }
         }
 
         public void Dispose()

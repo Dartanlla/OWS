@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OWSData.Repositories.Interfaces;
+using OWSShared.Extensions;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
 using OWSShared.Messages;
@@ -123,7 +124,7 @@ namespace OWSInstanceLauncher
             .AddViews()
             .AddApiExplorer();
 
-            services.Configure<OWSData.Models.OWSInstanceLauncherOptions>(Configuration.GetSection(OWSData.Models.OWSInstanceLauncherOptions.SectionName));
+            services.ConfigureWritable<OWSData.Models.OWSInstanceLauncherOptions>(Configuration.GetSection(OWSData.Models.OWSInstanceLauncherOptions.SectionName));
             services.Configure<OWSShared.Options.APIPathOptions>(Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName));
             services.Configure<OWSShared.Options.RabbitMQOptions>(Configuration.GetSection(OWSShared.Options.RabbitMQOptions.SectionName));
 

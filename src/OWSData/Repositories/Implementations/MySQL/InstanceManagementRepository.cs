@@ -207,6 +207,11 @@ namespace OWSData.Repositories.Implementations.MySQL
             return output;
         }
 
+        public async Task<SuccessAndErrorMessage> RegisterLauncher(Guid customerGUID, string launcherGuid, string serverIp, int maxNumberOfInstances, string internalServerIp, int startingInstancePort)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<SuccessAndErrorMessage> AddZone(Guid customerGUID, string mapName, string zoneName, string worldCompContainsFilter, string worldCompListFilter, int softPlayerCap, int hardPlayerCap, int mapMode)
         {
             try
