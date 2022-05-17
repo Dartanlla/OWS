@@ -4,7 +4,7 @@ using System.Text;
 
 namespace OWSData.SQL
 {
-    public static class PostgreQueries
+    public static class PostgresQueries
     {
 		public static readonly string AddOrUpdateWorldServerSQL = @"";
 

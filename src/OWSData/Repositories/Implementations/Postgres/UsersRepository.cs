@@ -154,7 +154,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
             using (Connection)
             {
-                outputObject = await Connection.QueryFirstOrDefaultAsync<GetUserSession>(PostgreQueries.GetUserSessionSQL, new { @CustomerGUID = customerGUID, @UserSessionGUID = userSessionGUID });
+                outputObject = await Connection.QueryFirstOrDefaultAsync<GetUserSession>(PostgresQueries.GetUserSessionSQL, new { @CustomerGUID = customerGUID, @UserSessionGUID = userSessionGUID });
             }
 
             return outputObject;
@@ -169,9 +169,9 @@ namespace OWSData.Repositories.Implementations.Postgres
 
             using (Connection)
             {
-                userSession = await Connection.QueryFirstOrDefaultAsync<UserSessions>(PostgreQueries.GetUserSessionOnlySQL, new { @CustomerGUID = customerGUID, @UserSessionGUID = userSessionGUID });
-                var userTask = Connection.QueryFirstOrDefaultAsync<User>(PostgreQueries.GetUserSQL, new { @CustomerGUID = customerGUID, @UserGUID = userSession.UserGuid });
-                var characterTask = Connection.QueryFirstOrDefaultAsync<Characters>(PostgreQueries.GetCharacterByNameSQL, new { @CustomerGUID = customerGUID, @CharacterName = userSession.SelectedCharacterName });
+                userSession = await Connection.QueryFirstOrDefaultAsync<UserSessions>(PostgresQueries.GetUserSessionOnlySQL, new { @CustomerGUID = customerGUID, @UserSessionGUID = userSessionGUID });
+                var userTask = Connection.QueryFirstOrDefaultAsync<User>(PostgresQueries.GetUserSQL, new { @CustomerGUID = customerGUID, @UserGUID = userSession.UserGuid });
+                var characterTask = Connection.QueryFirstOrDefaultAsync<Characters>(PostgresQueries.GetCharacterByNameSQL, new { @CustomerGUID = customerGUID, @CharacterName = userSession.SelectedCharacterName });
 
                 user = await userTask;
                 character = await characterTask;
@@ -277,7 +277,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
             using (Connection)
             {
-                outputObject = await Connection.QueryFirstOrDefaultAsync<GetUserSession>(PostgreQueries.GetUserFromEmailSQL, new { @CustomerGUID = customerGUID, @Email = email });
+                outputObject = await Connection.QueryFirstOrDefaultAsync<GetUserSession>(PostgresQueries.GetUserFromEmailSQL, new { @CustomerGUID = customerGUID, @Email = email });
             }
 
             return outputObject;
