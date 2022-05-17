@@ -8,5 +8,8 @@ namespace OWSData.Repositories.Interfaces
     {
         void SetWorldServerID(int worldServerID);
         int GetWorldServerID();
+
+        void SetLauncherGuid(Guid launcherGuid);
+        Guid GetLauncherGuid();
     }
 }

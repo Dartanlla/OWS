@@ -3,7 +3,9 @@ using Microsoft.Extensions.Options;
 using OWSData.Models;
 using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
+using OWSData.Models.Tables;
 using OWSData.Repositories.Interfaces;
+using OWSData.SQL;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -119,22 +121,33 @@ namespace OWSData.Repositories.Implementations.MSSQL
             return output;
         }
 
-        public async Task<int> StartWorldServer(Guid customerGUID, string ip)
+        public async Task<int> StartWorldServer(Guid customerGUID, string launcherGuid)
         {
-            int worldServerId;
+            int worldServerId = -1;
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@ServerIP", ip);
-                p.Add("@WorldServerID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+                var paremeters = new { 
+                    CustomerGUID = customerGUID, 
+                    ZoneServerGUID = launcherGuid 
+                };
 
-                await Connection.ExecuteAsync("StartWorldServer",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                var getWorldServerID = await Connection.QueryFirstOrDefaultAsync<GetWorldServerID>(MSSQLQueries.GetWorldServerSQL, paremeters);
 
-                worldServerId = p.Get<int>("@WorldServerID");
+                if (getWorldServerID != null)
+                {
+                    worldServerId = getWorldServerID.WorldServerID;
+                }
+
+                if (worldServerId > 0)
+                {
+                    var paremeters2 = new {
+                        CustomerGUID = customerGUID, 
+                        WorldServerID = worldServerId 
+                    };
+
+                    await Connection.ExecuteAsync(MSSQLQueries.UpdateWorldServerSQL, paremeters2);
+                }
             }
 
             return worldServerId;
@@ -198,6 +211,45 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
 
             return output;
+        }
+
+        public async Task<SuccessAndErrorMessage> RegisterLauncher(Guid customerGUID, string launcherGuid, string serverIp, int maxNumberOfInstances, string internalServerIp, int startingInstancePort)
+        {
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@ZoneServerGUID", launcherGuid);
+                    p.Add("@ServerIP", serverIp);
+                    p.Add("@MaxNumberOfInstances", maxNumberOfInstances);
+                    p.Add("@InternalServerIP", internalServerIp);
+                    p.Add("@StartingMapInstancePort", startingInstancePort);
+
+                    await Connection.ExecuteAsync(MSSQLQueries.AddOrUpdateWorldServerSQL,
+                        p,
+                        commandType: CommandType.Text);
+                }
+
+                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                {
+                    Success = true,
+                    ErrorMessage = ""
+                };
+
+                return output;
+            }
+            catch (Exception ex)
+            {
+                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
+
+                return output;
+            }
         }
 
         public async Task<SuccessAndErrorMessage> AddZone(Guid customerGUID, string mapName, string zoneName, string worldCompContainsFilter, string worldCompListFilter, int softPlayerCap, int hardPlayerCap, int mapMode)
