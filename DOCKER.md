@@ -29,6 +29,8 @@
     ```shell
     docker-compose -f docker-compose.yml -f docker-compose.override.windows.yml up -d --build --force-recreate
     ```
+5. Complete the **Update your MSSQL Database** section below.
+6. Complete the **Create Api Key** section below.
 
 # macOS
 1. Download and Install [Docker Desktop For Mac](https://www.docker.com/products/docker-desktop)
@@ -49,6 +51,9 @@
     ```shell
     docker-compose -f docker-compose.yml -f docker-compose.override.osx.yml up -d --build --force-recreate
     ```
+5. Complete the **Update your MSSQL Database** section below.
+6. Complete the **Create Api Key** section below.
+
 # Linux
 1. Download and Install [Docker Engine For Linux](https://www.docker.com/products/docker-desktop)
 2. Close all Web Browsers
@@ -61,6 +66,18 @@
     ```shell
     sudo docker-compose -f docker-compose.yml -f docker-compose.override.linux.yml up -d --build --force-recreate
     ```
+5. Complete the **Update your MSSQL Database** section below.
+6. Complete the **Create Api Key** section below.
+
+# Update your MSSQL Database
+1. Open SQL Server Management Studio or Azure Data Studio and connect to localhost with sa / yourStrong(!)Password
+2. Run the following SQL statement against the Open World Server database.
+
+    ```sql
+    SELECT * FROM OWSVersion
+    ```
+3. Compare the OWSDBVersion returned with the SQL update scripts in the Databases\MSSQL\UpdateScriptsFolder to see which ones to run.
+4. The update scripts have From[Someversion]To[SomeVersion] in the name.  Run them in order starting with the From[SomeVersion] that matches your OWSDBVersion from the previous step.
 
 # Create Api Key
 1. Open SQL Server Management Studio or Azure Data Studio and connect to localhost with sa / yourStrong(!)Password
