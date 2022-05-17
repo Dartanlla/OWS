@@ -12,7 +12,7 @@
 3. In all `depends_on` sections, comment out `mssql` and uncomment `postgres`
 4. Comment out all 3 volumes for `mssql_*` and uncomment `postgres_data`.
 5. Open `src/OWSInstanceLauncher/appsettings.json`, `src/OWSInstanceManagement/appsettings.json`, and `src/OWSPublicAPI/appsettings.json`.
-6. Replace the `OWSDBConnectionString` with `Host=host.docker.internal;Port=5432;Database=OpenWorldServer;Username=postgres;Password=yourStrong(!)Password;`.
+6. Replace the `OWSDBConnectionString` with `Host=host.docker.internal;Port=5432;Database=openworldserver;Username=postgres;Password=yourStrong(!)Password;`.
 7. Replace the value in `OWSDBBackend` with `postgres`.
 8. Follow the steps in [Docker Setup Instructions](DOCKER.md) until "Create Api Key" (See below for Postgres version)
 

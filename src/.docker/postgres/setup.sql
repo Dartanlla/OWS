@@ -1,3 +1,7 @@
+CREATE DATABASE openworldserver;
+
+\connect openworldserver;
+
 CREATE EXTENSION pgcrypto;
 
 CREATE TABLE DebugLog
