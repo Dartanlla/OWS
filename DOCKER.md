@@ -76,8 +76,8 @@
     ```sql
     SELECT * FROM OWSVersion
     ```
-3. Compare the OWSDBVersion returned with the SQL update scripts in the Databases\MSSQL\UpdateScriptsFolder to see which ones to run.
-4. The update scripts have From[Someversion]To[SomeVersion] in the name.  Run them in order starting with the From[SomeVersion] that matches your OWSDBVersion from the previous step.
+3. Compare the OWSDBVersion returned with the SQL update scripts in the Databases\MSSQL\UpdateScriptsFolder to see which scripts to run on your database.
+4. The update scripts have From[SomeVersion]To[SomeVersion] in the name.  Run them in order starting with the From[SomeVersion] that matches your OWSDBVersion from the previous step.
 
 # Create Api Key
 1. Open SQL Server Management Studio or Azure Data Studio and connect to localhost with sa / yourStrong(!)Password
