@@ -2,18 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using Npgsql;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using OWSData.Models;
 using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
-using OWSData.Models.Tables;
 using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
-using OWSData.Models.Tables;
 
 namespace OWSData.Repositories.Implementations.Postgres
 {
@@ -26,13 +22,7 @@ namespace OWSData.Repositories.Implementations.Postgres
             _storageOptions = storageOptions;
         }
 
-        public IDbConnection Connection
-        {
-            get
-            {
-                return new NpgsqlConnection(_storageOptions.Value.OWSDBConnectionString);
-            }
-        }
+        private IDbConnection Connection => new NpgsqlConnection(_storageOptions.Value.OWSDBConnectionString);
 
         public async Task<GetServerInstanceFromPort> GetServerInstanceFromPort(Guid customerGUID, string serverIP, int port)
         {
@@ -54,7 +44,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
                 return output;
             }
-            catch (Exception ex) {
+            catch (Exception) {
                 output = new GetServerInstanceFromPort();
                 return output;
             }
@@ -143,12 +133,12 @@ namespace OWSData.Repositories.Implementations.Postgres
                 
                 if (worldServerId > 0)
                 {
-                    var paremeters2 = new {
+                    var parameters2 = new {
                         CustomerGUID = customerGUID,
                         WorldServerID = worldServerId
                     };
 
-                    await Connection.ExecuteAsync(PostgresQueries.UpdateWorldServerSQL, paremeters2);
+                    await Connection.ExecuteAsync(PostgresQueries.UpdateWorldServerSQL, parameters2);
                 }
             }
  

@@ -2,9 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using Npgsql;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using OWSData.Models;
@@ -26,17 +24,11 @@ namespace OWSData.Repositories.Implementations.Postgres
             this._storageOptions = storageOptions;
         }
 
-        public IDbConnection Connection
-        {
-            get
-            {
-                return new NpgsqlConnection(_storageOptions.Value.OWSDBConnectionString);
-            }
-        }
+        private IDbConnection Connection => new NpgsqlConnection(_storageOptions.Value.OWSDBConnectionString);
 
         public async Task<IEnumerable<GetAllCharacters>> GetAllCharacters(Guid customerGUID, Guid userSessionGUID)
         {
-            IEnumerable<GetAllCharacters> outputObject = new List<GetAllCharacters>();
+            IEnumerable<GetAllCharacters> outputObject;
 
             using (Connection)
             {
@@ -71,14 +63,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                         commandType: CommandType.Text);
                 }
 
-                if (String.IsNullOrEmpty(outputObject.ErrorMessage))
-                {
-                    outputObject.Success = true;
-                }
-                else
-                {
-                    outputObject.Success = false;
-                }
+                outputObject.Success = String.IsNullOrEmpty(outputObject.ErrorMessage);
             
                 return outputObject;
             }
@@ -114,7 +99,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<User> GetUser(Guid customerGuid, Guid userGuid)
         {
-            User outputObject = new User();
+            User outputObject;
 
             using (Connection)
             {
@@ -132,7 +117,7 @@ namespace OWSData.Repositories.Implementations.Postgres
         
         public async Task<GetUserSession> GetUserSession(Guid customerGUID, Guid userSessionGUID)
         {
-            GetUserSession outputObject = new GetUserSession();
+            GetUserSession outputObject;
 
             using (Connection)
             {
@@ -150,7 +135,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<GetUserSession> GetUserSessionORM(Guid customerGUID, Guid userSessionGUID)
         {
-            GetUserSession outputObject = new GetUserSession();
+            GetUserSession outputObject;
 
             using (Connection)
             {
@@ -163,9 +148,9 @@ namespace OWSData.Repositories.Implementations.Postgres
         public async Task<GetUserSessionComposite> GetUserSessionParallel(Guid customerGUID, Guid userSessionGUID) //id = UserSessionGUID
         {
             GetUserSessionComposite outputObject = new GetUserSessionComposite();
-            UserSessions userSession = new UserSessions();
-            User user = new User();
-            Characters character = new Characters();
+            UserSessions userSession;
+            User user;
+            Characters character;
 
             using (Connection)
             {
@@ -273,7 +258,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<GetUserSession> GetUserFromEmail(Guid customerGUID, string email)
         {
-            GetUserSession outputObject = new GetUserSession();
+            GetUserSession outputObject;
 
             using (Connection)
             {

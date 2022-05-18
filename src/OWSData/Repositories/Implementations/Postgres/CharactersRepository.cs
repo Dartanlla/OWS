@@ -2,16 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using Npgsql;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using OWSData.Models;
-using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
-using OWSData.SQL;
 using OWSData.Models.Tables;
 
 namespace OWSData.Repositories.Implementations.Postgres
@@ -25,13 +21,7 @@ namespace OWSData.Repositories.Implementations.Postgres
             _storageOptions = storageOptions;
         }
 
-        public IDbConnection Connection
-        {
-            get
-            {
-                return new NpgsqlConnection(_storageOptions.Value.OWSDBConnectionString);
-            }
-        }
+        private IDbConnection Connection => new NpgsqlConnection(_storageOptions.Value.OWSDBConnectionString);
 
         public async Task AddCharacterToMapInstanceByCharName(Guid customerGUID, string characterName, int mapInstanceID)
         {
@@ -83,7 +73,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
                 return outputObject;
             }
-            catch (Exception ex) {
+            catch (Exception) {
                 outputObject = new CheckMapInstanceStatus();
                 return outputObject;
             }
@@ -127,7 +117,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<JoinMapByCharName> JoinMapByCharName(Guid customerGUID, string characterName, string zoneName, int playerGroupType)
         {
-            JoinMapByCharName outputObject = new JoinMapByCharName();
+            JoinMapByCharName outputObject;
 
             try
             {
@@ -146,10 +136,12 @@ namespace OWSData.Repositories.Implementations.Postgres
                 }
                 return outputObject;
             }
-            catch (Exception ex) {
-                outputObject = new JoinMapByCharName();
-                outputObject.WorldServerID = -1;
-                outputObject.MapInstanceStatus = -1;
+            catch (Exception) {
+                outputObject = new JoinMapByCharName
+                {
+                    WorldServerID = -1,
+                    MapInstanceStatus = -1
+                };
                 return outputObject;
             }
         }

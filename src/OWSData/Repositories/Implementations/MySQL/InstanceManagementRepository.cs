@@ -2,19 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
-using MySql.Data;
 using MySql.Data.MySqlClient;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using OWSData.Models;
 using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
-using OWSData.Models.Tables;
 using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
-using OWSData.Models.Tables;
 
 namespace OWSData.Repositories.Implementations.MySQL
 {
@@ -27,13 +22,7 @@ namespace OWSData.Repositories.Implementations.MySQL
             _storageOptions = storageOptions;
         }
 
-        public IDbConnection Connection
-        {
-            get
-            {
-                return new MySqlConnection(_storageOptions.Value.OWSDBConnectionString);
-            }
-        }
+        private IDbConnection Connection => new MySqlConnection(_storageOptions.Value.OWSDBConnectionString);
 
         public async Task<GetServerInstanceFromPort> GetServerInstanceFromPort(Guid customerGUID, string serverIP, int port)
         {
@@ -55,7 +44,7 @@ namespace OWSData.Repositories.Implementations.MySQL
 
                 return output;
             }
-            catch (Exception ex) {
+            catch (Exception) {
                 output = new GetServerInstanceFromPort();
                 return output;
             }
@@ -144,12 +133,12 @@ namespace OWSData.Repositories.Implementations.MySQL
                 
                 if (worldServerId > 0)
                 {
-                    var paremeters2 = new {
+                    var parameters2 = new {
                         CustomerGUID = customerGUID,
                         WorldServerID = worldServerId
                     };
 
-                    await Connection.ExecuteAsync(MySQLQueries.UpdateWorldServerSQL, paremeters2);
+                    await Connection.ExecuteAsync(MySQLQueries.UpdateWorldServerSQL, parameters2);
                 }
             }
  
