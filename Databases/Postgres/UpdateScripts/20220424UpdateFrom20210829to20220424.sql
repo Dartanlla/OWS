@@ -1,0 +1,9 @@
+UPDATE OWSVersion SET OWSDBVersion='20220424' WHERE OWSDBVersion IS NOT NULL;
+
+SELECT OWSDBVersion FROM OWSVersion;
+
+ALTER TABLE WorldServers
+ADD ZoneServerGUID UUID NULL;
+
+ALTER TABLE WorldServers
+ADD CONSTRAINT AK_ZoneServers UNIQUE (CustomerGUID, ZoneServerGUID);

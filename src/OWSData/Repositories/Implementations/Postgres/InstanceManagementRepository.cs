@@ -2,9 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using Npgsql;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using OWSData.Models;
@@ -12,7 +10,6 @@ using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
-using OWSData.Models.Tables;
 
 namespace OWSData.Repositories.Implementations.Postgres
 {
@@ -25,13 +22,7 @@ namespace OWSData.Repositories.Implementations.Postgres
             _storageOptions = storageOptions;
         }
 
-        public IDbConnection Connection
-        {
-            get
-            {
-                return new NpgsqlConnection(_storageOptions.Value.OWSDBConnectionString);
-            }
-        }
+        private IDbConnection Connection => new NpgsqlConnection(_storageOptions.Value.OWSDBConnectionString);
 
         public async Task<GetServerInstanceFromPort> GetServerInstanceFromPort(Guid customerGUID, string serverIP, int port)
         {
@@ -53,7 +44,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
                 return output;
             }
-            catch (Exception ex) {
+            catch (Exception) {
                 output = new GetServerInstanceFromPort();
                 return output;
             }
@@ -122,25 +113,33 @@ namespace OWSData.Repositories.Implementations.Postgres
             return output;
         }
 
-        public async Task<int> StartWorldServer(Guid customerGUID, string ip)
+        public async Task<int> StartWorldServer(Guid customerGUID, string launcherGuid)
         {
-            int worldServerId;
-            DataTable table = new DataTable("Result");
-            
+            int worldServerId = -1;
+
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add(name: "@CustomerGUID", value: customerGUID);   
-                p.Add(name: "@ServerIP", value:ip);
+                var parameters = new {
+                    CustomerGUID = customerGUID,
+                    ZoneServerGUID = launcherGuid
+                };
+
+                GetWorldServerID getWorldServerID  = await Connection.QueryFirstOrDefaultAsync<GetWorldServerID>(PostgresQueries.GetWorldServerSQL, parameters);
                 
-                using (var reader = await Connection.ExecuteReaderAsync("select * from StartWorldServer(@CustomerGUID, @ServerIP)",
-                           p,
-                           commandType: CommandType.Text))
+                if (getWorldServerID != null)
                 {
-                    table.Load(reader);
+                    worldServerId = getWorldServerID.WorldServerID;
                 }
                 
-                worldServerId = table.Rows[0].Field<int>("WorldServerID");
+                if (worldServerId > 0)
+                {
+                    var parameters2 = new {
+                        CustomerGUID = customerGUID,
+                        WorldServerID = worldServerId
+                    };
+
+                    await Connection.ExecuteAsync(PostgresQueries.UpdateWorldServerSQL, parameters2);
+                }
             }
  
             return worldServerId;
@@ -208,7 +207,41 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<SuccessAndErrorMessage> RegisterLauncher(Guid customerGUID, string launcherGuid, string serverIp, int maxNumberOfInstances, string internalServerIp, int startingInstancePort)
         {
-            throw new NotImplementedException();
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@ZoneServerGUID", launcherGuid);
+                    p.Add("@ServerIP", serverIp);
+                    p.Add("@MaxNumberOfInstances", maxNumberOfInstances);
+                    p.Add("@InternalServerIP", internalServerIp);
+                    p.Add("@StartingMapInstancePort", startingInstancePort);
+
+                    await Connection.ExecuteAsync(PostgresQueries.AddOrUpdateWorldServerSQL,
+                        p,
+                        commandType: CommandType.Text);
+                }
+
+                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                {
+                    Success = true,
+                    ErrorMessage = ""
+                };
+
+                return output;
+            }
+            catch (Exception ex)
+            {
+                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
+
+                return output;
+            }
         }
 
         public async Task<SuccessAndErrorMessage> AddZone(Guid customerGUID, string mapName, string zoneName, string worldCompContainsFilter, string worldCompListFilter, int softPlayerCap, int hardPlayerCap, int mapMode)
