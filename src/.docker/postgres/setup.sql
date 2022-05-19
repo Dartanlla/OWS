@@ -3239,3 +3239,5 @@ BEGIN
       AND UserSessionGUID = _UserSessionGUID;
 END
 $$;
+
+INSERT INTO OWSVersion (OWSDBVersion) VALUES('20210829');
