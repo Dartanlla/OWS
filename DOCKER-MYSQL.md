@@ -39,3 +39,11 @@
     SELECT CustomerGUID FROM Customers LIMIT 1;
     ```
 4. Follow the instructions here to setup the OWS Starter Project and connect it to your OWS API.  [Instructions for OWS Starter Project](http://rpgwebapi.sabredartstudios.com/Docs/Install)
+
+# Additional
+
+If you are using an external MySQL/MariaDB, you need will need to run the following as a SUPER user, or grant your SUPER access to your user.
+
+```
+SET GLOBAL log_bin_trust_function_creators = 1;
+```
