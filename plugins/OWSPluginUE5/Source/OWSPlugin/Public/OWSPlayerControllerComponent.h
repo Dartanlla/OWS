@@ -42,6 +42,10 @@ DECLARE_DELEGATE_OneParam(FErrorAddOrUpdateCustomCharacterDataDelegate, const FS
 DECLARE_DELEGATE_OneParam(FNotifyGetChatGroupsForPlayerDelegate, const TArray<FChatGroup>&)
 DECLARE_DELEGATE_OneParam(FErrorGetChatGroupsForPlayerDelegate, const FString&)
 
+//Add Ability To Character Delegates
+DECLARE_DELEGATE(FNotifyAddAbilityToCharacterDelegate)
+DECLARE_DELEGATE_OneParam(FErrorAddAbilityToCharacterDelegate, const FString&)
+
 //Get Character Abilities Delegates
 DECLARE_DELEGATE_OneParam(FNotifyGetCharacterAbilitiesDelegate, const TArray<FAbility>&)
 DECLARE_DELEGATE_OneParam(FErrorGetCharacterAbilitiesDelegate, const FString&)
@@ -53,6 +57,14 @@ DECLARE_DELEGATE_OneParam(FErrorGetAbilityBarsDelegate, const FString&)
 //Get Ability Bars With Abilities Delegates
 DECLARE_DELEGATE_OneParam(FNotifyGetAbilityBarsWithAbilitiesDelegate, const TArray<FAbilityBarWithAbilities>&)
 DECLARE_DELEGATE_OneParam(FErrorGetAbilityBarsWithAbilitiesDelegate, const FString&)
+
+//Update Ability On Character Delegates
+DECLARE_DELEGATE(FNotifyUpdateAbilityOnCharacterDelegate)
+DECLARE_DELEGATE_OneParam(FErrorUpdateAbilityOnCharacterDelegate, const FString&)
+
+//Remove Ability From Character Delegates
+DECLARE_DELEGATE(FNotifyRemoveAbilityFromCharacterDelegate)
+DECLARE_DELEGATE_OneParam(FErrorRemoveAbilityFromCharacterDelegate, const FString&)
 
 //Player Logout
 DECLARE_DELEGATE(FNotifyPlayerLogoutDelegate)
@@ -186,6 +198,15 @@ public:
 
 	void OnGetCharacterStatusesResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
+	//Add Ability To Character
+	UFUNCTION(BlueprintCallable, Category = "Character")
+		void AddAbilityToCharacter(FString CharName, FString AbilityName, int32 AbilityLevel, FString CustomJSON);
+
+	void OnAddAbilityToCharacterResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	FNotifyAddAbilityToCharacterDelegate OnNotifyAddAbilityToCharacterDelegate;
+	FErrorAddAbilityToCharacterDelegate OnErrorAddAbilityToCharacterDelegate;	
+
 	//Get Character Abilities
 	UFUNCTION(BlueprintCallable, Category = "Character")
 		void GetCharacterAbilities(FString CharName);
@@ -203,6 +224,24 @@ public:
 
 	FNotifyGetAbilityBarsDelegate OnNotifyGetAbilityBarsDelegate;
 	FErrorGetAbilityBarsDelegate OnErrorGetAbilityBarsDelegate;
+
+	//Update Ability On Character
+	UFUNCTION(BlueprintCallable, Category = "Character")
+		void UpdateAbilityOnCharacter(FString CharName, FString AbilityName, int32 AbilityLevel, FString CustomJSON);
+
+	void OnUpdateAbilityOnCharacterResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	FNotifyUpdateAbilityOnCharacterDelegate OnNotifyUpdateAbilityOnCharacterDelegate;
+	FErrorUpdateAbilityOnCharacterDelegate OnErrorUpdateAbilityOnCharacterDelegate;
+
+	//Remove Ability From Character
+	UFUNCTION(BlueprintCallable, Category = "Character")
+		void RemoveAbilityFromCharacter(FString CharName, FString AbilityName);
+
+	void OnRemoveAbilityFromCharacterResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	FNotifyRemoveAbilityFromCharacterDelegate OnNotifyRemoveAbilityFromCharacterDelegate;
+	FErrorRemoveAbilityFromCharacterDelegate OnErrorRemoveAbilityFromCharacterDelegate;
 
 	//Player Logout
 	UFUNCTION(BlueprintCallable, Category = "Character")

@@ -19,8 +19,12 @@ namespace OWSData.Repositories.Interfaces
         Task UpdatePosition(Guid customerGUID, string characterName, string mapName, float X, float Y, float Z, float RX, float RY, float RZ);
         Task PlayerLogout(Guid customerGUID, string characterName);
 
+        Task AddAbilityToCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON);
+        Task<IEnumerable<Abilities>> GetAbilities(Guid customerGUID);
         Task<IEnumerable<GetCharacterAbilities>> GetCharacterAbilities(Guid customerGUID, string characterName);
         Task<IEnumerable<GetAbilityBars>> GetAbilityBars(Guid customerGUID, string characterName);
         Task<IEnumerable<GetAbilityBarsAndAbilities>> GetAbilityBarsAndAbilities(Guid customerGUID, string characterName);
+        Task RemoveAbilityFromCharacter(Guid customerGUID, string abilityName, string characterName);
+        Task UpdateAbilityOnCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON);
     }
 }

@@ -95,11 +95,6 @@ namespace OWSData.Models.Tables
                     .IsUnicode(false)
                     .HasDefaultValueSql("('')");
 
-                entity.HasOne(d => d.AbilityTypes)
-                    .WithMany(p => p.Abilities)
-                    .HasForeignKey(d => new { d.CustomerGuid, d.AbilityTypeId })
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Abilities_AbilityTypes");
             });
 
             modelBuilder.Entity<AbilityTypes>(entity =>

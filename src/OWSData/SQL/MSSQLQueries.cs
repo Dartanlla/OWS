@@ -6,6 +6,23 @@ namespace OWSData.SQL
 {
     public static class MSSQLQueries
     {
+		public static readonly string AddAbilityToCharacterSQL = @"INSERT INTO CharHasAbilities (CustomerGUID, CharacterID, AbilityID, AbilityLevel, CharHasAbilitiesCustomJSON)
+				SELECT @CustomerGUID, 
+					(SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName=@CharacterName AND C.CustomerGUID=@CustomerGUID),
+					(SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName=@AbilityName AND A.CustomerGUID=@CustomerGUID),
+					@AbilityLevel,
+					@CharHasAbilitiesCustomJSON
+				WHERE NOT EXISTS (SELECT 1 FROM CharHasAbilities CHA 
+									INNER JOIN Characters C 
+										ON C.CharacterID=CHA.CharacterID 
+										AND C.CustomerGUID=CHA.CustomerGUID
+									INNER JOIN Abilities A 
+										ON A.AbilityID=CHA.AbilityID 
+										AND A.CustomerGUID=CHA.CustomerGUID
+									WHERE CHA.CustomerGUID=@CustomerGUID 
+										AND C.CharName=@CharacterName 
+										AND A.AbilityName=@AbilityName)";
+
 		public static readonly string AddOrUpdateWorldServerSQL = @"MERGE WorldServers AS tbl
 				USING (SELECT @CustomerGUID AS CustomerGUID, 
 					@ServerIP AS ServerIP, 
@@ -64,6 +81,18 @@ namespace OWSData.SQL
 				FROM WorldServers 
 				WHERE CustomerGUID=@CustomerGUID 
 				AND ZoneServerGUID=@ZoneServerGUID";
+
+		public static readonly string RemoveAbilityFromCharacterSQL = @"DELETE FROM CharHasAbilities
+				WHERE CustomerGUID=@CustomerGUID
+					AND CharacterID=(SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName=@CharacterName)
+					AND AbilityID=(SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName=@AbilityName)";
+
+		public static readonly string UpdateAbilityOnCharacterSQL = @"UPDATE CharHasAbilities
+				SET AbilityLevel = @AbilityLevel,
+				CharHasAbilitiesCustomJSON = @CharHasAbilitiesCustomJSON
+				WHERE CustomerGUID=@CustomerGUID
+					AND CharacterID=(SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName=@CharacterName)
+					AND AbilityID=(SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName=@AbilityName)";
 
 		public static readonly string UpdateWorldServerSQL = @"UPDATE WorldServers
 				SET ActiveStartTime=GETDATE(),

@@ -51,7 +51,7 @@ public:
 
 	AOWSPlayerController();
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 		UOWSPlayerControllerComponent* OWSPlayerControllerComponent;
 
 	UPROPERTY(BlueprintReadWrite)
@@ -287,6 +287,24 @@ public:
 		void NotifyRemoveCharacter();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Player")
 		void ErrorRemoveCharacter(const FString &ErrorMsg);
+
+	//Add Ability to Character Events
+	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
+		void NotifyAddAbilityToCharacter();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
+		void ErrorAddAbilityToCharacter(const FString& ErrorMsg);
+
+	//Update Ability on Character Events
+	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
+		void NotifyUpdateAbilityOnCharacter();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
+		void ErrorUpdateAbilityOnCharacter(const FString& ErrorMsg);
+
+	//Remove Ability from Character Events
+	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
+		void NotifyRemoveAbilityFromCharacter();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
+		void ErrorRemoveAbilityFromCharacter(const FString& ErrorMsg);
 
 
 	//Player Controller Component Delegate Bindings

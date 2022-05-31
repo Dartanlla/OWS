@@ -51,10 +51,16 @@ AOWSPlayerController::AOWSPlayerController()
 	OWSPlayerControllerComponent->OnNotifyUpdateCharacterStatsDelegate.BindUObject(this, &AOWSPlayerController::NotifyUpdateCharacterStats);
 	OWSPlayerControllerComponent->OnNotifyGetCustomCharacterDataDelegate.BindUObject(this, &AOWSPlayerController::NotifyGetCustomCharacterData);
 	OWSPlayerControllerComponent->OnErrorGetCustomCharacterDataDelegate.BindUObject(this, &AOWSPlayerController::ErrorCustomCharacterData);
+	OWSPlayerControllerComponent->OnNotifyAddAbilityToCharacterDelegate.BindUObject(this, &AOWSPlayerController::NotifyAddAbilityToCharacter);
+	OWSPlayerControllerComponent->OnErrorAddAbilityToCharacterDelegate.BindUObject(this, &AOWSPlayerController::ErrorAddAbilityToCharacter);
 	OWSPlayerControllerComponent->OnNotifyGetCharacterAbilitiesDelegate.BindUObject(this, &AOWSPlayerController::NotifyGetCharacterAbilities);
 	OWSPlayerControllerComponent->OnErrorGetCharacterAbilitiesDelegate.BindUObject(this, &AOWSPlayerController::ErrorGetCharacterAbilities);
 	OWSPlayerControllerComponent->OnNotifyGetAbilityBarsDelegate.BindUObject(this, &AOWSPlayerController::NotifyGetAbilityBars);
 	OWSPlayerControllerComponent->OnErrorGetAbilityBarsDelegate.BindUObject(this, &AOWSPlayerController::ErrorGetAbilityBars);
+	OWSPlayerControllerComponent->OnNotifyUpdateAbilityOnCharacterDelegate.BindUObject(this, &AOWSPlayerController::NotifyUpdateAbilityOnCharacter);
+	OWSPlayerControllerComponent->OnErrorUpdateAbilityOnCharacterDelegate.BindUObject(this, &AOWSPlayerController::ErrorUpdateAbilityOnCharacter);
+	OWSPlayerControllerComponent->OnNotifyRemoveAbilityFromCharacterDelegate.BindUObject(this, &AOWSPlayerController::NotifyRemoveAbilityFromCharacter);
+	OWSPlayerControllerComponent->OnErrorRemoveAbilityFromCharacterDelegate.BindUObject(this, &AOWSPlayerController::ErrorRemoveAbilityFromCharacter);
 	OWSPlayerControllerComponent->OnNotifyPlayerLogoutDelegate.BindUObject(this, &AOWSPlayerController::NotifyPlayerLogout);
 	OWSPlayerControllerComponent->OnErrorPlayerLogoutDelegate.BindUObject(this, &AOWSPlayerController::ErrorPlayerLogout);
 	OWSPlayerControllerComponent->OnNotifyCreateCharacterDelegate.BindUObject(this, &AOWSPlayerController::NotifyCreateCharacter);

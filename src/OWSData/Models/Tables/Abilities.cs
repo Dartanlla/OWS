@@ -13,7 +13,6 @@ namespace OWSData.Models.Tables
         public int? Race { get; set; }
         public string AbilityCustomJson { get; set; }
         public string GameplayAbilityClassName { get; set; }
-
-        public AbilityTypes AbilityTypes { get; set; }
+        public string AbilityTypeName { get; set; }
     }
 }

@@ -365,6 +365,15 @@ namespace OWSData.Repositories.Implementations.Postgres
             }
         }
 
+        public async Task AddAbilityToCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<Abilities>> GetAbilities(Guid customerGUID)
+        {
+            throw new NotImplementedException();
+        }
         public async Task<IEnumerable<GetCharacterAbilities>> GetCharacterAbilities(Guid customerGUID, string characterName)
         {
             IEnumerable<GetCharacterAbilities> outputGetCharacterAbilities;
@@ -417,6 +426,16 @@ namespace OWSData.Repositories.Implementations.Postgres
             }
 
             return outputGetAbilityBarsAndAbilities;
+        }
+
+        public async Task RemoveAbilityFromCharacter(Guid customerGUID, string abilityName, string characterName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task UpdateAbilityOnCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -10,6 +10,7 @@ using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.Models;
 using OWSData.Models.Tables;
+using OWSData.SQL;
 
 namespace OWSData.Repositories.Implementations.MSSQL
 {
@@ -325,6 +326,40 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
+        public async Task AddAbilityToCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
+        {
+            using (Connection)
+            {
+                var paremeters = new
+                {
+                    CustomerGUID = customerGUID,
+                    AbilityName = abilityName,
+                    CharacterName = characterName,
+                    AbilityLevel = abilityLevel,
+                    CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
+                };
+
+                var getWorldServerID = await Connection.ExecuteAsync(MSSQLQueries.AddAbilityToCharacterSQL, paremeters);
+            }
+        }
+
+        public async Task<IEnumerable<Abilities>> GetAbilities(Guid customerGUID)
+        {
+            IEnumerable<Abilities> outputGetAbilities;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+
+                outputGetAbilities = await Connection.QueryAsync<Abilities>("GetAbilities",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+            return outputGetAbilities;
+        }
+
         public async Task<IEnumerable<GetCharacterAbilities>> GetCharacterAbilities(Guid customerGUID, string characterName)
         {
             IEnumerable<GetCharacterAbilities> outputGetCharacterAbilities;
@@ -377,6 +412,38 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
 
             return outputGetAbilityBarsAndAbilities;
+        }
+
+        public async Task RemoveAbilityFromCharacter(Guid customerGUID, string abilityName, string characterName)
+        {
+            using (Connection)
+            {
+                var paremeters = new
+                {
+                    CustomerGUID = customerGUID,
+                    AbilityName = abilityName,
+                    CharacterName = characterName
+                };
+
+                var getWorldServerID = await Connection.ExecuteAsync(MSSQLQueries.RemoveAbilityFromCharacterSQL, paremeters);
+            }
+        }
+
+        public async Task UpdateAbilityOnCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
+        {
+            using (Connection)
+            {
+                var paremeters = new
+                {
+                    CustomerGUID = customerGUID,
+                    AbilityName = abilityName,
+                    CharacterName = characterName,
+                    AbilityLevel = abilityLevel,
+                    CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
+                };
+
+                var getWorldServerID = await Connection.ExecuteAsync(MSSQLQueries.UpdateAbilityOnCharacterSQL, paremeters);
+            }
         }
     }
 }

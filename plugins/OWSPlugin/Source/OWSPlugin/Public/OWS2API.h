@@ -282,6 +282,69 @@ public:
 		FString CharacterName;
 };
 
+USTRUCT()
+struct FAddAbilityToCharacterJSONPost
+{
+	GENERATED_BODY()
+
+public:
+	FAddAbilityToCharacterJSONPost() {
+		CharacterName = "";
+		AbilityName = "";
+		AbilityLevel = 0;
+		CharHasAbilitiesCustomJSON = "";
+	}
+
+	UPROPERTY()
+		FString CharacterName;
+	UPROPERTY()
+		FString AbilityName;
+	UPROPERTY()
+		int32 AbilityLevel;
+	UPROPERTY()
+		FString CharHasAbilitiesCustomJSON;
+};
+
+USTRUCT()
+struct FUpdateAbilityOnCharacterJSONPost
+{
+	GENERATED_BODY()
+
+public:
+	FUpdateAbilityOnCharacterJSONPost() {
+		CharacterName = "";
+		AbilityName = "";
+		AbilityLevel = 0;
+		CharHasAbilitiesCustomJSON = "";
+	}
+
+	UPROPERTY()
+		FString CharacterName;
+	UPROPERTY()
+		FString AbilityName;
+	UPROPERTY()
+		int32 AbilityLevel;
+	UPROPERTY()
+		FString CharHasAbilitiesCustomJSON;
+};
+
+USTRUCT()
+struct FRemoveAbilityFromCharacterJSONPost
+{
+	GENERATED_BODY()
+
+public:
+	FRemoveAbilityFromCharacterJSONPost() {
+		CharacterName = "";
+		AbilityName = "";
+	}
+
+	UPROPERTY()
+		FString CharacterName;
+	UPROPERTY()
+		FString AbilityName;
+};
+
 USTRUCT(BlueprintType)
 struct FAbility
 {

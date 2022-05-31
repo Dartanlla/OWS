@@ -4,6 +4,152 @@
         <name>OWSCharacterPersistence</name>
     </assembly>
     <members>
+        <!-- Badly formed XML comment ignored for member "T:OWSCharacterPersistence.Controllers.AbilitiesController" -->
+        <member name="M:OWSCharacterPersistence.Controllers.AbilitiesController.#ctor(OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            Constructor for Ability related API calls.
+            </summary>
+            <remarks>
+            All dependencies are injected.
+            </remarks>
+        </member>
+        <member name="M:OWSCharacterPersistence.Controllers.AbilitiesController.OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext)">
+            <summary>
+            OnActionExecuting override
+            </summary>
+            <remarks>
+            Checks for an empty IHeaderCustomerGUID.
+            </remarks>
+        </member>
+        <member name="M:OWSCharacterPersistence.Controllers.AbilitiesController.AddAbilityToCharacter(OWSCharacterPersistence.Requests.Abilities.AddAbilityToCharacterRequest)">
+            <summary>
+            Add Ability To Character
+            </summary>
+            <remarks>
+            Adds an Ability to a Character and also sets the initial values of Ability Level and the per instance Custom JSON
+            </remarks>
+            <param name="request">
+            <b>AbilityName</b> - This is the name of the ability to add to the character.<br/>
+            <b>AbilityLevel</b> - This is a number representing the Ability Level of the ability to add.  If you need more per instance customization, use the Custom JSON field.<br/>
+            <b>CharacterName</b> - This is the name of the character to add the ability to.<br/>
+            <b>CharHasAbilitiesCustomJSON</b> - This field is used to store Custom JSON for the specific instance of this Ability.  If you have a system where each ability on a character has some kind of custom variation, then this is where to store that variation data.  In a system where an ability operates the same on every player, this field would not be used.  Don't store Ability Level in this field, as there is already a field for that.  If you need to store Custom JSON for ALL instances of an ability, use the Custom JSON on the Ability itself.
+            </param>
+        </member>
+        <member name="M:OWSCharacterPersistence.Controllers.AbilitiesController.GetCharacterAbilities(OWSCharacterPersistence.Requests.Abilities.GetCharacterAbilitiesRequest)">
+            <summary>
+            Get Character Abilities
+            </summary>
+            <remarks>
+            Gets a List of the Abilities on the Character specified with CharacterName
+            </remarks>
+            <param name="request">
+            <b>CharacterName</b> - This is the name of the character to get abilities for.
+            </param>
+        </member>
+        <member name="M:OWSCharacterPersistence.Controllers.AbilitiesController.GetAbilities">
+            <summary>
+            Get Abilities
+            </summary>
+            <remarks>
+            Gets a List of all Abilities
+            </remarks>
+        </member>
+        <member name="M:OWSCharacterPersistence.Controllers.AbilitiesController.GetAbilityBars(OWSCharacterPersistence.Requests.Abilities.GetAbilityBarsRequest)">
+            <summary>
+            Get Ability Bars
+            </summary>
+            <remarks>
+            Gets a List of Ability Bars for the Character specified with CharacterName
+            </remarks>
+            <param name="request">
+            <b>CharacterName</b> - This is the name of the character to get ability bars for.
+            </param>
+        </member>
+        <member name="M:OWSCharacterPersistence.Controllers.AbilitiesController.GetAbilityBarsAndAbilities(OWSCharacterPersistence.Requests.Abilities.GetCharacterAbilitiesRequest)">
+            <summary>
+            Get Ability Bars and Abilities
+            </summary>
+            <remarks>
+            Gets a List of Ability Bars and the Abilities on those Bars for the Character specified with CharacterName
+            </remarks>
+            <param name="request">
+            <b>CharacterName</b> - This is the name of the character to get abilities for.
+            </param>
+        </member>
+        <member name="M:OWSCharacterPersistence.Controllers.AbilitiesController.RemoveAbilityFromCharacter(OWSCharacterPersistence.Requests.Abilities.RemoveAbilityFromCharacterRequest)">
+            <summary>
+            Remove Ability From Character
+            </summary>
+            <remarks>
+            Removes an Ability from a Character
+            </remarks>
+            <param name="request">
+            <b>AbilityName</b> - This is the name of the ability to add to the character.<br/>
+            <b>CharacterName</b> - This is the name of the character to add the ability to.
+            </param>
+        </member>
+        <member name="M:OWSCharacterPersistence.Controllers.AbilitiesController.UpdateAbilityOnCharacter(OWSCharacterPersistence.Requests.Abilities.UpdateAbilityOnCharacterRequest)">
+            <summary>
+            Update Ability on Character
+            </summary>
+            <remarks>
+            Adds an Ability to a Character and also sets the initial values of Ability Level and the per instance Custom JSON
+            </remarks>
+            <param name="request">
+            <b>AbilityName</b> - This is the name of the ability to update on the character.<br/>
+            <b>AbilityLevel</b> - This is a number representing the Ability Level of the ability to add.  If you need more per instance customization, use the Custom JSON field.<br/>
+            <b>CharacterName</b> - This is the name of the character to add the ability to.<br/>
+            <b>CharHasAbilitiesCustomJSON</b> - This field is used to store Custom JSON for the specific instance of this Ability.  If you have a system where each ability on a character has some kind of custom variation, then this is where to store that variation data.  In a system where an ability operates the same on every player, this field would not be used.  Don't store Ability Level in this field, as there is already a field for that.  If you need to store Custom JSON for ALL instances of an ability, use the Custom JSON on the Ability itself.
+            </param>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Abilities.AddAbilityToCharacterRequest">
+            <summary>
+            Add Ability To Character
+            </summary>
+            <remarks>
+            Adds an Ability to a Character and also sets the initial values of Ability Level and the per instance Custom JSON
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Abilities.AddAbilityToCharacterRequest.AbilityName">
+            <summary>
+            Ability Name
+            </summary>
+            <remarks>
+            This is the name of the ability to add to the character.
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Abilities.AddAbilityToCharacterRequest.AbilityLevel">
+            <summary>
+            Ability Level
+            </summary>
+            <remarks>
+            This is a number representing the Ability Level of the ability to add.  If you need more per instance customization, use the Custom JSON field.
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Abilities.AddAbilityToCharacterRequest.CharacterName">
+            <summary>
+            Character Name
+            </summary>
+            <remarks>
+            This is the name of the character to add the ability to.
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Abilities.AddAbilityToCharacterRequest.CharHasAbilitiesCustomJSON">
+            <summary>
+            Custom JSON
+            </summary>
+            <remarks>
+            This field is used to store Custom JSON for the specific instance of this Ability.  If you have a system where each ability on a character has some kind of custom variation, then this is where to store that variation data.  In a system where an ability operates the same on every player, this field would not be used.  Don't store Ability Level in this field, as there is already a field for that.  If you need to store Custom JSON for ALL instances of an ability, use the Custom JSON on the Ability itself.
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Abilities.GetAbilitiesRequest">
+            <summary>
+            Get Abilities
+            </summary>
+            <remarks>
+            Gets a List of all Abilities
+            </remarks>
+        </member>
         <member name="T:OWSCharacterPersistence.Requests.Abilities.GetAbilityBarsAndAbilitiesRequest">
             <summary>
             Get Ability Bars And Abilities
@@ -50,6 +196,70 @@
             </summary>
             <remarks>
             This is the name of the character to get abilities for.
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Abilities.RemoveAbilityFromCharacterRequest">
+            <summary>
+            Remove Ability from Character
+            </summary>
+            <remarks>
+            Removes an Ability from a Character
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Abilities.RemoveAbilityFromCharacterRequest.AbilityName">
+            <summary>
+            Ability Name
+            </summary>
+            <remarks>
+            This is the name of the ability to add to the character.
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Abilities.RemoveAbilityFromCharacterRequest.CharacterName">
+            <summary>
+            Character Name
+            </summary>
+            <remarks>
+            This is the name of the character to add the ability to.
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Abilities.UpdateAbilityOnCharacterRequest">
+            <summary>
+            Update Ability on Character
+            </summary>
+            <remarks>
+            Update the Ability on the Character to modify Ability Level and the per instance Custom JSON
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Abilities.UpdateAbilityOnCharacterRequest.AbilityName">
+            <summary>
+            Ability Name
+            </summary>
+            <remarks>
+            This is the name of the ability to update on the character.
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Abilities.UpdateAbilityOnCharacterRequest.AbilityLevel">
+            <summary>
+            Ability Level
+            </summary>
+            <remarks>
+            This is a number representing the Ability Level of the ability to add.  If you need more per instance customization, use the Custom JSON field.
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Abilities.UpdateAbilityOnCharacterRequest.CharacterName">
+            <summary>
+            Character Name
+            </summary>
+            <remarks>
+            This is the name of the character to update the ability on.
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Abilities.UpdateAbilityOnCharacterRequest.CharHasAbilitiesCustomJSON">
+            <summary>
+            Custom JSON
+            </summary>
+            <remarks>
+            This field is used to store Custom JSON for the specific instance of this Ability.  If you have a system where each ability on a character has some kind of custom variation, then this is where to store that variation data.  In a system where an ability operates the same on every player, this field would not be used.  Don't store Ability Level in this field, as there is already a field for that.  If you need to store Custom JSON for ALL instances of an ability, use the Custom JSON on the Ability itself.
             </remarks>
         </member>
         <member name="T:OWSCharacterPersistence.Requests.Characters.GetCustomDataRequest">

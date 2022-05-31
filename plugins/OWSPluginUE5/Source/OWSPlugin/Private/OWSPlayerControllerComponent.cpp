@@ -197,7 +197,7 @@ void UOWSPlayerControllerComponent::ProcessOWS2POSTRequest(FString ApiModuleToCa
 	Request->ProcessRequest();
 }
 
-//Set character name and get user session
+//SetSelectedCharacterAndConnectToLastZone - Set character name and get user session
 void UOWSPlayerControllerComponent::SetSelectedCharacterAndConnectToLastZone(FString UserSessionGUID, FString SelectedCharacterName)
 {
 	//Trim whitespace
@@ -259,6 +259,7 @@ void UOWSPlayerControllerComponent::OnSetSelectedCharacterAndConnectToLastZoneRe
 	}
 }
 
+//TravelToLastZoneServer
 void UOWSPlayerControllerComponent::TravelToLastZoneServer(FString CharacterName)
 {
 	FTravelToLastZoneServerJSONPost TravelToLastZoneServerJSONPost;
@@ -339,7 +340,7 @@ void UOWSPlayerControllerComponent::OnTravelToLastZoneServerResponseReceived(FHt
 	}
 }
 
-
+//GetZoneServerToTravelTo
 void UOWSPlayerControllerComponent::GetZoneServerToTravelTo(FString CharacterName, TEnumAsByte<ERPGSchemeToChooseMap::SchemeToChooseMap> SelectedSchemeToChooseMap, int32 WorldServerID, FString ZoneName)
 {
 	FTravelToLastZoneServerJSONPost TravelToLastZoneServerJSONPost;
@@ -413,6 +414,7 @@ void UOWSPlayerControllerComponent::OnSavePlayerLocationResponseReceived(FHttpRe
 	}
 }
 
+//GetAllCharacters
 void UOWSPlayerControllerComponent::GetAllCharacters(FString UserSessionGUID)
 {
 	FGetAllCharactersJSONPost GetAllCharactersJSONPost;
@@ -449,6 +451,7 @@ void UOWSPlayerControllerComponent::OnGetAllCharactersResponseReceived(FHttpRequ
 	}
 }
 
+//GetCharacterStats
 void UOWSPlayerControllerComponent::GetCharacterStats(FString CharName)
 {
 	FGetCharacterStatsJSONPost GetCharacterStatsJSONPost;
@@ -478,7 +481,7 @@ void UOWSPlayerControllerComponent::OnGetCharacterStatsResponseReceived(FHttpReq
 	}
 	else
 	{
-		UE_LOG(OWS, Error, TEXT("OnGetAllCharactersResponseReceived Error accessing login server!"));
+		UE_LOG(OWS, Error, TEXT("OnGetAllCharactersResponseReceived Error accessing server!"));
 		OnErrorGetCharacterStatsDelegate.ExecuteIfBound(TEXT("Unknown error connecting to server!"));
 	}
 }
@@ -511,7 +514,7 @@ void UOWSPlayerControllerComponent::OnUpdateCharacterStatsResponseReceived(FHttp
 	OnNotifyUpdateCharacterStatsDelegate.ExecuteIfBound();
 }
 
-
+//GetCustomCharacterData
 void UOWSPlayerControllerComponent::GetCustomCharacterData(FString CharName)
 {
 	FGetCustomCharacterDataJSONPost GetCustomCharacterDataJSONPost;
@@ -541,12 +544,12 @@ void UOWSPlayerControllerComponent::OnGetCustomCharacterDataResponseReceived(FHt
 	}
 	else
 	{
-		UE_LOG(OWS, Error, TEXT("OnGetCustomCharacterDataResponseReceived Error accessing login server!"));
+		UE_LOG(OWS, Error, TEXT("OnGetCustomCharacterDataResponseReceived Error accessing server!"));
 		OnErrorGetCustomCharacterDataDelegate.ExecuteIfBound(TEXT("Unknown error connecting to server!"));
 	}
 }
 
-
+//AddOrUpdateCustomCharacterData
 void UOWSPlayerControllerComponent::AddOrUpdateCustomCharacterData(FString CharName, FString CustomFieldName, FString CustomValue)
 {
 	FAddOrUpdateCustomCharacterDataJSONPost AddOrUpdateCustomCharacterDataJSONPost;
@@ -669,6 +672,40 @@ void UOWSPlayerControllerComponent::OnGetCharacterStatusesResponseReceived(FHttp
 }
 
 /***** Abilities *****/
+
+//AddAbilityToCharacter
+void UOWSPlayerControllerComponent::AddAbilityToCharacter(FString CharName, FString AbilityName, int32 AbilityLevel, FString CustomJSON)
+{
+	FAddAbilityToCharacterJSONPost AddAbilityToCharacterJSONPost;
+	AddAbilityToCharacterJSONPost.CharacterName = CharName;
+	AddAbilityToCharacterJSONPost.AbilityName = AbilityName;
+	AddAbilityToCharacterJSONPost.AbilityLevel = AbilityLevel;
+	AddAbilityToCharacterJSONPost.CharHasAbilitiesCustomJSON = CustomJSON;
+	FString PostParameters = "";
+	if (FJsonObjectConverter::UStructToJsonObjectString(AddAbilityToCharacterJSONPost, PostParameters))
+	{
+		ProcessOWS2POSTRequest("CharacterPersistenceAPI", "api/Abilities/AddAbilityToCharacter", PostParameters, &UOWSPlayerControllerComponent::OnAddAbilityToCharacterResponseReceived);
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("AddAbilityToCharacter Error serializing AddAbilityToCharacterJSONPost!"));
+	}
+}
+
+void UOWSPlayerControllerComponent::OnAddAbilityToCharacterResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		OnNotifyAddAbilityToCharacterDelegate.ExecuteIfBound();
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("OnAddAbilityToCharacterResponseReceived Error accessing server!"));
+		OnErrorAddAbilityToCharacterDelegate.ExecuteIfBound(TEXT("Unknown error connecting to server!"));
+	}
+}
+
+//GetCharacterAbilities
 void UOWSPlayerControllerComponent::GetCharacterAbilities(FString CharName)
 {
 	FCharacterNameJSONPost CharacterNameJSONPost;
@@ -712,7 +749,7 @@ void UOWSPlayerControllerComponent::OnGetCharacterAbilitiesResponseReceived(FHtt
 	}
 }
 
-
+//GetAbilityBars
 void UOWSPlayerControllerComponent::GetAbilityBars(FString CharName)
 {
 	FCharacterNameJSONPost CharacterNameJSONPost;
@@ -752,11 +789,73 @@ void UOWSPlayerControllerComponent::OnGetAbilityBarsResponseReceived(FHttpReques
 	else
 	{
 		UE_LOG(OWS, Error, TEXT("OnGetAbilityBarsResponseReceived Error accessing server!"));
-		OnErrorGetAbilityBarsDelegate.ExecuteIfBound(TEXT("OnGetAbilityBarsResponseReceived Error accessing server!"));
+		OnErrorGetAbilityBarsDelegate.ExecuteIfBound(TEXT("OnGetAbilityBarsResponseReceived Error accessing API server!"));
 	}
 }
 
+//UpdateAbilityOnCharacter
+void UOWSPlayerControllerComponent::UpdateAbilityOnCharacter(FString CharName, FString AbilityName, int32 AbilityLevel, FString CustomJSON)
+{
+	FUpdateAbilityOnCharacterJSONPost UpdateAbilityOnCharacterJSONPost;
+	UpdateAbilityOnCharacterJSONPost.CharacterName = CharName;
+	UpdateAbilityOnCharacterJSONPost.AbilityName = AbilityName;
+	UpdateAbilityOnCharacterJSONPost.AbilityLevel = AbilityLevel;
+	UpdateAbilityOnCharacterJSONPost.CharHasAbilitiesCustomJSON = CustomJSON;
+	FString PostParameters = "";
+	if (FJsonObjectConverter::UStructToJsonObjectString(UpdateAbilityOnCharacterJSONPost, PostParameters))
+	{
+		ProcessOWS2POSTRequest("CharacterPersistenceAPI", "api/Abilities/UpdateAbilityOnCharacter", PostParameters, &UOWSPlayerControllerComponent::OnUpdateAbilityOnCharacterResponseReceived);
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("UpdateAbilityOnCharacter Error serializing UpdateAbilityOnCharacterJSONPost!"));
+	}
+}
 
+void UOWSPlayerControllerComponent::OnUpdateAbilityOnCharacterResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		OnNotifyAddAbilityToCharacterDelegate.ExecuteIfBound();
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("OnUpdateAbilityOnCharacterResponseReceived Error accessing server!"));
+		OnErrorAddAbilityToCharacterDelegate.ExecuteIfBound(TEXT("Unknown error accessing API server!"));
+	}
+}
+
+//RemoveAbilityFromCharacter
+void UOWSPlayerControllerComponent::RemoveAbilityFromCharacter(FString CharName, FString AbilityName)
+{
+	FRemoveAbilityFromCharacterJSONPost RemoveAbilityFromCharacterJSONPost;
+	RemoveAbilityFromCharacterJSONPost.CharacterName = CharName;
+	RemoveAbilityFromCharacterJSONPost.AbilityName = AbilityName;
+	FString PostParameters = "";
+	if (FJsonObjectConverter::UStructToJsonObjectString(RemoveAbilityFromCharacterJSONPost, PostParameters))
+	{
+		ProcessOWS2POSTRequest("CharacterPersistenceAPI", "api/Abilities/RemoveAbilityFromCharacter", PostParameters, &UOWSPlayerControllerComponent::OnRemoveAbilityFromCharacterResponseReceived);
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("RemoveAbilityFromCharacter Error serializing RemoveAbilityFromCharacterJSONPost!"));
+	}
+}
+
+void UOWSPlayerControllerComponent::OnRemoveAbilityFromCharacterResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		OnNotifyRemoveAbilityFromCharacterDelegate.ExecuteIfBound();
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("OnRemoveAbilityFromCharacterResponseReceived Error accessing server!"));
+		OnErrorRemoveAbilityFromCharacterDelegate.ExecuteIfBound(TEXT("Unknown error accessing API server!"));
+	}
+}
+
+//PlayerLogout
 void UOWSPlayerControllerComponent::PlayerLogout(FString CharName)
 {
 	//CharName will be empty if the user has not connected to a server yet.  This logout method is not intended to be used during the character selection screen.
@@ -803,7 +902,7 @@ void UOWSPlayerControllerComponent::OnPlayerLogoutResponseReceived(FHttpRequestP
 	}
 }
 
-
+//CreateCharacter
 void UOWSPlayerControllerComponent::CreateCharacter(FString UserSessionGUID, FString CharacterName, FString ClassName)
 {
 	FCreateCharacterJSONPost CreateCharacterJSONPost;
@@ -896,6 +995,7 @@ void UOWSPlayerControllerComponent::OnRemoveCharacterResponseReceived(FHttpReque
 	}
 }
 
+//GetPlayerGroupsCharacterIsIn
 void UOWSPlayerControllerComponent::GetPlayerGroupsCharacterIsIn(FString UserSessionGUID, FString CharacterName, int32 PlayerGroupTypeID)
 {
 	FGetPlayerGroupsCharacterIsInJSONPost GetPlayerGroupsCharacterIsInJSONPost;
@@ -970,7 +1070,7 @@ void UOWSPlayerControllerComponent::OnGetPlayerGroupsCharacterIsInResponseReceiv
 	}
 }
 
-
+//LaunchZoneInstance
 void UOWSPlayerControllerComponent::LaunchZoneInstance(FString CharacterName, FString ZoneName, ERPGPlayerGroupType::PlayerGroupType GroupType)
 {
 	FLaunchZoneInstance LaunchZoneInstance;
