@@ -48,7 +48,10 @@ namespace OWSPublicAPI
             container.Options.ResolveUnregisteredConcreteTypes = false;
             //container = new Container();
 
-            Configuration = configuration;
+            Configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .AddEnvironmentVariables()
+                .Build();
         }
 
         public IConfiguration Configuration { get; }

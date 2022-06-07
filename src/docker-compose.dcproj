@@ -6,6 +6,7 @@
     <ProjectGuid>b9d5e83c-2a78-4cfb-b10f-4e7975cd1183</ProjectGuid>
     <DockerLaunchAction>None</DockerLaunchAction>
     <DockerServiceName>OWS</DockerServiceName>
+    <AdditionalComposeFilePaths>docker-compose-additional.yml</AdditionalComposeFilePaths>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.override.yml">

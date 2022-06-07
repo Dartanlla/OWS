@@ -1,0 +1,11 @@
+version: '3.7'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.9.0-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    container_name: RabbitMQ
