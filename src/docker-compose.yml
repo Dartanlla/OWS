@@ -1,117 +1,118 @@
-version: '3.4'
+version: '3.7'
 
 services:
 
-### Microsoft SQL Database
-  mssql:
-    build:
-      context: .
-      dockerfile: .docker/mssql/Dockerfile
-    environment:
-     - ACCEPT_EULA=Y
-     # Developer, Express, Standard, Enterprise, EnterpriseCore
-     - MSSQL_PID=Developer
-     - SA_PASSWORD=yourStrong(!)Password
-    ports:
-     - "1433:1433"
-    volumes:
-     - mssql_data:/var/opt/mssql/data
-     - mssql_log:/var/opt/mssql/log
-     - mssql_secrets:/var/opt/mssql/secrets
-     - type: bind
-       source: .docker/mssql/backups
-       target: /var/opt/mssql/backups
+  # ELK Stack Setup
+  setup:
+    extends:
+      file: .docker/logging.yml
+      service: setup
 
-### PostgreSQL Database
-#  postgres:
-#    build:
-#      context: .
-#      dockerfile: .docker/postgres/Dockerfile
-#    environment:
-#      - POSTGRES_PASSWORD=yourStrong(!)Password
-#    ports:
-#      - "5432:5432"
-#    volumes:
-#      - postgres_data:/var/lib/postgresql/data
+  # Elastic Search
+  elasticsearch:
+    extends:
+      file: .docker/logging.yml
+      service: elasticsearch
 
-### MyQL Database
-#  mysql:
-#    build:
-#      context: .
-#      dockerfile: .docker/mysql/Dockerfile
-#    environment:
-#      - MYSQL_ROOT_PASSWORD=yourStrong(!)Password
-#    ports:
-#      - "3306:3306"
-#    volumes:
-#      - mysql_data:/var/lib/mysql
+  # LogStash
+  logstash:
+    depends_on:
+       - elasticsearch
+    extends:
+      file: .docker/logging.yml
+      service: logstash
 
-  rabbitmq:
-    image: rabbitmq:3.9.0-management-alpine
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    volumes:
-    - .docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+  # Kibana
+  kibana:
+    depends_on:
+      - elasticsearch
+    extends:
+      file: .docker/logging.yml
+      service: kibana
 
+  # Database
+  database:
+    extends:
+      file: .docker/databases.yml
+      service: ${DATABASE}
+
+  # Messaging Service
+  messaging:
+    extends:
+      file: .docker/messaging.yml
+      service: rabbitmq
+
+  # OWS Public Api
   owspublicapi:
     image: ${REGISTRY:-ows}/owspublicapi:${PLATFORM:-linux}-${TAG:-latest}
     build:
       context: .
       dockerfile: OWSPublicAPI/Dockerfile
+    environment:
+     - OWSStorageConfig__OWSDBBackend=${DATABASE}
+     - OWSStorageConfig__OWSDBConnectionString=${DATABASE_CONNECTION_STRING}
+     - OWSAPIPathConfig__InternalPublicApiURL=${InternalPublicApiURL}
+     - OWSAPIPathConfig__InternalInstanceManagementApiURL=${InternalInstanceManagementApiURL}
+     - OWSAPIPathConfig__InternalCharacterPersistenceApiURL=${InternalCharacterPersistenceApiURL}
     ports:
-    - "44302:80"
-    - "44303:443"
+      - "44302:80"
+      - "44303:443"
     depends_on:
-    ### Uncomment the appropriate Database Backend (mssql/postgres)
-    - mssql
-#    - postgres
-#    - mysql
-    - rabbitmq
+      - database
+      - messaging
 
+  # OWS Instance Management 
   owsinstancemanagement:
     image: ${REGISTRY:-ows}/owsinstancemanagement:${PLATFORM:-linux}-${TAG:-latest}
     build:
       context: .
       dockerfile: OWSInstanceManagement/Dockerfile
+    environment:
+     - OWSStorageConfig__OWSDBBackend=${DATABASE}
+     - OWSStorageConfig__OWSDBConnectionString=${DATABASE_CONNECTION_STRING}
+     - OWSAPIPathConfig__InternalPublicApiURL=${InternalPublicApiURL}
+     - OWSAPIPathConfig__InternalInstanceManagementApiURL=${InternalInstanceManagementApiURL}
+     - OWSAPIPathConfig__InternalCharacterPersistenceApiURL=${InternalCharacterPersistenceApiURL}
     ports:
-    - "44328:80"
-    - "44329:443"
+      - "44328:80"
+      - "44329:443"
     depends_on:
-      ### Uncomment the appropriate Database Backend (mssql/postgres)
-      - mssql
-#      - postgres
-#      - mysql
-      - rabbitmq
+      - database
+      - messaging
 
+  # OWS Character Persistence
   owscharacterpersistence:
     image: ${REGISTRY:-ows}/owscharacterpersistence:${PLATFORM:-linux}-${TAG:-latest}
     build:
       context: .
       dockerfile: OWSCharacterPersistence/Dockerfile
+    environment:
+     - OWSStorageConfig__OWSDBBackend=${DATABASE}
+     - OWSStorageConfig__OWSDBConnectionString=${DATABASE_CONNECTION_STRING}
+     - OWSAPIPathConfig__InternalPublicApiURL=${InternalPublicApiURL}
+     - OWSAPIPathConfig__InternalInstanceManagementApiURL=${InternalInstanceManagementApiURL}
+     - OWSAPIPathConfig__InternalCharacterPersistenceApiURL=${InternalCharacterPersistenceApiURL}
     ports:
-    - "44323:80"
-    - "44324:443"
+      - "44323:80"
+      - "44324:443"
     depends_on:
-      ### Uncomment the appropriate Database Backend (mssql/postgres)
-      - mssql
-#      - postgres
-#      - mysql
-      - rabbitmq
-
+      - database
+      - messaging
+      
+  # OWS Status
   owsstatus:
     image: ${REGISTRY:-ows}/owsstatus:${PLATFORM:-linux}-${TAG:-latest}
     build:
       context: .
       dockerfile: OWSStatus/Dockerfile
     ports:
-    - "44102:80"
-    - "44103:443"
+      - "44102:80"
+      - "44103:443"
 
+networks:
+  elk:
+    driver: bridge
 volumes:
-  ### Uncomment the appropriate Database Backend (mssql_*/postgres_*)
-  mssql_data:
-  mssql_log:
-  mssql_secrets:
-#  postgres_data:
-#  mysql_data:
+  setup:
+  elasticsearch:
+  database:

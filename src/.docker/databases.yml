@@ -1,0 +1,43 @@
+version: '3.7'
+
+services:
+
+  ### Microsoft SQL Database
+  mssql:
+    build:
+      context: mssql/
+    environment:
+     - ACCEPT_EULA=Y
+     - MSSQL_PID=Developer # Developer, Express, Standard, Enterprise, EnterpriseCore
+     - SA_PASSWORD=${DATABASE_PASSWORD}
+    ports:
+     - "1433:1433"
+    volumes:
+     - database:/var/opt/mssql/data
+     - database:/var/opt/mssql/log
+     - database:/var/opt/mssql/secrets
+    container_name: MSSQL
+
+  ### PostgreSQL Database
+  postgres:
+    build:
+      context: postgres/
+    environment:
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - database:/var/lib/postgresql/data
+    container_name: PostgreSQL
+  
+  ### MySql Database
+  mysql:
+    build:
+      context: mysql/
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DATABASE_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - database:/var/lib/mysql
+    container_name: MySql

@@ -31,7 +31,10 @@ namespace OWSCharacterPersistence
         {
             container.Options.ResolveUnregisteredConcreteTypes = false;
 
-            Configuration = configuration;
+            Configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .AddEnvironmentVariables()
+                .Build();
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
