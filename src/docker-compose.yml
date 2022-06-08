@@ -73,6 +73,10 @@ services:
      - OWSAPIPathConfig__InternalPublicApiURL=${InternalPublicApiURL}
      - OWSAPIPathConfig__InternalInstanceManagementApiURL=${InternalInstanceManagementApiURL}
      - OWSAPIPathConfig__InternalCharacterPersistenceApiURL=${InternalCharacterPersistenceApiURL}
+     - RabbitMQOptions__RabbitMQHostName=${RabbitMQHostName}
+     - RabbitMQOptions__RabbitMQPort=${RabbitMQPort}
+     - RabbitMQOptions__RabbitMQUserName=${RabbitMQUserName}
+     - RabbitMQOptions__RabbitMQPassword=${RabbitMQPassword}
     ports:
       - "44328:80"
       - "44329:443"
@@ -92,6 +96,10 @@ services:
      - OWSAPIPathConfig__InternalPublicApiURL=${InternalPublicApiURL}
      - OWSAPIPathConfig__InternalInstanceManagementApiURL=${InternalInstanceManagementApiURL}
      - OWSAPIPathConfig__InternalCharacterPersistenceApiURL=${InternalCharacterPersistenceApiURL}
+     - RabbitMQOptions__RabbitMQHostName=${RabbitMQHostName}
+     - RabbitMQOptions__RabbitMQPort=${RabbitMQPort}
+     - RabbitMQOptions__RabbitMQUserName=${RabbitMQUserName}
+     - RabbitMQOptions__RabbitMQPassword=${RabbitMQPassword}
     ports:
       - "44323:80"
       - "44324:443"
