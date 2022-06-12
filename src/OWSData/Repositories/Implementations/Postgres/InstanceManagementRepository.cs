@@ -145,17 +145,16 @@ namespace OWSData.Repositories.Implementations.Postgres
             return worldServerId;
         }
 
-        public async Task<SuccessAndErrorMessage> UpdateNumberOfPlayers(Guid customerGUID, string serverIP, int port, int numberOfPlayers)
+        public async Task<SuccessAndErrorMessage> UpdateNumberOfPlayers(Guid customerGUID, int zoneInstanceId, int numberOfPlayers)
         {
             using (Connection)
             {
                 var p = new DynamicParameters();
                 p.Add("@CustomerGUID", customerGUID);
-                p.Add("@IP", serverIP);
-                p.Add("@Port", port);
+                p.Add("@ZoneInstanceID", zoneInstanceId);
                 p.Add("@NumberOfReportedPlayers", numberOfPlayers);
 
-                await Connection.ExecuteAsync("call UpdateNumberOfPlayers(@CustomerGUID,@IP,@Port,@NumberOfReportedPlayers)",
+                await Connection.ExecuteAsync("call UpdateNumberOfPlayers(@CustomerGUID,@ZoneInstanceID,@NumberOfReportedPlayers)",
                     p,
                     commandType: CommandType.Text);
             }

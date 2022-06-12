@@ -13,9 +13,13 @@ namespace OWSData.Models
         public int MaxNumberOfInstances { get; set; }
         public string InternalServerIP { get; set; }
         public int StartingInstancePort { get; set; }
+        public bool IsServerEditor { get; set; }
         public string PathToDedicatedServer { get; set; }
         public int RunServerHealthMonitoringFrequencyInSeconds { get; set; }
-        public string ServerArguments { get; set; }
-        
+        public string PathToUProject { get; set; }
+        public bool UseServerLog { get; set; }
+        public bool UseNoSteam { get; set; }
+        public string OtherCustomFlags { get; set; }
+
     }
 }

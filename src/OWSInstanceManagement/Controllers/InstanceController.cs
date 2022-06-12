@@ -189,7 +189,7 @@ namespace OWSInstanceManagement.Controllers
         [SwaggerResponse(404)]*/
         public async Task<IActionResult> UpdateNumberOfPlayers([FromBody] UpdateNumberOfPlayersRequest request)
         {
-            request.SetData(_instanceManagementRepository, _customerGuid, Request.HttpContext.Connection.RemoteIpAddress.ToString());
+            request.SetData(_instanceManagementRepository, _customerGuid);
 
             return await request.Handle();
         }

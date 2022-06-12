@@ -94,6 +94,15 @@ namespace OWSData.SQL
 					AND CharacterID=(SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName=@CharacterName)
 					AND AbilityID=(SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName=@AbilityName)";
 
+		public static readonly string UpdateNumberOfPlayersSQL = @"UPDATE MI
+				SET NumberOfReportedPlayers=@NumberOfReportedPlayers,
+				LastUpdateFromServer=GETDATE(),
+				LastServerEmptyDate=(CASE WHEN @NumberOfReportedPlayers = 0 AND NumberOfReportedPlayers > 0 THEN GETDATE() ELSE (CASE WHEN NumberOfReportedPlayers = 0 AND @NumberOfReportedPlayers > 0 THEN NULL ELSE LastServerEmptyDate END) END),
+				[Status]=2
+				FROM MapInstances MI
+				WHERE CustomerGUID=@CustomerGUID
+					AND MapInstanceID=@ZoneInstanceID";
+
 		public static readonly string UpdateWorldServerSQL = @"UPDATE WorldServers
 				SET ActiveStartTime=GETDATE(),
 				ServerStatus=1

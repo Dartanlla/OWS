@@ -11,6 +11,7 @@
 AOWSGameMode::AOWSGameMode()
 {
 	InactivePlayerStateLifeSpan = 1;
+	ZoneInstanceID = 0;
 
 	GConfig->GetString(
 		TEXT("/Script/EngineSettings.GeneralProjectSettings"),
@@ -119,9 +120,19 @@ void AOWSGameMode::StartPlay()
 		//Get a list of all item definitions
 		//GetAllInventoryItems();
 
+		//Get the ZoneInstanceID
+		FString CommandLineZoneInstanceID;
+		FParse::Value(FCommandLine::Get(), TEXT("zoneinstanceid="), CommandLineZoneInstanceID);
+		ZoneInstanceID = FCString::Atoi(*CommandLineZoneInstanceID);
+
+		UE_LOG(OWS, Warning, TEXT("OWSGameMode::StartPlay - ZoneInstaceID: %d"), ZoneInstanceID)
+
 		//Lookup which Zone this server is running for and get the ZoneName into IAmZoneName var
-		GetServerInstanceFromPort();
-		
+		GetServerInstanceFromZoneInstanceID();
+
+		//Change Status of the Zone Instance to 2 (ready for players to connect)
+		UpdateNumberOfPlayers();
+
 		if (GetCharactersOnlineIntervalInSeconds > 0.f)
 		{
 			GetWorld()->GetTimerManager().SetTimer(OnGetAllCharactersOnlineTimerHandle, this, &AOWSGameMode::GetAllCharactersOnline, GetCharactersOnlineIntervalInSeconds, true);
@@ -143,30 +154,7 @@ FString AOWSGameMode::InitNewPlayer(APlayerController* NewPlayerController, cons
 {
 	FString retString = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
 
-	//FString UserSessionGUID = UGameplayStatics::ParseOption(Options, TEXT("UserSessionGUID"));
-
-	/*NewPlayerController->PlayerState->PlayerName = UserSessionGUID;
-
-	if (UserSessionGUID == "")
-	{
-		NewPlayerController->PlayerState->PlayerName = DebugCharacterName;
-	}*/
-
-	UE_LOG(OWS, Warning, TEXT("InitNewPlayer Started"));
-
-	//AOWSPlayerController* OWSPlayerController = CastChecked<AOWSPlayerController>(NewPlayerController);
-	/*
-	FString PlayerName1 = "";
-	float fPLX = 0.f;
-	float fPLY = 0.f;
-	float fPLZ = 0.f;
-	float fPRX = 0.f;
-	float fPRY = 0.f;
-	float fPRZ = 0.f;
-	FString ErrorMessage = "";
-
-	OWSPlayerController->GetUserSession(UserSessionGUID, PlayerName1, fPLX, fPLY, fPLZ, fPRX, fPRY, fPRZ, ErrorMessage);*/
-
+	UE_LOG(OWS, Verbose, TEXT("InitNewPlayer Started"));
 
 	if (!GetWorld())
 	{
@@ -178,7 +166,7 @@ FString AOWSGameMode::InitNewPlayer(APlayerController* NewPlayerController, cons
 
 	if (!GameInstance)
 	{
-		UE_LOG(OWS, Error, TEXT("OWSGameMode::InitNewPlayer - No Game Instance Found!"));
+		UE_LOG(OWS, Error, TEXT("OWSGameMode::InitNewPlayer - No OWS Game Instance Found!  Make sure you are using an OWSGameInstance inherited Game Instance Class."));
 		return retString;
 	}
 
@@ -195,14 +183,13 @@ FString AOWSGameMode::InitNewPlayer(APlayerController* NewPlayerController, cons
 
 	if (!EncryptedIDData.IsEmpty())
 	{
-
 		FString IDData = GameInstance->DecryptWithAES(EncryptedIDData, OWSEncryptionKey);
 
-		UE_LOG(OWS, Warning, TEXT("Raw options: %s"), *IDData);
+		UE_LOG(OWS, Verbose, TEXT("Raw options: %s"), *IDData);
 
 		FString DecodedIDData = FGenericPlatformHttp::UrlDecode(IDData);
 
-		UE_LOG(OWS, Warning, TEXT("Decoded options: %s"), *DecodedIDData);
+		UE_LOG(OWS, Verbose, TEXT("Decoded options: %s"), *DecodedIDData);
 
 		TArray<FString> SplitArray;
 		DecodedIDData.ParseIntoArray(SplitArray, TEXT("|"), false);
@@ -254,6 +241,8 @@ FString AOWSGameMode::InitNewPlayer(APlayerController* NewPlayerController, cons
 		NewPlayerState->PlayerStartRotation.Roll = 0;
 		NewPlayerState->PlayerStartRotation.Pitch = 0;
 		NewPlayerState->PlayerStartRotation.Yaw = 0;
+
+		UE_LOG(OWS, Warning, TEXT("Using Debug Start Location: %f, %f, %f"), DebugStartLocation.X, DebugStartLocation.Y, DebugStartLocation.Z);
 	}
 
 	NewPlayerState->SetPlayerName(PlayerName1);
@@ -709,7 +698,7 @@ void AOWSGameMode::OnGetZoneInstancesForZoneResponseReceived(FHttpRequestPtr Req
 }
 
 
-void AOWSGameMode::GetServerInstanceFromPort()
+void AOWSGameMode::GetServerInstanceFromZoneInstanceID()
 {
 	int32 Port = GetWorld()->URL.Port;
 
@@ -719,10 +708,10 @@ void AOWSGameMode::GetServerInstanceFromPort()
 	FormatParams.Add(Port);
 	FString PostParameters = FString::Format(TEXT("{ \"Port\": {0} }"), FormatParams);
 
-	ProcessOWS2POSTRequest("InstanceManagementAPI", "api/Instance/GetServerInstanceFromPort", PostParameters, &AOWSGameMode::OnGetServerInstanceFromPortResponseReceived);
+	ProcessOWS2POSTRequest("InstanceManagementAPI", "api/Instance/GetServerInstanceFromPort", PostParameters, &AOWSGameMode::OnGetServerInstanceFromZoneInstanceIDResponseReceived);
 }
 
-void AOWSGameMode::OnGetServerInstanceFromPortResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+void AOWSGameMode::OnGetServerInstanceFromZoneInstanceIDResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
 	if (bWasSuccessful)
 	{
@@ -734,24 +723,24 @@ void AOWSGameMode::OnGetServerInstanceFromPortResponseReceived(FHttpRequestPtr R
 			{
 				IAmZoneName = ServerInstanceFromPort.ZoneName;
 				UE_LOG(OWS, Verbose, TEXT("I am ZoneName: %s"), *IAmZoneName);
-				NotifyGetServerInstanceFromPort(IAmZoneName);
+				NotifyGetServerInstanceFromZoneInstanceID(IAmZoneName);
 			}
 			else
 			{
-				UE_LOG(OWS, Warning, TEXT("OnGetServerInstanceFromPortResponseReceived No Rows!  Ignore this error if you are running from the editor!"));
-				ErrorGetServerInstanceFromPort(TEXT("OnGetServerInstanceFromPortResponseReceived No Rows!  Ignore this error if you are running from the editor!"));
+				UE_LOG(OWS, Warning, TEXT("OnGetServerInstanceFromZoneInstanceIDResponseReceived No Rows!  Ignore this error if you are running from the editor in Play as Client mode!"));
+				ErrorGetServerInstanceFromZoneInstanceID(TEXT("OnGetServerInstanceFromZoneInstanceIDResponseReceived No Rows!  Ignore this error if you are running from the editor in Play as Client mode!"));
 			}
 		}
 		else
 		{
-			UE_LOG(OWS, Error, TEXT("OnGetServerInstanceFromPortResponseReceived Server returned no data!"));
-			ErrorGetServerInstanceFromPort(TEXT("OnGetServerInstanceFromPortResponseReceived Server returned no data!"));
+			UE_LOG(OWS, Error, TEXT("OnGetServerInstanceFromZoneInstanceIDResponseReceived Server returned no data!"));
+			ErrorGetServerInstanceFromZoneInstanceID(TEXT("OnGetServerInstanceFromZoneInstanceIDResponseReceived Server returned no data!"));
 		}
 	}
 	else
 	{
-		UE_LOG(OWS, Error, TEXT("OnGetServerInstanceFromPortResponseReceived Error accessing server!"));
-		ErrorGetServerInstanceFromPort(TEXT("OnGetServerInstanceFromPortResponseReceived Error accessing server!"));
+		UE_LOG(OWS, Error, TEXT("OnGetServerInstanceFromZoneInstanceIDResponseReceived Error accessing server!"));
+		ErrorGetServerInstanceFromZoneInstanceID(TEXT("OnGetServerInstanceFromZoneInstanceIDResponseReceived Error accessing server!"));
 	}
 }
 
@@ -759,19 +748,16 @@ void AOWSGameMode::UpdateNumberOfPlayers()
 {
 	UE_LOG(OWS, Verbose, TEXT("UpdateNumberOfPlayers Started..."));
 
-	FString Port = FString::FromInt(GetWorld()->URL.Port);
 	FString NumberOfConnectedPlayers = FString::FromInt(NumPlayers);
 
-	if (Port.IsEmpty())
+	if (ZoneInstanceID < 1)
 	{
-		UE_LOG(OWS, Error, TEXT("UpdateNumberOfPlayers: Port is empty!"));
+		UE_LOG(OWS, Error, TEXT("UpdateNumberOfPlayers: ZoneInstanceId is empty!"));
 		return;
 	}
 
-	Port = Port.Replace(TEXT(":"), TEXT(""));
-
 	FUpdateNumberOfPlayersJSONPost UpdateNumberOfPlayersJSONPost;
-	UpdateNumberOfPlayersJSONPost.Port = Port;
+	UpdateNumberOfPlayersJSONPost.ZoneInstanceId = ZoneInstanceID;
 	UpdateNumberOfPlayersJSONPost.NumberOfConnectedPlayers = NumberOfConnectedPlayers;
 	FString PostParameters = "";
 	if (FJsonObjectConverter::UStructToJsonObjectString(UpdateNumberOfPlayersJSONPost, PostParameters))

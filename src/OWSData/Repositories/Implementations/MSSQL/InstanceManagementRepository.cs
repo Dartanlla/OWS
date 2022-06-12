@@ -133,7 +133,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 };
 
                 var getWorldServerID = await Connection.QueryFirstOrDefaultAsync<GetWorldServerID>(MSSQLQueries.GetWorldServerSQL, paremeters);
-
+                
                 if (getWorldServerID != null)
                 {
                     worldServerId = getWorldServerID.WorldServerID;
@@ -153,8 +153,29 @@ namespace OWSData.Repositories.Implementations.MSSQL
             return worldServerId;
         }
 
-        public async Task<SuccessAndErrorMessage> UpdateNumberOfPlayers(Guid customerGUID, string serverIP, int port, int numberOfPlayers)
+        public async Task<SuccessAndErrorMessage> UpdateNumberOfPlayers(Guid customerGUID, int zoneInstanceId, int numberOfPlayers)
         {
+            using (Connection)
+            {
+                var paremeters = new
+                {
+                    CustomerGUID = customerGUID,
+                    ZoneInstanceID = zoneInstanceId,
+                    NumberOfReportedPlayers = numberOfPlayers
+                };
+
+                _ = await Connection.ExecuteAsync(MSSQLQueries.UpdateNumberOfPlayersSQL, paremeters);
+            }
+
+            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+            {
+                Success = true,
+                ErrorMessage = ""
+            };
+
+            return output;
+
+            /*
             using (Connection)
             {
                 var p = new DynamicParameters();
@@ -174,7 +195,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 ErrorMessage = ""
             };
 
-            return output;
+            return output;*/
         }
 
         public async Task<IEnumerable<GetZoneInstancesForZone>> GetZoneInstancesOfZone(Guid customerGUID, string ZoneName)

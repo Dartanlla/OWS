@@ -55,49 +55,32 @@ namespace OWSInstanceLauncher
                 thereWasAStartupError = true;
                 Console.WriteLine("Please enter a valid PathToDedicatedServer in appsettings.json!");
             }
-            //Abort if there is not a valid ServerArguments in appsettings.json
-            else if (String.IsNullOrEmpty(owsInstanceLauncherOptions.ServerArguments))
-            {
-                thereWasAStartupError = true;
-                Console.WriteLine("Please enter a valid ServerArguments in appsettings.json!");
-            }
             //Check that a file exists at PathToDedicatedServer
             else if (!File.Exists(owsInstanceLauncherOptions.PathToDedicatedServer))
             {
                 thereWasAStartupError = true;
-                Console.WriteLine("Your PathToDedicatedServer in appsettings.json points to a file that does not exist!  Please either point PathToDedicatedServer to your UE4 Editor exe or to your packaged UE4 dedicated server exe!");
+                Console.WriteLine("Your PathToDedicatedServer in appsettings.json points to a file that does not exist!  Please either point PathToDedicatedServer to your UE Editor exe or to your packaged UE dedicated server exe!");
             }
-            //If using the UE4 editor, make sure there is a project path in Server Arguments
-            else if (owsInstanceLauncherOptions.PathToDedicatedServer.Contains("UE4Editor.exe"))
+            //If using the UE4 editor, make sure there is a project path in Path To UProject
+            else if (owsInstanceLauncherOptions.PathToDedicatedServer.Contains("Editor.exe"))
             {
-                string serverArgumentsProjectPattern = @"^"".*.uproject"" ";
-                MatchCollection testForUprojectPath = Regex.Matches(owsInstanceLauncherOptions.ServerArguments, serverArgumentsProjectPattern);
+                string serverArgumentsProjectPattern = @"^.*.uproject";
+                MatchCollection testForUprojectPath = Regex.Matches(owsInstanceLauncherOptions.PathToUProject, serverArgumentsProjectPattern);
                 if (testForUprojectPath.Count == 1)
                 {
                     Match testForUprojectPathMatch = testForUprojectPath.First();
                     string foundUprojectPath = testForUprojectPathMatch.Value;
-                    string foundUprojectPathToValidate = foundUprojectPath.Trim().Replace("\"", "");
 
-                    if (!File.Exists(foundUprojectPathToValidate))
+                    if (!File.Exists(foundUprojectPath))
                     {
                         thereWasAStartupError = true;
-                        Console.WriteLine("Your ServerArguments in appsettings.json points to a uproject file that does not exist!");
-                    }
-                    else if (!owsInstanceLauncherOptions.ServerArguments.Contains("{0}"))
-                    {
-                        thereWasAStartupError = true;
-                        Console.WriteLine("Your ServerArguments in appsettings.json is missing the {0} parameter.  See the sample appsettings.json for proper format!");
-                    }
-                    else if (!owsInstanceLauncherOptions.ServerArguments.Contains("{1}"))
-                    {
-                        thereWasAStartupError = true;
-                        Console.WriteLine("Your ServerArguments in appsettings.json is missing the {1} parameter.  See the sample appsettings.json for proper format!");
+                        Console.WriteLine("Your PathToUProject in appsettings.json points to a uproject file that does not exist!");
                     }
                 }
                 else
                 {
                     thereWasAStartupError = true;
-                    Console.WriteLine("Because you are using UE4Editor.exe, your Server Arguments in appsettings.json must contain a path to the uproject file.  See the sample appsettings.json for proper format!");
+                    Console.WriteLine("Because you are using UE4Editor.exe or UnrealEditor.exe, your PathToUProject in appsettings.json must contain a path to the uproject file.  Be sure to use escaped (double) backslashes in the path!");
                 }
             }            
             Console.ForegroundColor = ConsoleColor.White;

@@ -515,12 +515,12 @@ struct FUpdateNumberOfPlayersJSONPost
 
 public:
 	FUpdateNumberOfPlayersJSONPost() {
-		Port = "";
+		ZoneInstanceId = 0;
 		NumberOfConnectedPlayers = "";
 	}
 
 	UPROPERTY()
-		FString Port;
+		int32 ZoneInstanceId;
 	UPROPERTY()
 		FString NumberOfConnectedPlayers;
 };

@@ -149,6 +149,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zones")
 		FString IAmZoneName;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zones")
+		int32 ZoneInstanceID;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
 		float GetCharactersOnlineIntervalInSeconds = 10.f;
 
@@ -277,14 +280,14 @@ public:
 
 	//Lookup a zone instance from a given port
 	UFUNCTION(BlueprintCallable, Category = "Zones")
-		void GetServerInstanceFromPort();
+		void GetServerInstanceFromZoneInstanceID();
 
-	void OnGetServerInstanceFromPortResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void OnGetServerInstanceFromZoneInstanceIDResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Zones")
-		void NotifyGetServerInstanceFromPort(const FString &ZoneName);
+		void NotifyGetServerInstanceFromZoneInstanceID(const FString &ZoneName);
 	UFUNCTION(BlueprintImplementableEvent, Category = "Zones")
-		void ErrorGetServerInstanceFromPort(const FString &ErrorMsg);
+		void ErrorGetServerInstanceFromZoneInstanceID(const FString &ErrorMsg);
 
 	//Update Number of Players
 	UFUNCTION(BlueprintCallable, Category = "Zones")

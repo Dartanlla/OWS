@@ -263,12 +263,19 @@ namespace OWSShared.Objects
             //string PathToDedicatedServer = "E:\\Program Files\\Epic Games\\UE_4.25\\Engine\\Binaries\\Win64\\UE4Editor.exe";
             //string ServerArguments = "\"C:\\OWS\\OpenWorldStarterPlugin\\OpenWorldStarter.uproject\" {0}?listen -server -log -nosteam -messaging -port={1}";
 
+            string serverArguments = (_owsInstanceLauncherOptions.Value.IsServerEditor ? "\"" + _owsInstanceLauncherOptions.Value.PathToUProject + "\" ": "") 
+                + "{0}?listen -server "
+                + (_owsInstanceLauncherOptions.Value.UseServerLog ? "-log " : "") 
+                + (_owsInstanceLauncherOptions.Value.UseNoSteam ? "-nosteam " : "") 
+                + "-port={1} "
+                + "-zoneinstanceid={2}";
+
             System.Diagnostics.Process proc = new System.Diagnostics.Process
             {
                 StartInfo = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = _owsInstanceLauncherOptions.Value.PathToDedicatedServer,
-                    Arguments = Encoding.Default.GetString(Encoding.UTF8.GetBytes(String.Format(_owsInstanceLauncherOptions.Value.ServerArguments, mapName, port))),
+                    Arguments = Encoding.Default.GetString(Encoding.UTF8.GetBytes(String.Format(serverArguments, mapName, port, zoneInstanceID))),
                     UseShellExecute = false,
                     RedirectStandardOutput = false,
                     CreateNoWindow = false
@@ -276,7 +283,7 @@ namespace OWSShared.Objects
             };
 
             proc.Start();
-            proc.WaitForInputIdle();
+            //proc.WaitForInputIdle();
 
             _zoneServerProcessesRepository.AddZoneServerProcess(new ZoneServerProcess {
                 ZoneInstanceId = zoneInstanceID,
@@ -287,10 +294,10 @@ namespace OWSShared.Objects
             });
 
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"{customerGUID} : {worldServerID} : {mapName} : {port} is ready for players");
+            Console.WriteLine($"{customerGUID} : {worldServerID} : {mapName} : {port} has started.");
 
             //The server has finished spinning up.  Set the status to 2.
-            _ = UpdateZoneServerStatusReady(zoneInstanceID);
+            //_ = UpdateZoneServerStatusReady(zoneInstanceID);
         }
 
         private void HandleServerShutDownMessage(Guid customerGUID, int zoneInstanceID)
