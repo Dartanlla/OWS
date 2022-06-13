@@ -9,6 +9,7 @@ using OWSData.Models;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.Models.Tables;
+using OWSData.SQL;
 
 namespace OWSData.Repositories.Implementations.Postgres
 {
@@ -367,13 +368,42 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task AddAbilityToCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
         {
-            throw new NotImplementedException();
+            using (Connection)
+            {
+                var parameters = new
+                {
+                    CustomerGUID = customerGUID,
+                    AbilityName = abilityName,
+                    CharacterName = characterName,
+                    AbilityLevel = abilityLevel,
+                    CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
+                };
+
+                await Connection.QueryAsync(PostgresQueries.AddAbilityToCharacterSQL,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
         }
 
         public async Task<IEnumerable<Abilities>> GetAbilities(Guid customerGUID)
         {
-            throw new NotImplementedException();
+            IEnumerable<Abilities> outputGetAbilities;
+
+            using (Connection)
+            {
+                var parameters = new
+                {
+                    CustomerGUID = customerGUID
+                };
+
+                outputGetAbilities = await Connection.QueryAsync<Abilities>(PostgresQueries.GetAbilities,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return outputGetAbilities;
         }
+        
         public async Task<IEnumerable<GetCharacterAbilities>> GetCharacterAbilities(Guid customerGUID, string characterName)
         {
             IEnumerable<GetCharacterAbilities> outputGetCharacterAbilities;
@@ -430,12 +460,34 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task RemoveAbilityFromCharacter(Guid customerGUID, string abilityName, string characterName)
         {
-            throw new NotImplementedException();
+            using (Connection)
+            {
+                var parameters = new
+                {
+                    CustomerGUID = customerGUID,
+                    AbilityName = abilityName,
+                    CharacterName = characterName
+                };
+
+                await Connection.ExecuteAsync(PostgresQueries.RemoveAbilityFromCharacterSQL, parameters);
+            }
         }
 
         public async Task UpdateAbilityOnCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
         {
-            throw new NotImplementedException();
+            using (Connection)
+            {
+                var parameters = new
+                {
+                    CustomerGUID = customerGUID,
+                    AbilityName = abilityName,
+                    CharacterName = characterName,
+                    AbilityLevel = abilityLevel,
+                    CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
+                };
+
+                await Connection.ExecuteAsync(PostgresQueries.UpdateAbilityOnCharacterSQL, parameters);
+            }
         }
     }
 }
