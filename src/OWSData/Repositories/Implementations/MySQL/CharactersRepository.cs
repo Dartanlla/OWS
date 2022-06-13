@@ -9,6 +9,7 @@ using OWSData.Models;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.Models.Tables;
+using OWSData.SQL;
 
 namespace OWSData.Repositories.Implementations.MySQL
 {
@@ -367,12 +368,40 @@ namespace OWSData.Repositories.Implementations.MySQL
 
         public async Task AddAbilityToCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
         {
-            throw new NotImplementedException();
+            using (Connection)
+            {
+                var parameters = new
+                {
+                    CustomerGUID = customerGUID,
+                    AbilityName = abilityName,
+                    CharacterName = characterName,
+                    AbilityLevel = abilityLevel,
+                    CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
+                };
+
+                await Connection.ExecuteAsync(MySQLQueries.AddAbilityToCharacterSQL,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
         }
 
         public async Task<IEnumerable<Abilities>> GetAbilities(Guid customerGUID)
         {
-            throw new NotImplementedException();
+            IEnumerable<Abilities> outputGetAbilities;
+
+            using (Connection)
+            {
+                var parameters = new
+                {
+                    CustomerGUID = customerGUID
+                };
+
+                outputGetAbilities = await Connection.QueryAsync<Abilities>(MySQLQueries.GetAbilities,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return outputGetAbilities;
         }
 
         public async Task<IEnumerable<GetCharacterAbilities>> GetCharacterAbilities(Guid customerGUID, string characterName)
@@ -431,12 +460,34 @@ namespace OWSData.Repositories.Implementations.MySQL
 
         public async Task RemoveAbilityFromCharacter(Guid customerGUID, string abilityName, string characterName)
         {
-            throw new NotImplementedException();
+            using (Connection)
+            {
+                var parameters = new
+                {
+                    CustomerGUID = customerGUID,
+                    AbilityName = abilityName,
+                    CharacterName = characterName
+                };
+
+                await Connection.ExecuteAsync(MySQLQueries.RemoveAbilityFromCharacterSQL, parameters);
+            }
         }
 
         public async Task UpdateAbilityOnCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
         {
-            throw new NotImplementedException();
+            using (Connection)
+            {
+                var parameters = new
+                {
+                    CustomerGUID = customerGUID,
+                    AbilityName = abilityName,
+                    CharacterName = characterName,
+                    AbilityLevel = abilityLevel,
+                    CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
+                };
+
+                await Connection.ExecuteAsync(MySQLQueries.UpdateAbilityOnCharacterSQL, parameters);
+            }
         }
     }
 }

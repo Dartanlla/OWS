@@ -418,14 +418,14 @@ namespace OWSData.Repositories.Implementations.MSSQL
         {
             using (Connection)
             {
-                var paremeters = new
+                var parameters = new
                 {
                     CustomerGUID = customerGUID,
                     AbilityName = abilityName,
                     CharacterName = characterName
                 };
 
-                var getWorldServerID = await Connection.ExecuteAsync(MSSQLQueries.RemoveAbilityFromCharacterSQL, paremeters);
+                await Connection.ExecuteAsync(MSSQLQueries.RemoveAbilityFromCharacterSQL, parameters);
             }
         }
 
@@ -433,7 +433,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
         {
             using (Connection)
             {
-                var paremeters = new
+                var parameters = new
                 {
                     CustomerGUID = customerGUID,
                     AbilityName = abilityName,
@@ -442,7 +442,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
                 };
 
-                var getWorldServerID = await Connection.ExecuteAsync(MSSQLQueries.UpdateAbilityOnCharacterSQL, paremeters);
+                await Connection.ExecuteAsync(MSSQLQueries.UpdateAbilityOnCharacterSQL, parameters);
             }
         }
     }

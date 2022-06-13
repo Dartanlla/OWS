@@ -149,14 +149,14 @@ namespace OWSData.Repositories.Implementations.MySQL
         {
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@ZoneInstanceID", zoneInstanceId);
-                p.Add("@NumberOfReportedPlayers", numberOfPlayers);
+                var paremeters = new
+                {
+                    CustomerGUID = customerGUID,
+                    ZoneInstanceID = zoneInstanceId,
+                    NumberOfReportedPlayers = numberOfPlayers
+                };
 
-                await Connection.ExecuteAsync("call UpdateNumberOfPlayers(@CustomerGUID,@ZoneInstanceID,@NumberOfReportedPlayers)",
-                    p,
-                    commandType: CommandType.Text);
+                _ = await Connection.ExecuteAsync(MySQLQueries.UpdateNumberOfPlayersSQL, paremeters);
             }
 
             SuccessAndErrorMessage output = new SuccessAndErrorMessage()
