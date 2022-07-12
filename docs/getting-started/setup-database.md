@@ -1,8 +1,9 @@
 ---
 layout: default
-title: Update MSSQL Database
+title: Database Setup
 parent: Getting Started
 nav_order: 2
+has_children: true
 ---
 
 # Update MSSQL Database
