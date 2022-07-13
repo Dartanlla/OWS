@@ -37,6 +37,9 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 * [Naming Guidelines](https://docs.microsoft.com/en-us/dotnet/standard/design-guidelines/naming-guidelines)
 * [Coding Style](https://github.com/dotnet/corefx/blob/368fdfd86ee3a3bf1bca2a6c339ee590f3d6505d/Documentation/coding-guidelines/coding-style.md)
 
+# Documentation
+[Open World Server Documentation](https://www.openworldserver.com/)
+
 # Setup Instructions
 [Docker Setup Instructions](DOCKER.md)
 
