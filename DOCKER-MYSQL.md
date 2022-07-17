@@ -7,14 +7,10 @@
 
 # Using MySQL/MariaDB as an alternative to MSSQL
 
-1. Open `docker-compose.yml`.
-2. Comment out the `Microsoft SQL Database` service and uncomment the `MySQL Database` service.
-3. In all `depends_on` sections, comment out `mssql` and uncomment `mysql`
-4. Comment out all 3 volumes for `mssql_*` and uncomment `mysql_data`.
-5. Open `src/OWSInstanceLauncher/appsettings.json`, `src/OWSInstanceManagement/appsettings.json`, and `src/OWSPublicAPI/appsettings.json`.
-6. Replace the `OWSDBConnectionString` with `server=host.docker.internal;user=root;database=openworldserver;port=3306;password=yourStrong(!)Password;Allow User Variables=True;SslMode=None`.
-7. Replace the value in `OWSDBBackend` with `mysql`.
-8. Follow the steps in [Docker Setup Instructions](DOCKER.md) replacing steps **Update your MSSQL Database** and **Create Api Key** with the below alternatives.
+1. Open `src/.env`.
+2. Replace the `OWSDBConnectionString` with `server=host.docker.internal;user=root;database=openworldserver;port=3306;password=yourStrong(!)Password;Allow User Variables=True;SslMode=None`.
+3. Replace the value in `OWSDBBackend` with `mysql`.
+4. Follow the steps in [Docker Setup Instructions](DOCKER.md) replacing steps **Update your MSSQL Database** and **Create Api Key** with the below alternatives.
 
 # Update your MySQL/MariaDB Database
 1. Open MySQL Workbench and connect to localhost with root / yourStrong(!)Password

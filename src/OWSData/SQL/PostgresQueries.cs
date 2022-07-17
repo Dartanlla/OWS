@@ -6,7 +6,15 @@ namespace OWSData.SQL
 {
     public static class PostgresQueries
     {
-		public static readonly string AddOrUpdateWorldServerSQL = @"INSERT INTO WorldServers (CustomerGUID, ServerIP, MaxNumberOfInstances, Port, ServerStatus, InternalServerIP,
+	    
+	    public static readonly string AddAbilityToCharacterSQL = @"call AddAbilityToCharacter(
+			@CustomerGUID,
+			@AbilityName,
+			@CharacterName,
+			@AbilityLevel,
+			@CharHasAbilitiesCustomJSON)";
+
+	    public static readonly string AddOrUpdateWorldServerSQL = @"INSERT INTO WorldServers (CustomerGUID, ServerIP, MaxNumberOfInstances, Port, ServerStatus, InternalServerIP,
                           StartingMapInstancePort, ZoneServerGUID)
     (SELECT @CustomerGUID::UUID           AS CustomerGUID,
             @ServerIP                     AS ServerIP,
@@ -24,6 +32,13 @@ ON CONFLICT ON CONSTRAINT ak_zoneservers
                   StartingMapInstancePort = @StartingMapInstancePort,
                   ZoneServerGUID          = @ZoneServerGUID::UUID;";
 
+	    public static readonly string GetAbilities = @"SELECT AB.*, AT.AbilityTypeName
+				FROM Abilities AB
+				INNER JOIN AbilityTypes AT 
+					ON AT.AbilityTypeID=AB.AbilityTypeID
+				WHERE AB.CustomerGUID=@CustomerGUID
+				ORDER BY AB.AbilityName";
+	    
 		public static readonly string GetUserSessionSQL = @"SELECT US.CustomerGUID, US.UserGUID, US.UserSessionGUID, US.LoginDate, US.SelectedCharacterName,
 	            U.Email, U.FirstName, U.LastName, U.CreateDate, U.LastAccess, U.Role,
 	            C.CharacterID, C.CharName, C.X, C.Y, C.Z, C.RX, C.RY, C.RZ, C.MapName as ZoneName
@@ -61,6 +76,26 @@ ON CONFLICT ON CONSTRAINT ak_zoneservers
 				WHERE CustomerGUID=@CustomerGUID::UUID 
 				AND ZoneServerGUID=@ZoneServerGUID::UUID";
 
+		public static readonly string RemoveAbilityFromCharacterSQL = @"DELETE FROM CharHasAbilities
+				WHERE CustomerGUID=@CustomerGUID
+					AND CharacterID=(SELECT C.CharacterID FROM Characters C WHERE C.CharName=@CharacterName LIMIT 1)
+					AND AbilityID=(SELECT A.AbilityID FROM Abilities A WHERE A.AbilityName=@AbilityName LIMIT 1)";
+
+		public static readonly string UpdateAbilityOnCharacterSQL = @"UPDATE CharHasAbilities
+				SET AbilityLevel = @AbilityLevel,
+				CharHasAbilitiesCustomJSON = @CharHasAbilitiesCustomJSON
+				WHERE CustomerGUID=@CustomerGUID
+					AND CharacterID=(SELECT C.CharacterID FROM Characters C WHERE C.CharName=@CharacterName LIMIT 1)
+					AND AbilityID=(SELECT A.AbilityID FROM Abilities A WHERE A.AbilityName=@AbilityName LIMIT 1)";
+
+		public static readonly string UpdateNumberOfPlayersSQL = @"UPDATE MapInstances
+				SET NumberOfReportedPlayers=@NumberOfReportedPlayers,
+				LastUpdateFromServer=NOW(),
+				LastServerEmptyDate=(CASE WHEN @NumberOfReportedPlayers = 0 AND NumberOfReportedPlayers > 0 THEN NOW() ELSE (CASE WHEN NumberOfReportedPlayers = 0 AND @NumberOfReportedPlayers > 0 THEN NULL ELSE LastServerEmptyDate END) END),
+				Status=2
+				WHERE CustomerGUID=@CustomerGUID
+					AND MapInstanceID=@ZoneInstanceID";
+					
 		public static readonly string UpdateWorldServerSQL = @"UPDATE WorldServers
 				SET ActiveStartTime=NOW(),
 				ServerStatus=1

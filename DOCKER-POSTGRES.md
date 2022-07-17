@@ -7,14 +7,10 @@
 
 # Using Postgres as an alternative to MSSQL
 
-1. Open `docker-compose.yml`.
-2. Comment out the `Microsoft SQL Database` service and uncomment the `PostgreSQL Database` service.
-3. In all `depends_on` sections, comment out `mssql` and uncomment `postgres`
-4. Comment out all 3 volumes for `mssql_*` and uncomment `postgres_data`.
-5. Open `src/OWSInstanceLauncher/appsettings.json`, `src/OWSInstanceManagement/appsettings.json`, and `src/OWSPublicAPI/appsettings.json`.
-6. Replace the `OWSDBConnectionString` with `Host=host.docker.internal;Port=5432;Database=openworldserver;Username=postgres;Password=yourStrong(!)Password;`.
-7. Replace the value in `OWSDBBackend` with `postgres`.
-8. Follow the steps in [Docker Setup Instructions](DOCKER.md) replacing steps **Update your MSSQL Database** and **Create Api Key** with the below alternatives.
+1. Open `src/.env`.
+2. Replace the `OWSDBConnectionString` with `Host=host.docker.internal;Port=5432;Database=openworldserver;Username=postgres;Password=yourStrong(!)Password;`.
+3. Replace the value in `OWSDBBackend` with `postgres`.
+4. Follow the steps in [Docker Setup Instructions](DOCKER.md) replacing steps **Update your MSSQL Database** and **Create Api Key** with the below alternatives.
 
 # Update your Postgres Database
 1. Open PGAdmin3/4 and connect to localhost with postgres / yourStrong(!)Password
