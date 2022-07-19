@@ -2105,7 +2105,7 @@ BEGIN
           AND WS.ActiveStartTime IS NOT NULL
           AND WS.CustomerGUID = _CustomerGUID
           AND MI.NumberOfReportedPlayers < _SoftPlayerCap
-          AND (MI.PlayerGroupID = _PlayerGroupID OR _PlayerGroupID = 0) -- Only lookup map instances that MATCH the player group fro this Player group Type OR lookup all if zero
+          AND (MI.PlayerGroupID = _PlayerGroupID OR COALESCE(_PlayerGroupID,0) = 0) -- Only lookup map instances that MATCH the player group fro this Player group Type OR lookup all if zero
           AND MI.Status = 2
         GROUP BY MI.MapInstanceID, WS.ServerIP, MI.Port, WS.WorldServerID, WS.InternalServerIP, WS.Port, MI.Status
         ORDER BY COUNT(DISTINCT CMI.CharacterID);
