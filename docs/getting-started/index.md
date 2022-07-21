@@ -6,14 +6,14 @@ has_children: true
 ---
 
 # Getting Started
-Follow this section to quickly get up and running using OWS.
+Here is a brief overview of OWS 2.
 
-## Why should you use OWS?
-* The primary goal of OWS is to increase scalability and achieve a higher concurrent player count for your online multiplayer game. With OWS 2.0 our goal is to scale beyond **100.000** concurrent players.
-* OWS 1.0 was difficult to install in a local development environment for developers without specific technical knowledge. With OWS 2 and Docker, setup in your local development environment is quick and easy. By running OWS 2 locally, you can customize the API to meet your needs. 
-* OWS 1.0 required Windows and Windows Servers. OWS 2.0 runs natively on **Windows**, **Linux** and **MacOS**.
+## Why OWS 2?
+* The primary goal of OWS 2 is to increase scalability and achieve a higher concurrent player count for your online multiplayer game. With OWS 2 our goal is to scale beyond **100,000** concurrent players.
+* OWS 1 was difficult to install in a local development environment for developers without specific technical knowledge. With OWS 2 and Docker, setup in your local development environment is quick and easy. By running OWS 2 locally, you can customize the API to meet your needs. 
+* OWS 1 required Windows and Windows Servers. OWS 2 runs natively on **Windows**, **Linux** and **MacOS**.
 
-## What technologies / architecture does OWS 2.0 use?
+## What technologies / architecture does OWS 2 use?
 * The OWS Web API is developed in **C#** with **.NET 5** (previously .NET Core)
 * The default storage technology is [Microsoft SQL Server (MSSQL)](mssql)
   * Each repository can use its own storage technology
@@ -25,7 +25,7 @@ Follow this section to quickly get up and running using OWS.
   * Docker runs all OWS servers in containers
   * OWS can run with or without Docker
 * [Unreal Engine](https://www.unrealengine.com/)
-  * OWS 2.0 uses Unreal Engine's powerful server architecture as a base to dynamically spin up servers as they are needed to populate your game world
+  * OWS 2 uses Unreal Engine's powerful server architecture as a base to dynamically spin up servers as they are needed to populate your game world
 
 ## OWS Network Diagram
 ![OWS Network Diagram](images/network-diagram.png){: .mt-3}
