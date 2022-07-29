@@ -318,11 +318,11 @@ void AOWSCharacterWithAbilities::HandleProjectileDamage(AOWSAdvancedProjectile* 
 	FGameplayEffectSpec* Spec;
 	if (UseExplosionEffect)
 	{
-		Spec = Projectile->AoEDamageEffectOnHit.Data.Get();;
+		Spec = Projectile->AoEDamageEffectOnHit.Data.Get();
 	}
 	else
 	{
-		Spec = Projectile->DamageEffectOnHit.Data.Get();;
+		Spec = Projectile->DamageEffectOnHit.Data.Get();
 	}
 
 	if (!Spec)
