@@ -14,7 +14,7 @@ Here is a brief overview of OWS 2.
 * OWS 1 required Windows and Windows Servers. OWS 2 runs natively on **Windows**, **Linux** and **MacOS**.
 
 ## What technologies / architecture does OWS 2 use?
-* The OWS Web API is developed in **C#** with **.NET 5** (previously .NET Core)
+* The OWS Web API is developed in **C#** with **.NET 6** (previously .NET Core)
 * The default storage technology is [Microsoft SQL Server (MSSQL)](mssql)
   * Each repository can use its own storage technology
   * [Storage technologies](setup-database) can be easily added by implementing each repository interface

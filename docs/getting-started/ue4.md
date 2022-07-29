@@ -17,7 +17,7 @@ Click on the button below to download the Open World Starter project.
 
 ## Initial setup
 
-1. Open the [OWS GitHub project](https://github.com/Dartanlla/OWS) in Visual Studio 2019 and click on the Docker Compose button (if it is not already running). Check the [Docker Setup](docker-setup) section for a detailed explanation.
+1. Open the [OWS GitHub project](https://github.com/Dartanlla/OWS) in Visual Studio 2022 and click on the Docker Compose button (if it is not already running). Check the [Docker Setup](docker-setup) section for a detailed explanation.
    
 2. Unzip OpenWorldStarterPlugin.zip to your Unreal Projects folder or another location on your PC.
    
@@ -45,7 +45,7 @@ Click on the button below to download the Open World Starter project.
 
 14. Right click on the **OpenWorldStarter.uproject**, and click on `Generate Visual Studio project files`.
 
-15. Open the **OpenWorldStarter.sln** file in Visual Studio 2019. Set Open World Starter as the Default Startup Project. Make sure the configuration is set to **Development Editor**. Then press the Play button.
+15. Open the **OpenWorldStarter.sln** file in Visual Studio 2022. Set Open World Starter as the Default Startup Project. Make sure the configuration is set to **Development Editor**. Then press the Play button.
 
 16. After the project opens in Unreal Engine, open the `ThirdPersonBP/Maps` folder and open the **Login** map. Make sure that the play button in Unreal Engine is set to **Play as Standalone**. Press the play button in Unreal Engine.
 
