@@ -898,7 +898,7 @@ void AOWSAdvancedProjectile::Explode_Implementation(const FHitResult& Hit, UPrim
 		if (OverlapResult.GetActor()->IsA(AOWSCharacterWithAbilities::StaticClass()))
 		{
 			AOWSCharacterWithAbilities* CharacterWhoWasHit = CastChecked<AOWSCharacterWithAbilities>(OverlapResult.GetActor());
-			if (!IsValid(CharacterWhoWasHit))
+			if (IsValid(CharacterWhoWasHit))
 			{
 				CharacterWhoWasHit->HandleProjectileDamage(this, true);
 			}
@@ -927,7 +927,7 @@ void AOWSAdvancedProjectile::DamageImpactedActor_Implementation(AActor* OtherAct
 	if (OtherActor->IsA(AOWSCharacterWithAbilities::StaticClass()))
 	{
 		AOWSCharacterWithAbilities* CharacterWhoWasHit = CastChecked<AOWSCharacterWithAbilities>(OtherActor);
-		if (!IsValid(CharacterWhoWasHit))
+		if (IsValid(CharacterWhoWasHit))
 		{
 			CharacterWhoWasHit->HandleProjectileDamage(this, false);
 		}
