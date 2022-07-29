@@ -15,7 +15,7 @@ namespace OWSData.Models.Tables
             : base(options)
         {
         }
-
+        /*
         public virtual DbSet<Abilities> Abilities { get; set; }
         public virtual DbSet<AbilityTypes> AbilityTypes { get; set; }
         public virtual DbSet<AreaOfInterestTypes> AreaOfInterestTypes { get; set; }
@@ -50,7 +50,7 @@ namespace OWSData.Models.Tables
         public virtual DbSet<WorldServers> WorldServers { get; set; }
 
         //Stored Procs
-        public DbQuery<GetCharByCharName> GetCharByCharName { get; set; }
+        public DbSet<GetCharByCharName> GetCharByCharName { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -470,12 +470,6 @@ namespace OWSData.Models.Tables
                 entity.Property(e => e.FieldValue)
                     .IsRequired()
                     .IsUnicode(false);
-
-                /*entity.HasOne(d => d.C)
-                    .WithMany(p => p.CustomCharacterData)
-                    .HasForeignKey(d => new { d.CustomerGuid, d.CharacterId })
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_CustomCharacterData_WrathCharID");*/
             });
 
             modelBuilder.Entity<Customers>(entity =>
@@ -888,6 +882,6 @@ namespace OWSData.Models.Tables
                     .HasMaxLength(50)
                     .IsUnicode(false);
             });
-        }
+        }*/
     }
 }
