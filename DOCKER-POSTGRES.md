@@ -1,3 +1,8 @@
+
+
+
+
+
 <p align="center">
     <br>
     <img src="img/Logo512pxWhite.png" alt="SabreDartStudios" width="120">
@@ -25,9 +30,10 @@
 # Create Api Key
 1. Open PGAdmin3/4 and connect to localhost with postgres / yourStrong(!)Password
 2. Run the following SQL statment against the Open World Server database.  Be sure to replace the values CustomerName, FirstName, LastName, Email, and Password.
+   (Optional): Replace NULL with a single-quoted UUID. For example '00000000-0000-0000-0000-000000000000'::uuid
 
     ```sql
-    CALL AddNewCustomer ('CustomerName', 'FirstName', 'LastName', 'Email', 'Password');
+    CALL AddNewCustomer ('CustomerName', 'FirstName', 'LastName', 'Email', 'Password', NULL);
     ```
 3. Run the following SQL statment against the Open World Server database to get your API key.  Save this for later.
 

@@ -82,6 +82,7 @@
 # Create Api Key
 1. Open SQL Server Management Studio or Azure Data Studio and connect to localhost with sa / yourStrong(!)Password
 2. Run the following SQL statment against the Open World Server database.  Be sure to replace the values CustomerName, FirstName, LastName, Email, and Password.
+   (Optional): A specific GUID can be entered as an optional final parameter, after password, in the formaty of '00000000-0000-0000-0000-000000000000'.
 
     ```sql
     EXEC [dbo].[AddNewCustomer] 'CustomerName', 'FirstName', 'LastName', 'Email', 'Password'

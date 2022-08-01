@@ -25,6 +25,7 @@
 # Create Api Key
 1. Open MySQL Workbench and connect to localhost with root / yourStrong(!)Password
 2. Run the following SQL statment against the Open World Server database.  Be sure to replace the values CustomerName, FirstName, LastName, Email, and Password.
+   (Optional): A specific GUID can be entered as an optional final parameter, after password, in the formaty of '00000000-0000-0000-0000-000000000000'.
 
     ```sql
     CALL AddNewCustomer ('CustomerName', 'FirstName', 'LastName', 'Email', 'Password');
