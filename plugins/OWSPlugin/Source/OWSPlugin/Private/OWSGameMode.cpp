@@ -202,6 +202,7 @@ FString AOWSGameMode::InitNewPlayer(APlayerController* NewPlayerController, cons
 		PRZ = SplitArray[5];
 		PlayerName1 = SplitArray[6];
 		UserSessionGUID = SplitArray[7];
+		this->UserSessionGUID = UserSessionGUID;
 
 		UE_LOG(OWS, Warning, TEXT("PlayerName: %s"), *PlayerName1);
 		UE_LOG(OWS, Warning, TEXT("UserSessionGUID: %s"), *UserSessionGUID);
