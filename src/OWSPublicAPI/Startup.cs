@@ -26,7 +26,6 @@ using OWSData.Repositories.Implementations;
 using OWSPublicAPI.Requests;
 using OWSShared.Interfaces;
 using OWSShared.Implementations;
-using OWSShared.Extensions;
 using OWSShared.Middleware;
 using OWSExternalLoginProviders.Interfaces;
 using OWSExternalLoginProviders.Options;
@@ -35,6 +34,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Hosting;
 using System.IO;
 using Microsoft.AspNetCore.DataProtection;
+
 
 namespace OWSPublicAPI
 {
@@ -63,6 +63,8 @@ namespace OWSPublicAPI
 
             services.AddMemoryCache();
             //services.AddMvc();
+
+            services.AddHttpContextAccessor();
 
             services.AddMvcCore(config => {
                 config.EnableEndpointRouting = false;
@@ -117,8 +119,6 @@ namespace OWSPublicAPI
             // Register And Validate External Login Provider Options
             // services.ConfigureAndValidate<EpicOnlineServicesOptions>(ExternalLoginProviderOptions.EpicOnlineServices, Configuration.GetSection($"{ExternalLoginProviderOptions.SectionName}:{ExternalLoginProviderOptions.EpicOnlineServices}"));
 
-            services.AddCustomHealthCheck(Configuration);
-
             InitializeContainer(services);
         }
 
@@ -144,8 +144,6 @@ namespace OWSPublicAPI
 
             //app.UseStaticFiles();
             app.UseRouting();
-
-            app.UseCustomHealthCheck();
 
             app.UseMvc();
 
@@ -199,7 +197,7 @@ namespace OWSPublicAPI
 
             var provider = services.BuildServiceProvider();
             container.RegisterInstance<IServiceProvider>(provider);
-
+            
             /*
             //Doesn't do anything
             var requestAssembly = typeof(IRequest).GetTypeInfo().Assembly;

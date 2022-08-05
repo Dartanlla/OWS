@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace OWSPublicAPI
 {
@@ -27,7 +28,24 @@ namespace OWSPublicAPI
         /// </remarks>
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+
+            Log.Logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .CreateBootstrapLogger();
+
+            try
+            {
+                CreateHostBuilder(args).Build().Run();
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         /// <summary>
@@ -38,9 +56,18 @@ namespace OWSPublicAPI
         /// </remarks>
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
+                .UseSerilog((hostContext, serviceProvider, loggerConfiguration) =>
                 {
-                    webBuilder.UseStartup<Startup>();
-                });
+                    loggerConfiguration
+                        .ReadFrom.Configuration(hostContext.Configuration)
+                        .ReadFrom.Services(serviceProvider);
+                })
+                .ConfigureLogging((hostContext, builder) =>
+                {
+                    builder.ClearProviders();
+                    builder.AddConsole();
+                    builder.AddSerilog();
+                })
+                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
     }
 }

@@ -19,6 +19,7 @@ using OWSShared.Interfaces;
 using OWSShared.Messages;
 using OWSShared.Objects;
 using SimpleInjector;
+using Serilog;
 
 namespace OWSInstanceLauncher
 {
@@ -42,24 +43,23 @@ namespace OWSInstanceLauncher
             //Check appsettings.json file for potential errors
             bool thereWasAStartupError = false;
 
-            Console.ForegroundColor = ConsoleColor.Red;
             //Abort if there is not a valid OWSAPIKey in appsettings.json
             if (String.IsNullOrEmpty(owsInstanceLauncherOptions.OWSAPIKey))
             {
                 thereWasAStartupError = true;
-                Console.WriteLine("Please enter a valid OWSAPIKey in appsettings.json!");
+                Log.Error("Please enter a valid OWSAPIKey in appsettings.json!");
             }
             //Abort if there is not a valid PathToDedicatedServer in appsettings.json
             else if (String.IsNullOrEmpty(owsInstanceLauncherOptions.PathToDedicatedServer))
             {
                 thereWasAStartupError = true;
-                Console.WriteLine("Please enter a valid PathToDedicatedServer in appsettings.json!");
+                Log.Error("Please enter a valid PathToDedicatedServer in appsettings.json!");
             }
             //Check that a file exists at PathToDedicatedServer
             else if (!File.Exists(owsInstanceLauncherOptions.PathToDedicatedServer))
             {
                 thereWasAStartupError = true;
-                Console.WriteLine("Your PathToDedicatedServer in appsettings.json points to a file that does not exist!  Please either point PathToDedicatedServer to your UE Editor exe or to your packaged UE dedicated server exe!");
+                Log.Error("Your PathToDedicatedServer in appsettings.json points to a file that does not exist!  Please either point PathToDedicatedServer to your UE Editor exe or to your packaged UE dedicated server exe!");
             }
             //If using the UE4 editor, make sure there is a project path in Path To UProject
             else if (owsInstanceLauncherOptions.PathToDedicatedServer.Contains("Editor.exe"))
@@ -74,21 +74,20 @@ namespace OWSInstanceLauncher
                     if (!File.Exists(foundUprojectPath))
                     {
                         thereWasAStartupError = true;
-                        Console.WriteLine("Your PathToUProject in appsettings.json points to a uproject file that does not exist!");
+                        Log.Error("Your PathToUProject in appsettings.json points to a uproject file that does not exist!");
                     }
                 }
                 else
                 {
                     thereWasAStartupError = true;
-                    Console.WriteLine("Because you are using UE4Editor.exe or UnrealEditor.exe, your PathToUProject in appsettings.json must contain a path to the uproject file.  Be sure to use escaped (double) backslashes in the path!");
+                    Log.Error("Because you are using UE4Editor.exe or UnrealEditor.exe, your PathToUProject in appsettings.json must contain a path to the uproject file.  Be sure to use escaped (double) backslashes in the path!");
                 }
-            }            
-            Console.ForegroundColor = ConsoleColor.White;
+            }
 
             //If there was a startup error, don't continue any further.  Wait for shutdown.
             if (thereWasAStartupError)
             {
-                Console.WriteLine("Error encountered.  Shutting down...");
+                Log.Fatal("Error encountered.  Shutting down...");
                 Environment.Exit(-1);
             }
         }
@@ -97,6 +96,8 @@ namespace OWSInstanceLauncher
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
+
+            services.AddHttpContextAccessor();
 
             services.AddMvcCore(config =>
             {

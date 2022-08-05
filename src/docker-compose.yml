@@ -29,6 +29,14 @@ services:
     extends:
       file: .docker/logging.yml
       service: kibana
+  
+  # Heartbeat
+  heartbeat:
+    depends_on:
+      - elasticsearch
+    extends:
+      file: .docker/logging.yml
+      service: heartbeat
 
   # Database
   database:
@@ -106,16 +114,6 @@ services:
     depends_on:
       - database
       - messaging
-      
-  # OWS Status
-  owsstatus:
-    image: ${REGISTRY:-ows}/owsstatus:${PLATFORM:-linux}-${TAG:-latest}
-    build:
-      context: .
-      dockerfile: OWSStatus/Dockerfile
-    ports:
-      - "44102:80"
-      - "44103:443"
 
 networks:
   elk:

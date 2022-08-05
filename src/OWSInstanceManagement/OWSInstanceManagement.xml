@@ -4,6 +4,22 @@
         <name>OWSInstanceManagement</name>
     </assembly>
     <members>
+        <member name="T:OWSInstanceManagement.Controllers.SystemController">
+            <summary>
+            Public System API calls.
+            </summary>
+            <remarks>
+            Contains system related API calls that are all publicly accessible.
+            </remarks>
+        </member>
+        <member name="M:OWSInstanceManagement.Controllers.SystemController.Status">
+            <summary>
+            Gets the Api Status.
+            </summary>
+            <remarks>
+            Get the Api Status and return true
+            </remarks>
+        </member>
         <member name="T:OWSInstanceManagement.Controllers.ZonesController">
             <summary>
             Zones Controller
