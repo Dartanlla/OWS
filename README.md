@@ -29,7 +29,6 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 - [Instance Management](src/OWSInstanceManagement) - This API manages Zone Instances and the OWS Instance Launchers.
 - [Public API](src/OWSPublicAPI) - This API handles all API calls that come directly from player clients such as registration, login, and connecting to the game.
 - [Shared](src/OWSShared) - This project houses various miscellaneous code that multiple other projects require.
-- [Status](src/OWSStatus) - This service provides Monitoring & Health Checking (Beta)
 - [Tests](src/OWSTests) - This project provides Unit testing and Functional testing and Benchmark Tools (Development)
 
 # Contributing
@@ -39,9 +38,3 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 
 # Documentation
 [Open World Server Documentation](https://www.openworldserver.com/)
-
-# Setup Instructions
-[Docker Setup Instructions](DOCKER.md)
-
-# Alternative Database Instructions (Experimental)
-[Using Postgres Instructions](DOCKER-POSTGRES.md) | [Using MySQL Instructions](DOCKER-MYSQL.md)
