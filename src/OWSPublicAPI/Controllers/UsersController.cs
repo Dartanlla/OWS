@@ -18,6 +18,7 @@ using OWSShared.Options;
 using Microsoft.Extensions.Options;
 using System.Net.Http;
 using OWSData.Models.Tables;
+using Microsoft.Extensions.Logging;
 
 namespace OWSPublicAPI.Controllers
 {
@@ -31,6 +32,7 @@ namespace OWSPublicAPI.Controllers
     [ApiController]
     public class UsersController : Controller
     {
+        private readonly ILogger _logger;
         private readonly Container _container;
         private readonly IUsersRepository _usersRepository;
         private readonly IExternalLoginProviderFactory _externalLoginProviderFactory;
@@ -47,7 +49,9 @@ namespace OWSPublicAPI.Controllers
         /// <remarks>
         /// All dependencies are injected.
         /// </remarks>
-        public UsersController(Container container, 
+        public UsersController(
+            ILogger<UsersController> logger,
+            Container container, 
             IUsersRepository usersRepository,
             IExternalLoginProviderFactory externalLoginProviderFactory,
             ICharactersRepository charactersRepository,
@@ -57,6 +61,7 @@ namespace OWSPublicAPI.Controllers
             IOptions<APIPathOptions> owsApiPathConfig,
             IHttpClientFactory httpClientFactory)
         {
+            _logger = logger;
             _container = container;
             _usersRepository = usersRepository;
             _externalLoginProviderFactory = externalLoginProviderFactory;
@@ -81,6 +86,7 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(GetServerToConnectTo))]
         public async Task<IActionResult> CreateCharacter([FromBody] CreateCharacterRequest request)
         {
+            
             request.SetData(_usersRepository, _publicAPIInputValidation, _customerGuid);
             return await request.Handle();
         }

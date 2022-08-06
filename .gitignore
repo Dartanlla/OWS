@@ -357,6 +357,10 @@ MigrationBackup/
 temp/
 docker-compose.override.yml
 
+# Log Files
+Buffer.bookmark
+Buffer-*.txt
+
 # Don't include plugin binaries
 plugins/OWSPlugin/Binaries/
 plugins/OWSPlugin/Intermediate/

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29613.14
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSPublicAPI", "OWSPublicAPI\OWSPublicAPI.csproj", "{88096051-8216-493A-A9B4-68B015CAB92E}"
 EndProject
@@ -30,8 +30,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSExternalLoginProviders", "OWSExternalLoginProviders\OWSExternalLoginProviders.csproj", "{91B38571-93C8-43B9-82B4-FC40F35D0B0B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSTests", "OWSTests\OWSTests.csproj", "{ABE0555E-7D6A-4B1E-8991-490F8ADC2F42}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSStatus", "OWSStatus\OWSStatus.csproj", "{A445B990-85B8-44A1-86BD-9674D3611F28}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -79,10 +77,6 @@ Global
 		{ABE0555E-7D6A-4B1E-8991-490F8ADC2F42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ABE0555E-7D6A-4B1E-8991-490F8ADC2F42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ABE0555E-7D6A-4B1E-8991-490F8ADC2F42}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A445B990-85B8-44A1-86BD-9674D3611F28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A445B990-85B8-44A1-86BD-9674D3611F28}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A445B990-85B8-44A1-86BD-9674D3611F28}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A445B990-85B8-44A1-86BD-9674D3611F28}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

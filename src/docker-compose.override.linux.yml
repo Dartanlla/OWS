@@ -34,14 +34,3 @@ services:
       - /usr/.aspnet/https:/root/.aspnet/https:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
-  owsstatus:
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:443;http://+:80
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/root/.aspnet/https/localhost.pfx
-    volumes:
-      - ~/.microsoft/usersecrets:/root/.microsoft/usersecrets:ro
-      - /usr/.aspnet/https:/root/.aspnet/https:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"

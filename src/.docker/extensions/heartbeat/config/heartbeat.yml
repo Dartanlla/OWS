@@ -1,0 +1,68 @@
+## Heartbeat configuration
+## https://github.com/elastic/beats/blob/main/deploy/docker/heartbeat.docker.yml
+#
+
+heartbeat.monitors:
+
+- type: http
+  schedule: '@every 30s'
+  name: OWSPublicApi
+  hosts: ["http://host.docker.internal:44302/api/system/status"]
+  timeout: 60s
+
+- type: http
+  schedule: '@every 30s'
+  name: OWSInstanceManagement
+  hosts: ["http://host.docker.internal:44328/api/system/status"]
+  timeout: 60s
+
+- type: http
+  schedule: '@every 30s'
+  name: OWSCharacterPersistence
+  hosts: ["http://host.docker.internal:44323/api/system/status"]
+  timeout: 60s
+    
+- type: tcp
+  schedule: '@every 30s'
+  name: MSSQL
+  hosts: ["host.docker.internal:1433"]
+  timeout: 60s
+
+- type: tcp
+  schedule: '@every 30s'
+  name: RabbitMQ
+  hosts: ["host.docker.internal:5672"]
+  timeout: 60s
+
+- type: http
+  name: ElasticSearch
+  schedule: '@every 30s'
+  hosts: ["http://elasticsearch:9200"]
+  timeout: 60s
+  username: '${ELASTIC_USERNAME:elastic}'
+  password: '${ELASTIC_PASSWORD:changeme}'
+  check.request:
+    method: "GET"
+  check.response:
+    status: 200
+    
+- type: http
+  name: LogStash
+  schedule: '@every 30s'
+  hosts: ["http://host.docker.internal:9600"]
+  timeout: 60s
+
+processors:
+- add_cloud_metadata: ~
+
+output.elasticsearch:
+  hosts: ['http://elasticsearch:9200']
+  username: elastic
+  password: ${ELASTIC_PASSWORD}
+
+## HTTP endpoint for health checking
+## https://www.elastic.co/guide/en/beats/heartbeat/current/http-endpoint.html
+#
+
+http.enabled: true
+http.host: 0.0.0.0
