@@ -58,7 +58,7 @@ Go to: http://localhost:15672/ and use the default username / password: dev / te
 
 <details markdown="block">
   <summary class="fs-5 mb-3">
-    How do access Swagger?
+    How do I access Swagger?
   </summary>
 
 - OWSPublicAPI: [https://localhost:44303/Swagger](https://localhost:44303/Swagger)
