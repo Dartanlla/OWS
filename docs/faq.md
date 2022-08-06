@@ -39,3 +39,29 @@ This is not supported by default, but there is nothing stopping you from sending
 
 As OWS 2 is using Unreal Engine's instance server, you are limited by whatever limitations Unreal Engine's server instances have.  OWS 2 does nothing to change this as OWS 2 is not a Game server.  Epic released a [video](https://www.youtube.com/watch?v=CDnNAAzgltw) about optimizing the Data which gets send from and to the server using a custom Replication Graph. Fortnite, for example, supports up to 100 players per Zone Instance.
 </details>
+
+<details markdown="block">
+  <summary class="fs-5 mb-3">
+    How do I login to Kibana?
+  </summary>
+
+Go to: http://localhost:5601/ and use the default username / password: elastic / changeme
+</details>
+
+<details markdown="block">
+  <summary class="fs-5 mb-3">
+    How do I login to RabbitMQ?
+  </summary>
+
+Go to: http://localhost:15672/ and use the default username / password: dev / test
+</details>
+
+<details markdown="block">
+  <summary class="fs-5 mb-3">
+    How do access Swagger?
+  </summary>
+
+OWSPublicAPI: https://localhost:44303/Swagger
+OWSInstanceManagementAPI: https://localhost:44329/Swagger
+OWSCharacterPersistenceAPI: https://localhost:44324/Swagger
+</details>
