@@ -120,5 +120,8 @@ networks:
     driver: bridge
 volumes:
   setup:
+    name: "ows2-setup"
   elasticsearch:
+    name: "ows2-elasticsearch"
   database:
+    name: "ows2-database"
