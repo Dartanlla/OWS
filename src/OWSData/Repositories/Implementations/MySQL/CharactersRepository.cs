@@ -42,21 +42,24 @@ namespace OWSData.Repositories.Implementations.MySQL
                 var outputZone = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetZoneName,
                     parameters,
                     commandType: CommandType.Text);
-                
-                parameters.Add("@CharacterID", outputCharacter.CharacterId);
-                parameters.Add("@ZoneName", outputZone.ZoneName);
-                
-                await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
-                    parameters,
-                    commandType: CommandType.Text);
-                
-                await Connection.ExecuteAsync(GenericQueries.AddCharacterToInstance,
-                    parameters,
-                    commandType: CommandType.Text);
 
-                await Connection.ExecuteAsync(GenericQueries.UpdateCharacterZone,
-                    parameters,
-                    commandType: CommandType.Text);
+                if (outputCharacter.CharacterId > 0)
+                {
+                    parameters.Add("@CharacterID", outputCharacter.CharacterId);
+                    parameters.Add("@ZoneName", outputZone.ZoneName);
+ 
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
+                        parameters,
+                        commandType: CommandType.Text);
+
+                    await Connection.ExecuteAsync(GenericQueries.AddCharacterToInstance,
+                        parameters,
+                        commandType: CommandType.Text);
+
+                    await Connection.ExecuteAsync(GenericQueries.UpdateCharacterZone,
+                        parameters,
+                        commandType: CommandType.Text);
+                }
             }
         }
 
