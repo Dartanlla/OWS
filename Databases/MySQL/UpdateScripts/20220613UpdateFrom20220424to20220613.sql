@@ -5,6 +5,8 @@ WHERE OWSDBVersion IS NOT NULL;
 SELECT OWSDBVersion
 FROM OWSVersion;
 
+DELIMITER //
+
 CREATE OR REPLACE PROCEDURE AddOrUpdateAbility(_CustomerGUID CHAR(36),
                                                _AbilityID INT,
                                                _AbilityName VARCHAR(50),
@@ -78,3 +80,5 @@ BEGIN
     ORDER BY AbilityTypeName;
 
 END;
+
+// DELIMITER ;
