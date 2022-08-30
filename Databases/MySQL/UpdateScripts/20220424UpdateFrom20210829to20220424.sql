@@ -5,6 +5,8 @@ SELECT OWSDBVersion FROM OWSVersion;
 ALTER TABLE WorldServers
 ADD ZoneServerGUID CHAR(36) NULL;
 
+DELIMITER //
+
 CREATE OR REPLACE PROCEDURE AddOrUpdateWorldServer(_CustomerGUID CHAR(36),
                                                    _ZoneServerGUID CHAR(36),
                                                    _ServerIP VARCHAR(50),
@@ -39,3 +41,5 @@ BEGIN
                 _ZoneServerGUID);
     END IF;
 END;
+
+// DELIMITER ;
