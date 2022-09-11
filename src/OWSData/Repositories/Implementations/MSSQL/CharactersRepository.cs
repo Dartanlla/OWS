@@ -33,16 +33,40 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task AddCharacterToMapInstanceByCharName(Guid customerGUID, string characterName, int mapInstanceID)
         {
+            // TODO Add Logging
+
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
-                p.Add("@MapInstanceID", mapInstanceID);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+                parameters.Add("@MapInstanceID", mapInstanceID);
 
-                await Connection.QuerySingleOrDefaultAsync("AddCharacterToMapInstanceByCharName",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDFromName,
+                    parameters,
+                    commandType: CommandType.Text);
+                
+                var outputZone = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetZoneName,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                if (outputCharacter.CharacterId > 0)
+                {
+                    parameters.Add("@CharacterID", outputCharacter.CharacterId);
+                    parameters.Add("@ZoneName", outputZone.ZoneName);
+
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
+                        parameters,
+                        commandType: CommandType.Text);
+
+                    await Connection.ExecuteAsync(GenericQueries.AddCharacterToInstance,
+                        parameters,
+                        commandType: CommandType.Text);
+
+                    await Connection.ExecuteAsync(GenericQueries.UpdateCharacterZone,
+                        parameters,
+                        commandType: CommandType.Text);
+                }
             }
         }
 

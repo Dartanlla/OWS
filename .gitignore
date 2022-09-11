@@ -130,6 +130,9 @@ _ReSharper*/
 # TeamCity is a build add-in
 _TeamCity*
 
+# JetBrains Rider Files
+.idea/
+
 # DotCover is a Code Coverage Tool
 *.dotCover
 
