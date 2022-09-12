@@ -81,6 +81,8 @@ namespace OWSData.Repositories.Implementations.MySQL
 
         public async Task<MapInstances> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID)
         {
+            // TODO Add Logging
+            
             using (Connection)
             {
                 var parameters = new DynamicParameters();
