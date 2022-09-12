@@ -79,29 +79,21 @@ namespace OWSData.Repositories.Implementations.MySQL
             }
         }
 
-        public async Task<CheckMapInstanceStatus> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID)
+        public async Task<MapInstances> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID)
         {
-            CheckMapInstanceStatus outputObject;
-
-            try
+            MapInstances outputObject;
+            using (Connection)
             {
-                using (Connection)
-                {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@MapInstanceID", mapInstanceID);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@MapInstanceID", mapInstanceID);
 
-                    outputObject = await Connection.QueryFirstAsync<CheckMapInstanceStatus>("call CheckMapInstanceStatus(@CustomerGUID,@MapInstanceID)",
-                        p,
-                        commandType: CommandType.Text);
-                }
+                outputObject = await Connection.QuerySingleOrDefaultAsync<MapInstances>(GenericQueries.GetMapInstanceStatus,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
 
-                return outputObject;
-            }
-            catch (Exception) {
-                outputObject = new CheckMapInstanceStatus();
-                return outputObject;
-            }
+            return outputObject;
         }
 
         public async Task<GetCharByCharName> GetCharByCharName(Guid customerGUID, string characterName)

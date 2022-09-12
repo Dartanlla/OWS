@@ -86,27 +86,20 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
-        public async Task<CheckMapInstanceStatus> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID)
+        public async Task<MapInstances> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID)
         {
-            CheckMapInstanceStatus outputObject = new CheckMapInstanceStatus();
-
-            int mapInstanceStatus = 0;
-
+            MapInstances outputObject;
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@MapInstanceID", mapInstanceID);
-                p.Add("@MapInstanceStatus", mapInstanceStatus, DbType.Int32, ParameterDirection.Output);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@MapInstanceID", mapInstanceID);
 
-                await Connection.QuerySingleOrDefaultAsync("CheckMapInstanceStatus",
-                    p,
-                    commandType: CommandType.StoredProcedure);
-
-                mapInstanceStatus = p.Get<int>("@MapInstanceStatus");
+                outputObject = await Connection.QuerySingleOrDefaultAsync<MapInstances>(GenericQueries.GetMapInstanceStatus,
+                    parameters,
+                    commandType: CommandType.Text);
             }
 
-            outputObject = new CheckMapInstanceStatus(mapInstanceStatus);
             return outputObject;
         }
 

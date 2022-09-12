@@ -11,7 +11,7 @@ namespace OWSData.Repositories.Interfaces
     {
         Task AddCharacterToMapInstanceByCharName(Guid customerGUID, string characterName, int mapInstanceID);
         Task AddOrUpdateCustomCharacterData(Guid customerGUID, AddOrUpdateCustomCharacterData addOrUpdateCustomCharacterData);
-        Task<CheckMapInstanceStatus> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID);
+        Task<MapInstances> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID);
         Task<GetCharByCharName> GetCharByCharName(Guid customerGUID, string characterName);
         Task<IEnumerable<CustomCharacterData>> GetCustomCharacterData(Guid customerGUID, string characterName);
         Task<JoinMapByCharName> JoinMapByCharName(Guid customerGUID, string characterName, string zoneName, int playerGroupType);

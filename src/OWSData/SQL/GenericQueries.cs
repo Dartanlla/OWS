@@ -29,11 +29,16 @@ namespace OWSData.SQL
 	    
 	    #region Zone Queries
 
+	    public static readonly string GetMapInstanceStatus = @"SELECT Status
+				FROM MapInstances
+				WHERE CustomerGUID = @CustomerGUID
+				  AND MapInstanceID = @MapInstanceID";
+	    
 	    public static readonly string GetZoneName = @"SELECT M.ZoneName
 				FROM Maps M
 				INNER JOIN MapInstances MI ON MI.CustomerGUID = M.CustomerGUID
-				                          AND MI.MapID = M.MapID
-				WHERE MI.MapInstanceID = @MapInstanceID";
+				WHERE M.CustomerGUID = @CustomerGUID
+				  AND MI.MapInstanceID = @MapInstanceID";
 
 	    #endregion
     }
