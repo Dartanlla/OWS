@@ -37,6 +37,7 @@ namespace OWSData.SQL
 	    public static readonly string GetZoneName = @"SELECT M.ZoneName
 				FROM Maps M
 				INNER JOIN MapInstances MI ON MI.CustomerGUID = M.CustomerGUID
+				                          AND MI.MapID = M.MapID
 				WHERE M.CustomerGUID = @CustomerGUID
 				  AND MI.MapInstanceID = @MapInstanceID";
 
