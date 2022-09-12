@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
@@ -23,7 +24,7 @@ namespace OWSPublicAPI.Requests.Characters
         /// </remarks>
         public string CharacterName { get; set; }
 
-        private GetCharByCharName Output;
+        private CharactersExtended Output;
         private Guid CustomerGUID;
         //private IServiceProvider ServiceProvider;
         private ICharactersRepository charactersRepository;
@@ -49,7 +50,7 @@ namespace OWSPublicAPI.Requests.Characters
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
-            Output = await charactersRepository.GetCharByCharName(CustomerGUID, CharacterName);
+            Output = await charactersRepository.GetCharacterExtendedByName(CustomerGUID, CharacterName);
 
             return new OkObjectResult(Output);
         }

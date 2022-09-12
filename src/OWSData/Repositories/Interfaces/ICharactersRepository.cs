@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
 using OWSData.Models.Tables;
 
@@ -12,7 +13,7 @@ namespace OWSData.Repositories.Interfaces
         Task AddCharacterToMapInstanceByCharName(Guid customerGUID, string characterName, int mapInstanceID);
         Task AddOrUpdateCustomCharacterData(Guid customerGUID, AddOrUpdateCustomCharacterData addOrUpdateCustomCharacterData);
         Task<CheckMapInstanceStatus> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID);
-        Task<GetCharByCharName> GetCharByCharName(Guid customerGUID, string characterName);
+        Task<CharactersExtended> GetCharacterExtendedByName(Guid customerGUID, string characterName);
         Task<IEnumerable<CustomCharacterData>> GetCustomCharacterData(Guid customerGUID, string characterName);
         Task<JoinMapByCharName> JoinMapByCharName(Guid customerGUID, string characterName, string zoneName, int playerGroupType);
         Task UpdateCharacterStats(UpdateCharacterStats updateCharacterStats);

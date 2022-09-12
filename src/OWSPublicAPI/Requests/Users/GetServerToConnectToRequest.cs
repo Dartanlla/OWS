@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using OWSData.Models.Composites;
 
 namespace OWSPublicAPI.Requests.Users
 {
@@ -45,7 +46,7 @@ namespace OWSPublicAPI.Requests.Users
             //If ZoneName is empty, look it up from the character.  This is used for the inital login.
             if (String.IsNullOrEmpty(ZoneName) || ZoneName == "GETLASTZONENAME")
             {
-                GetCharByCharName character = await charactersRepository.GetCharByCharName(CustomerGUID, CharacterName);
+                CharactersExtended character = await charactersRepository.GetCharacterExtendedByName(CustomerGUID, CharacterName);
 
                 //If we can't find the character by name, then return BadRequest.
                 if (character == null)

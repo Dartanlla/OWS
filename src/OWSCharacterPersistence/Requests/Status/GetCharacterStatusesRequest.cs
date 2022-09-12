@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
@@ -25,7 +26,7 @@ namespace OWSCharacterPersistence.Requests.Statuses
         /// </remarks>
         public string CharacterName { get; set; }
 
-        private GetCharByCharName output;
+        private CharactersExtended output;
         private Guid customerGUID;
         private ICharactersRepository charactersRepository;
 
@@ -49,7 +50,7 @@ namespace OWSCharacterPersistence.Requests.Statuses
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
-            output = await charactersRepository.GetCharByCharName(customerGUID, CharacterName);
+            output = await charactersRepository.GetCharacterExtendedByName(customerGUID, CharacterName);
 
             return new OkObjectResult(output);
         }

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OWSData.Models.Composites;
 
 namespace OWSInstanceManagement.Requests.Instance
 {
@@ -31,7 +32,7 @@ namespace OWSInstanceManagement.Requests.Instance
         {
             if (String.IsNullOrEmpty(ZoneName) || ZoneName == "GETLASTZONENAME")
             {
-                GetCharByCharName character = await charactersRepository.GetCharByCharName(CustomerGUID, CharacterName);
+                CharactersExtended character = await charactersRepository.GetCharacterExtendedByName(CustomerGUID, CharacterName);
 
                 if (character == null || String.IsNullOrEmpty(character.MapName))
                 {

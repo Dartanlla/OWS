@@ -2,10 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using Npgsql;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using OWSData.Models;
+using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.Models.Tables;
@@ -35,7 +37,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 parameters.Add("@CharName", characterName);
                 parameters.Add("@MapInstanceID", mapInstanceID);
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDFromName,
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
                     parameters,
                     commandType: CommandType.Text);
                 
@@ -104,22 +106,24 @@ namespace OWSData.Repositories.Implementations.Postgres
             }
         }
 
-        public async Task<GetCharByCharName> GetCharByCharName(Guid customerGUID, string characterName)
+        public async Task<CharactersExtended> GetCharacterExtendedByName(Guid customerGUID, string characterName)
         {
-            GetCharByCharName outputCharacter;
+            // TODO Add Logging
+            
+            IEnumerable<CharactersExtended> outputCharacter;
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
 
-                outputCharacter = await Connection.QuerySingleOrDefaultAsync<GetCharByCharName>("select * from GetCharByCharName(@CustomerGUID,@CharName)",
-                    p,
+                outputCharacter = await Connection.QueryAsync<CharactersExtended>(GenericQueries.GetCharacterExtendedByName,
+                    parameters,
                     commandType: CommandType.Text);
             }
 
-            return outputCharacter;
+            return outputCharacter.First();
         }
 
         public async Task<IEnumerable<CustomCharacterData>> GetCustomCharacterData(Guid customerGUID, string characterName)

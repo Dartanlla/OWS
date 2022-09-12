@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OWSData.Models.Composites;
 
 namespace OWSCharacterPersistence.Requests.Characters
 {
@@ -13,7 +14,7 @@ namespace OWSCharacterPersistence.Requests.Characters
     {
         public string CharacterName { get; set; }
 
-        private GetCharByCharName output;
+        private CharactersExtended output;
         private Guid customerGUID;
         private ICharactersRepository charactersRepository;
 
@@ -25,7 +26,7 @@ namespace OWSCharacterPersistence.Requests.Characters
 
         public async Task<IActionResult> Handle()
         {
-            output = await charactersRepository.GetCharByCharName(customerGUID, CharacterName);
+            output = await charactersRepository.GetCharacterExtendedByName(customerGUID, CharacterName);
 
             return new OkObjectResult(output);
         }

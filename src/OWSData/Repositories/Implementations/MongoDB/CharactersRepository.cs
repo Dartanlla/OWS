@@ -10,6 +10,7 @@ using System.Text;
 using OWSData.Repositories.Implementations.MongoDB.Models;
 using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
+using OWSData.Models.Composites;
 
 namespace OWSData.Repositories.Implementations.MongoDB
 {
@@ -33,9 +34,9 @@ namespace OWSData.Repositories.Implementations.MongoDB
             this.storageOptions = storageOptions;
         }
 
-        public async Task<GetCharByCharName> GetCharByCharName(Guid _CustomerGUID, string _CharacterName)
+        public async Task<CharactersExtended> GetCharacterExtendedByName(Guid _CustomerGUID, string _CharacterName)
         {
-            GetCharByCharName OutputCharacter = new GetCharByCharName();
+            CharactersExtended OutputCharacter = new CharactersExtended();
 
             return OutputCharacter;
         }

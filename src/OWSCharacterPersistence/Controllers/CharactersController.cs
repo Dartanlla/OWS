@@ -38,7 +38,7 @@ namespace OWSCharacterPersistence.Controllers
 
         [HttpPost]
         [Route("GetByName")]
-        [Produces(typeof(GetCharByCharName))]
+        [Produces(typeof(CharactersExtended))]
         public async Task<IActionResult> GetByName([FromBody] GetByNameRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);

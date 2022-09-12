@@ -10,6 +10,7 @@ using System.Data;
 using Swashbuckle.AspNetCore.Annotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;
+using OWSData.Models.Composites;
 using SimpleInjector;
 using OWSData.Models.StoredProcs;
 using OWSShared.Interfaces;
@@ -67,7 +68,7 @@ namespace OWSPublicAPI.Controllers
         /// </remarks>
         [HttpPost]
         [Route("ByName")]
-        [Produces(typeof(GetCharByCharName))]
+        [Produces(typeof(CharactersExtended))]
         /*[SwaggerOperation("ByName")]
         [SwaggerResponse(200)]
         [SwaggerResponse(404)]*/
