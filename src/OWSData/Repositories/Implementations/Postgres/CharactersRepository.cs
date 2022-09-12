@@ -81,19 +81,23 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<MapInstances> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID)
         {
-            MapInstances outputObject;
             using (Connection)
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@MapInstanceID", mapInstanceID);
 
-                outputObject = await Connection.QuerySingleOrDefaultAsync<MapInstances>(GenericQueries.GetMapInstanceStatus,
+                var outputObject = await Connection.QuerySingleOrDefaultAsync<MapInstances>(GenericQueries.GetMapInstanceStatus,
                     parameters,
                     commandType: CommandType.Text);
-            }
 
-            return outputObject;
+                if (outputObject == null)
+                {
+                    return new MapInstances();
+                }
+
+                return outputObject;
+            }
         }
 
         public async Task<GetCharByCharName> GetCharByCharName(Guid customerGUID, string characterName)
