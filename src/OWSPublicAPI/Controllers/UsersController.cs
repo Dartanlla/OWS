@@ -83,7 +83,7 @@ namespace OWSPublicAPI.Controllers
         /// </remarks>
         [HttpPost]
         [Route("CreateCharacter")]
-        [Produces(typeof(GetServerToConnectTo))]
+        [Produces(typeof(CreateCharacter))]
         public async Task<IActionResult> CreateCharacter([FromBody] CreateCharacterRequest request)
         {
             
@@ -217,7 +217,7 @@ namespace OWSPublicAPI.Controllers
         /// </remarks>
         [HttpPost]
         [Route("RegisterUser")]
-        [Produces(typeof(GetUserSession))]
+        [Produces(typeof(SuccessAndErrorMessage))]
         public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest request)
         {
             request.SetData(_usersRepository, _externalLoginProviderFactory, _customerGuid);
