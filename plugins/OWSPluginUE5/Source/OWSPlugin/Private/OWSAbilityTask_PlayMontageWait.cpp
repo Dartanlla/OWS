@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
+#include "AbilitySystemLog.h"
 
 UOWSAbilityTask_PlayMontageWait::UOWSAbilityTask_PlayMontageWait(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -99,7 +100,7 @@ void UOWSAbilityTask_PlayMontageWait::Activate()
 
 	bool bPlayedMontage = false;
 
-	if (AbilitySystemComponent)
+	if (AbilitySystemComponent.Get())
 	{
 		const FGameplayAbilityActorInfo* ActorInfo = Ability->GetCurrentActorInfo();
 		UAnimInstance* AnimInstance;
@@ -175,7 +176,7 @@ void UOWSAbilityTask_PlayMontageWait::Activate()
 
 void UOWSAbilityTask_PlayMontageWait::ExternalCancel()
 {
-	check(AbilitySystemComponent);
+	check(AbilitySystemComponent.Get());
 
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
@@ -259,7 +260,7 @@ bool UOWSAbilityTask_PlayMontageWait::StopPlayingMontage()
 
 	// Check if the montage is still playing
 	// The ability would have been interrupted, in which case we should automatically stop the montage
-	if (AbilitySystemComponent && Ability)
+	if (AbilitySystemComponent.Get() && Ability)
 	{
 		if (AbilitySystemComponent->GetAnimatingAbility() == Ability
 			&& AbilitySystemComponent->GetCurrentMontage() == MontageToPlay)

@@ -14,7 +14,7 @@ class AOWSAdvancedProjectile;
 UENUM(BlueprintType)
 enum class AbilityInput : uint8
 {
-	UseAbility1 UMETA(DisplayName = "UseAbility 1"), //This maps the first ability(input ID should be 0 in int) to the action mapping(which you define in the project settings) by the name of "UseAbility1". "Use Spell 1" is the blueprint name of the element.
+	UseAbility1 UMETA(DisplayName = "Use Ability 1"), //This maps the first ability(input ID should be 0 in int) to the action mapping(which you define in the project settings) by the name of "UseAbility1". "Use Spell 1" is the blueprint name of the element.
 	UseAbility2 UMETA(DisplayName = "Use Ability 2"), //Maps ability 2(input ID 1) to action mapping UseAbility2. "Use Spell 2" is mostly used for when the enum is a blueprint variable.
 	UseAbility3 UMETA(DisplayName = "Use Ability 3"),
 	UseAbility4 UMETA(DisplayName = "Use Ability 4"),
@@ -23,7 +23,7 @@ enum class AbilityInput : uint8
 	UseAbility7 UMETA(DisplayName = "Use Ability 7"),
 	UseAbility8 UMETA(DisplayName = "Use Ability 8"),
 	UseAbility9 UMETA(DisplayName = "Use Ability 9"),
-	UseAbility0 UMETA(DisplayName = "Use Ability 0"),
+	UseAbility10 UMETA(DisplayName = "Use Ability 10"),
 	UseAbility11 UMETA(DisplayName = "Use Ability 11"),
 	UseAbility12 UMETA(DisplayName = "Use Ability 12"),
 	UseAbility13 UMETA(DisplayName = "Use Ability 13"),
@@ -117,7 +117,7 @@ public:
 		void UpdateCharacterStats();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Abilities, meta = (AllowPrivateAccess = "true"))
-		class UAbilitySystemComponent* AbilitySystem;
+		TObjectPtr<UAbilitySystemComponent> AbilitySystem;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Abilities, meta = (AllowPrivateAccess = "true"))
 		UOWSAttributeSet* OWSAttributes;	
