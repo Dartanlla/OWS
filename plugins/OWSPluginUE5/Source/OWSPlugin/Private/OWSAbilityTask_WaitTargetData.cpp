@@ -136,7 +136,7 @@ void UOWSAbilityTask_WaitTargetData::InitializeTargetActor(AGameplayAbilityTarge
 	check(SpawnedActor);
 	check(Ability);
 
-	SpawnedActor->MasterPC = Ability->GetCurrentActorInfo()->PlayerController.Get();
+	SpawnedActor->PrimaryPC = Ability->GetCurrentActorInfo()->PlayerController.Get();
 
 	// If we spawned the target actor, always register the callbacks for when the data is ready.
 	SpawnedActor->TargetDataReadyDelegate.AddUObject(this, &UOWSAbilityTask_WaitTargetData::OnTargetDataReadyCallback);
@@ -149,7 +149,7 @@ void UOWSAbilityTask_WaitTargetData::FinalizeTargetActor(AGameplayAbilityTargetA
 	check(Ability);
 
 	// User ability activation is inhibited while this is active
-	AbilitySystemComponent->SpawnedTargetActors.Push(SpawnedActor);
+	AbilitySystemComponent.Get()->SpawnedTargetActors.Push(SpawnedActor);
 
 	SpawnedActor->StartTargeting(Ability);
 
@@ -196,10 +196,10 @@ void UOWSAbilityTask_WaitTargetData::RegisterTargetDataCallbacks()
 			FPredictionKey ActivationPredictionKey = GetActivationPredictionKey();
 
 			//Since multifire is supported, we still need to hook up the callbacks
-			AbilitySystemComponent->AbilityTargetDataSetDelegate(SpecHandle, ActivationPredictionKey).AddUObject(this, &UOWSAbilityTask_WaitTargetData::OnTargetDataReplicatedCallback);
-			AbilitySystemComponent->AbilityTargetDataCancelledDelegate(SpecHandle, ActivationPredictionKey).AddUObject(this, &UOWSAbilityTask_WaitTargetData::OnTargetDataReplicatedCancelledCallback);
+			AbilitySystemComponent.Get()->AbilityTargetDataSetDelegate(SpecHandle, ActivationPredictionKey).AddUObject(this, &UOWSAbilityTask_WaitTargetData::OnTargetDataReplicatedCallback);
+			AbilitySystemComponent.Get()->AbilityTargetDataCancelledDelegate(SpecHandle, ActivationPredictionKey).AddUObject(this, &UOWSAbilityTask_WaitTargetData::OnTargetDataReplicatedCancelledCallback);
 
-			AbilitySystemComponent->CallReplicatedTargetDataDelegatesIfSet(SpecHandle, ActivationPredictionKey);
+			AbilitySystemComponent.Get()->CallReplicatedTargetDataDelegatesIfSet(SpecHandle, ActivationPredictionKey);
 
 			SetWaitingOnRemotePlayerData();
 		}
@@ -209,7 +209,7 @@ void UOWSAbilityTask_WaitTargetData::RegisterTargetDataCallbacks()
 /** Valid TargetData was replicated to use (we are server, was sent from client) */
 void UOWSAbilityTask_WaitTargetData::OnTargetDataReplicatedCallback(const FGameplayAbilityTargetDataHandle& Data, FGameplayTag ActivationTag)
 {
-	check(AbilitySystemComponent);
+	check(AbilitySystemComponent.Get());
 
 	FGameplayAbilityTargetDataHandle MutableData = Data;
 	AbilitySystemComponent->ConsumeClientReplicatedTargetData(GetAbilitySpecHandle(), GetActivationPredictionKey());
@@ -241,7 +241,7 @@ void UOWSAbilityTask_WaitTargetData::OnTargetDataReplicatedCallback(const FGamep
 /** Client canceled this Targeting Task (we are the server) */
 void UOWSAbilityTask_WaitTargetData::OnTargetDataReplicatedCancelledCallback()
 {
-	check(AbilitySystemComponent);
+	check(AbilitySystemComponent.Get());
 	Cancelled.Broadcast(FGameplayAbilityTargetDataHandle());
 	EndTask();
 }
@@ -249,13 +249,13 @@ void UOWSAbilityTask_WaitTargetData::OnTargetDataReplicatedCancelledCallback()
 /** The TargetActor we spawned locally has called back with valid target data */
 void UOWSAbilityTask_WaitTargetData::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& Data)
 {
-	check(AbilitySystemComponent);
+	check(AbilitySystemComponent.Get());
 	if (!Ability)
 	{
 		return;
 	}
 
-	FScopedPredictionWindow	ScopedPrediction(AbilitySystemComponent, ShouldReplicateDataToServer());
+	FScopedPredictionWindow	ScopedPrediction(AbilitySystemComponent.Get(), ShouldReplicateDataToServer());
 
 	const FGameplayAbilityActorInfo* Info = Ability->GetCurrentActorInfo();
 	if (IsPredictingClient())
@@ -263,7 +263,7 @@ void UOWSAbilityTask_WaitTargetData::OnTargetDataReadyCallback(const FGameplayAb
 		if (!TargetActor->ShouldProduceTargetDataOnServer)
 		{
 			FGameplayTag ApplicationTag; // Fixme: where would this be useful?
-			AbilitySystemComponent->ServerSetReplicatedTargetData(GetAbilitySpecHandle(), GetActivationPredictionKey(), Data, ApplicationTag, AbilitySystemComponent->ScopedPredictionKey);
+			AbilitySystemComponent->ServerSetReplicatedTargetData(GetAbilitySpecHandle(), GetActivationPredictionKey(), Data, ApplicationTag, AbilitySystemComponent.Get()->ScopedPredictionKey);
 		}
 		else if (ConfirmationType == EGameplayTargetingConfirmation::UserConfirmed)
 		{
@@ -283,15 +283,15 @@ void UOWSAbilityTask_WaitTargetData::OnTargetDataReadyCallback(const FGameplayAb
 /** The TargetActor we spawned locally has called back with a cancel event (they still include the 'last/best' targetdata but the consumer of this may want to discard it) */
 void UOWSAbilityTask_WaitTargetData::OnTargetDataCancelledCallback(const FGameplayAbilityTargetDataHandle& Data)
 {
-	check(AbilitySystemComponent);
+	check(AbilitySystemComponent.Get());
 
-	FScopedPredictionWindow ScopedPrediction(AbilitySystemComponent, IsPredictingClient());
+	FScopedPredictionWindow ScopedPrediction(AbilitySystemComponent.Get(), IsPredictingClient());
 
 	if (IsPredictingClient())
 	{
 		if (!TargetActor->ShouldProduceTargetDataOnServer)
 		{
-			AbilitySystemComponent->ServerSetReplicatedTargetDataCancelled(GetAbilitySpecHandle(), GetActivationPredictionKey(), AbilitySystemComponent->ScopedPredictionKey);
+			AbilitySystemComponent->ServerSetReplicatedTargetDataCancelled(GetAbilitySpecHandle(), GetActivationPredictionKey(), AbilitySystemComponent.Get()->ScopedPredictionKey);
 		}
 		else
 		{
@@ -306,7 +306,7 @@ void UOWSAbilityTask_WaitTargetData::OnTargetDataCancelledCallback(const FGamepl
 /** Called when the ability is asked to confirm from an outside node. What this means depends on the individual task. By default, this does nothing other than ending if bEndTask is true. */
 void UOWSAbilityTask_WaitTargetData::ExternalConfirm(bool bEndTask)
 {
-	check(AbilitySystemComponent);
+	check(AbilitySystemComponent.Get());
 	if (TargetActor)
 	{
 		if (TargetActor->ShouldProduceTargetData())
@@ -320,7 +320,7 @@ void UOWSAbilityTask_WaitTargetData::ExternalConfirm(bool bEndTask)
 /** Called when the ability is asked to confirm from an outside node. What this means depends on the individual task. By default, this does nothing other than ending if bEndTask is true. */
 void UOWSAbilityTask_WaitTargetData::ExternalCancel()
 {
-	check(AbilitySystemComponent);
+	check(AbilitySystemComponent.Get());
 	Cancelled.Broadcast(FGameplayAbilityTargetDataHandle());
 	Super::ExternalCancel();
 }

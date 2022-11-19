@@ -63,7 +63,7 @@ void AOWSCharacterWithAbilities::SetupPlayerInputComponent(UInputComponent* Play
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	AbilitySystem->BindAbilityActivationToInputComponent(PlayerInputComponent, FGameplayAbilityInputBinds("ConfirmInput", "CancelInput", "AbilityInput"));
+	AbilitySystem->BindAbilityActivationToInputComponent(PlayerInputComponent, FGameplayAbilityInputBinds("ConfirmInput", "CancelInput", FTopLevelAssetPath("/Script/OWSPlugin.AbilityInput")));
 	AbilitySystem->RegisterGenericGameplayTagEvent().AddUObject(this, &AOWSCharacterWithAbilities::OnGameplayEffectTagCountChanged);
 }
 

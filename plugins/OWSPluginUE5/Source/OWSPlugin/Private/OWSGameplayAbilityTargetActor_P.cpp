@@ -5,6 +5,7 @@
 #include "OWSGameplayAbilityWorldReticle.h"
 #include "AbilitySystemComponent.h" 
 #include "Abilities/GameplayAbility.h"
+#include "AbilitySystemLog.h"
 #include "Abilities/GameplayAbilityWorldReticle_ActorVisualization.h"
 
 
