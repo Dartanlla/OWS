@@ -56,32 +56,36 @@ namespace OWSInstanceLauncher
                 Log.Error("Please enter a valid PathToDedicatedServer in appsettings.json!");
             }
             //Check that a file exists at PathToDedicatedServer
-            else if (!File.Exists(owsInstanceLauncherOptions.PathToDedicatedServer))
+            else if (!File.Exists(OperatingSystemExtension.PathCombine(owsInstanceLauncherOptions.PathToDedicatedServer)))
             {
                 thereWasAStartupError = true;
                 Log.Error("Your PathToDedicatedServer in appsettings.json points to a file that does not exist!  Please either point PathToDedicatedServer to your UE Editor exe or to your packaged UE dedicated server exe!");
             }
             //If using the UE4 editor, make sure there is a project path in Path To UProject
-            else if (owsInstanceLauncherOptions.PathToDedicatedServer.Contains("Editor.exe"))
+            else
             {
-                string serverArgumentsProjectPattern = @"^.*.uproject";
-                MatchCollection testForUprojectPath = Regex.Matches(owsInstanceLauncherOptions.PathToUProject, serverArgumentsProjectPattern);
-                if (testForUprojectPath.Count == 1)
+                if (OperatingSystem.IsWindows() && owsInstanceLauncherOptions.PathToDedicatedServer.Contains("Editor.exe") || 
+                    OperatingSystem.IsMacOS() && owsInstanceLauncherOptions.PathToDedicatedServer.EndsWith("UnrealEditor") ||
+                    OperatingSystem.IsLinux() && owsInstanceLauncherOptions.PathToDedicatedServer.EndsWith("Editor"))
                 {
-                    Match testForUprojectPathMatch = testForUprojectPath.First();
-                    string foundUprojectPath = testForUprojectPathMatch.Value;
-
-                    if (!File.Exists(foundUprojectPath))
+                    string serverArgumentsProjectPattern = @"^.*.uproject";
+                    MatchCollection testForUprojectPath = Regex.Matches(owsInstanceLauncherOptions.PathToUProject, serverArgumentsProjectPattern);
+                    if (testForUprojectPath.Count == 1)
+                    {
+                        Match testForUprojectPathMatch = testForUprojectPath.First();
+                        string foundUprojectPath = testForUprojectPathMatch.Value;
+                        if (!File.Exists(OperatingSystemExtension.PathCombine(foundUprojectPath)))
+                        {
+                            thereWasAStartupError = true;
+                            Log.Error("Your PathToUProject in appsettings.json points to a uproject file that does not exist!");
+                        }
+                    }
+                    else
                     {
                         thereWasAStartupError = true;
-                        Log.Error("Your PathToUProject in appsettings.json points to a uproject file that does not exist!");
+                        Log.Error("Because you are using UE4Editor.exe or UnrealEditor.exe, your PathToUProject in appsettings.json must contain a path to the uproject file.  Be sure to use escaped (double) backslashes in the path!");
                     }
-                }
-                else
-                {
-                    thereWasAStartupError = true;
-                    Log.Error("Because you are using UE4Editor.exe or UnrealEditor.exe, your PathToUProject in appsettings.json must contain a path to the uproject file.  Be sure to use escaped (double) backslashes in the path!");
-                }
+                }  
             }
 
             //If there was a startup error, don't continue any further.  Wait for shutdown.
