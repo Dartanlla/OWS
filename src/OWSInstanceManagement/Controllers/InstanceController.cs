@@ -14,6 +14,7 @@ using OWSData.Models.Composites;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Options;
 using System.Net.Http;
+using Serilog;
 
 namespace OWSInstanceManagement.Controllers
 {
@@ -115,7 +116,7 @@ namespace OWSInstanceManagement.Controllers
             var launcherGuid = Request.Headers["X-LauncherGUID"].FirstOrDefault();
             if (string.IsNullOrEmpty(launcherGuid))
             {
-                Console.WriteLine("Http Header X-LauncherGUID is empty!");
+                Log.Error("Http Header X-LauncherGUID is empty!");
             }
 
             request.SetData(_instanceManagementRepository, launcherGuid, _customerGuid);
@@ -134,7 +135,7 @@ namespace OWSInstanceManagement.Controllers
             var launcherGuid = Request.Headers["X-LauncherGUID"].FirstOrDefault();
             if (string.IsNullOrEmpty(launcherGuid))
             {
-                Console.WriteLine("Http Header X-LauncherGUID is empty!");
+                Log.Error("Http Header X-LauncherGUID is empty!");
             }
 
             request.SetData(_instanceManagementRepository, _customerGuid);

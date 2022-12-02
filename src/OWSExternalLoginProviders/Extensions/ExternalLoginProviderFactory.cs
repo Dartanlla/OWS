@@ -2,6 +2,7 @@
 using SimpleInjector;
 using System;
 using System.Collections.Generic;
+using Serilog;
 
 namespace OWSExternalLoginProviders.Extensions
 {
@@ -42,9 +43,7 @@ namespace OWSExternalLoginProviders.Extensions
             }
             else
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"ExternalLoginProvider {name} is already Registered.");
-                Console.ForegroundColor = ConsoleColor.White;
+                Log.Error($"ExternalLoginProvider {name} is already Registered.");
             }
             
         }

@@ -4,8 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
-using System;
 using System.Linq;
+using Serilog;
 
 namespace OWSShared.Extensions
 {
@@ -21,9 +21,7 @@ namespace OWSShared.Extensions
                     var aggrErrors = string.Join(",", configErrors);
                     var count = configErrors.Length;
                     var configType = typeof(T).Name;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"Found {count} configuration error(s) in {configType}: {aggrErrors}");
-                    Console.ForegroundColor = ConsoleColor.White;
+                    Log.Error($"Found {count} configuration error(s) in {configType}: {aggrErrors}");
                 }
             });
 
@@ -37,9 +35,7 @@ namespace OWSShared.Extensions
                     var aggrErrors = string.Join(",", configErrors);
                     var count = configErrors.Length;
                     var configType = typeof(T).Name;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"Found {count} configuration error(s) in {configType}: {aggrErrors}");
-                    Console.ForegroundColor = ConsoleColor.White;
+                    Log.Error($"Found {count} configuration error(s) in {configType}: {aggrErrors}");
                 }
             });
 

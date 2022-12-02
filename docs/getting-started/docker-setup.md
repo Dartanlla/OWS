@@ -28,13 +28,13 @@ nav_order: 1
    Running Docker Compose without Visual Studio Debugger, Enter the following Command Prompt from the OWS root directory.
 
    ```bash
-   docker-compose -f docker-compose.yml -f docker-compose.override.windows.yml up -d
+   docker-compose -f docker-compose.yml -f docker-compose.override.windows.yml -f docker-compose-additional.yml up -d 
    ```
 
    For a fresh build use the following command
    
    ```bash
-   docker-compose -f docker-compose.yml -f docker-compose.override.windows.yml up -d --build --force-recreate
+   docker-compose -f docker-compose.yml -f docker-compose.override.windows.yml -f docker-compose-additional.yml up -d --build --force-recreate 
    ```
 </details>
 
@@ -43,7 +43,7 @@ nav_order: 1
     macOS
   </summary>
 
-1. Download and install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop)
+1. Download and install [Docker Desktop for Mac](https://docs.docker.com/desktop/install/mac-install/)
 2. Open OWS Project in [Visual Studio For Mac](https://visualstudio.microsoft.com/de/vs/mac/). The [ASP.NET and Web Development workload](../troubleshooting/visual-studio#installing-workloads) is required.
 3. Run the following command in a terminal to install the Development Certificates
    
@@ -56,13 +56,13 @@ nav_order: 1
     Running Docker Compose without Visual Studio Debugger, Run the following command in an terminal from the OWS root directory.
 
    ```bash
-   docker-compose -f docker-compose.yml -f docker-compose.override.osx.yml up -d
+   docker-compose -f docker-compose.yml -f docker-compose.override.osx.yml -f docker-compose-additional.yml up -d 
    ```
 
    For a fresh build use the following command
    
    ```bash
-   docker-compose -f docker-compose.yml -f docker-compose.override.osx.yml up -d --build --force-recreate
+   docker-compose -f docker-compose.yml -f docker-compose.override.osx.yml -f docker-compose-additional.yml up -d --build --force-recreate 
    ```
 </details>
 
@@ -71,19 +71,19 @@ nav_order: 1
     Linux
   </summary>
 
-1. Download and install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop)
+1. Download and install [Docker Desktop for Linux](https://docs.docker.com/desktop/install/linux-install/)
 2. Close all web browsers
 3. Download and Run [dotnet-dev-certificate-linux](https://github.com/CodewareGames/dotnet-dev-certificate-linux) to install Development HTTPS Certificate.
 4. Run the following command in an terminal from the OWS src directory.
 
    ```bash
-   sudo docker-compose -f docker-compose.yml -f docker-compose.override.linux.yml up -d
+   sudo docker-compose -f docker-compose.yml -f docker-compose.override.linux.yml -f docker-compose-additional.yml up -d 
    ```
 
    For a fresh build use the following command
 
    ```bash
-   sudo docker-compose -f docker-compose.yml -f docker-compose.override.linux.yml up -d --build --force-recreate
+   sudo docker-compose -f docker-compose.yml -f docker-compose.override.linux.yml -f docker-compose-additional.yml up -d --build --force-recreate 
    ```
 </details>
 

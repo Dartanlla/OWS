@@ -13,6 +13,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace OWSShared.Objects
 {
@@ -34,24 +35,17 @@ namespace OWSShared.Objects
 
         public void DoWork()
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("Server Health Monitoring is checking for broken Zone Server Instances...");
-            Console.ForegroundColor = ConsoleColor.White;
+            Log.Information("Server Health Monitoring is checking for broken Zone Server Instances...");
 
             int worldServerID = _owsInstanceLauncherDataRepository.GetWorldServerID();
 
             if (worldServerID < 1)
             {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("Server Health Monitoring is waiting for a valid World Server ID...");
-                Console.ForegroundColor = ConsoleColor.White;
-
+                Log.Warning("Server Health Monitoring is waiting for a valid World Server ID...");
                 return;
             }
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("Server Health Monitoring is getting a list of Zone Server Instances...");
-            Console.ForegroundColor = ConsoleColor.White;
+            Log.Information("Server Health Monitoring is getting a list of Zone Server Instances...");
 
             //Get a list of ZoneInstances from api/Instance/GetZoneInstancesForWorldServer
             List<GetZoneInstancesForWorldServer> zoneInstances = GetZoneInstancesForWorldServer(worldServerID);
@@ -64,9 +58,7 @@ namespace OWSShared.Objects
 
         public void Dispose()
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Shutting Down OWS Server Health Monitoring...");
-            Console.ForegroundColor = ConsoleColor.White;
+            Log.Information("Shutting Down OWS Server Health Monitoring...");
         }
 
         private List<GetZoneInstancesForWorldServer> GetZoneInstancesForWorldServer(int worldServerId)
