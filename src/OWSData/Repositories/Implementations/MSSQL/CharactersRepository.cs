@@ -73,17 +73,41 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task AddOrUpdateCustomCharacterData(Guid customerGUID, AddOrUpdateCustomCharacterData addOrUpdateCustomCharacterData)
         {
+            // TODO Add Logging
+            
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", addOrUpdateCustomCharacterData.CharacterName);
-                p.Add("@CustomFieldName", addOrUpdateCustomCharacterData.CustomFieldName);
-                p.Add("@FieldValue", addOrUpdateCustomCharacterData.FieldValue);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", addOrUpdateCustomCharacterData.CharacterName);
+                parameters.Add("@CustomFieldName", addOrUpdateCustomCharacterData.CustomFieldName);
+                parameters.Add("@FieldValue", addOrUpdateCustomCharacterData.FieldValue);
 
-                await Connection.ExecuteAsync("AddOrUpdateCustomCharData",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDFromName,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                if (outputCharacter.CharacterId > 0)
+                {
+                    parameters.Add("@CharacterID", outputCharacter.CharacterId);
+                    
+                    var hasCustomCharacterData = await Connection.QuerySingleOrDefaultAsync<int>(GenericQueries.HasCustomCharacterDataForField,
+                        parameters,
+                        commandType: CommandType.Text);
+
+                    if (hasCustomCharacterData > 0)
+                    {
+                        await Connection.ExecuteAsync(GenericQueries.UpdateCharacterCustomDataField,
+                            parameters,
+                            commandType: CommandType.Text);
+                    }
+                    else
+                    {
+                        await Connection.ExecuteAsync(GenericQueries.AddCharacterCustomDataField,
+                            parameters,
+                            commandType: CommandType.Text);
+                    }
+                }
             }
         }
 
@@ -133,17 +157,19 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<IEnumerable<CustomCharacterData>> GetCustomCharacterData(Guid customerGUID, string characterName)
         {
+            // TODO Add Logging
+
             IEnumerable<CustomCharacterData> outputCustomCharacterDataRows;
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
 
-                outputCustomCharacterDataRows = await Connection.QueryAsync<CustomCharacterData>("GetCustomCharData",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                outputCustomCharacterDataRows = await Connection.QueryAsync<CustomCharacterData>(GenericQueries.GetCharacterCustomDataByName,
+                    parameters,
+                    commandType: CommandType.Text);
             }
 
             return outputCustomCharacterDataRows;

@@ -16,6 +16,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace OWSShared.Objects
 {
@@ -55,8 +56,7 @@ namespace OWSShared.Objects
             {
                 _launcherGUID = Guid.NewGuid();
                 _owsInstanceLauncherOptions.Update(x => x.LauncherGuid = _launcherGUID.ToString());
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("New Launcher GUID Generated: " + _launcherGUID.ToString());
+                Log.Information($"New Launcher GUID Generated: {_launcherGUID}");
             }
             else
             {
@@ -76,21 +76,16 @@ namespace OWSShared.Objects
 
         public void RegisterLauncher()
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Attempting to register Launcher GUID: " + _launcherGUID.ToString());
-
+            Log.Information($"Attempting to register Launcher GUID: {_launcherGUID}");
             var isregistered = RegisterInstanceLauncherRequest();
 
             if (isregistered == 1)
             {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Success!  Registered: " + _launcherGUID.ToString());
+                Log.Information($"Success!  Registered: {_launcherGUID}");
             }
             else
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Error Registering: " + _launcherGUID.ToString());
-
+                Log.Error($"Error Registering: {_launcherGUID}");
             }
         }
 
@@ -116,8 +111,7 @@ namespace OWSShared.Objects
 
         private void InitRabbitMQ()
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Attempting to Register OWS Instance Launcher with RabbitMQ ServerSpinUp Queue...");
+            Log.Information("Attempting to Register OWS Instance Launcher with RabbitMQ ServerSpinUp Queue...");
 
             var factory = new ConnectionFactory()
             {
@@ -135,7 +129,7 @@ namespace OWSShared.Objects
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error connecting to RabbitMQ: {ex.Message}");
+                Log.Error($"Error connecting to RabbitMQ: {ex.Message}");
             }
 
             // create channel for server spin up  
@@ -178,8 +172,7 @@ namespace OWSShared.Objects
 
             connection.ConnectionShutdown += RabbitMQ_ConnectionShutdown;
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("Registered OWS Instance Launcher with RabbitMQ ServerSpinUp Queue Success!");
+            Log.Information("Registered OWS Instance Launcher with RabbitMQ ServerSpinUp Queue Success!");
         }
 
         //protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -196,8 +189,7 @@ namespace OWSShared.Objects
 
             serverSpinUpConsumer.Received += (model, ea) =>
             {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("Server Spin Up Message Received");
+                Log.Information("Server Spin Up Message Received");
                 var body = ea.Body;
                 MQSpinUpServerMessage serverSpinUpMessage = MQSpinUpServerMessage.Deserialize(body.ToArray());
                 HandleServerSpinUpMessage(
@@ -224,8 +216,7 @@ namespace OWSShared.Objects
 
             serverShutDownConsumer.Received += (model, ea) =>
             {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("Message Received");
+                Log.Information("Message Received");
                 var body = ea.Body;
                 MQShutDownServerMessage serverShutDownMessage = MQShutDownServerMessage.Deserialize(body.ToArray());
                 HandleServerShutDownMessage(
@@ -250,13 +241,12 @@ namespace OWSShared.Objects
 
         private void HandleServerSpinUpMessage(Guid customerGUID, int worldServerID, int zoneInstanceID, string mapName, int port)
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"Starting up {customerGUID} : {worldServerID} : {mapName} : {port}");
+            Log.Information($"Starting up {customerGUID} : {worldServerID} : {mapName} : {port}");
 
             //Security Check on CustomerGUID
             if (_customerGUID != customerGUID)
             {
-                Console.WriteLine("HandleServerSpinUpMessage - Incoming CustomerGUID does not match OWSAPIKey in appsettings.json");
+                Log.Error("HandleServerSpinUpMessage - Incoming CustomerGUID does not match OWSAPIKey in appsettings.json");
                 return;
             }
 
@@ -293,8 +283,7 @@ namespace OWSShared.Objects
                 ProcessName = proc.ProcessName
             });
 
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"{customerGUID} : {worldServerID} : {mapName} : {port} has started.");
+            Log.Information($"{customerGUID} : {worldServerID} : {mapName} : {port} has started.");
 
             //The server has finished spinning up.  Set the status to 2.
             //_ = UpdateZoneServerStatusReady(zoneInstanceID);
@@ -302,13 +291,12 @@ namespace OWSShared.Objects
 
         private void HandleServerShutDownMessage(Guid customerGUID, int zoneInstanceID)
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"Shutting down {customerGUID} : {zoneInstanceID}");
+            Log.Information($"Shutting down {customerGUID} : {zoneInstanceID}");
 
             //Security Check on CustomerGUID
             if (_customerGUID != customerGUID)
             {
-                Console.WriteLine("HandleServerShutDownMessage - Incoming CustomerGUID does not match OWSAPIKey in appsettings.json");
+                Log.Error("HandleServerShutDownMessage - Incoming CustomerGUID does not match OWSAPIKey in appsettings.json");
                 return;
             }
 
@@ -327,9 +315,7 @@ namespace OWSShared.Objects
 
         private void ShutDownAllZoneServerInstances()
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Shutting down all Server Instances...");
-            Console.ForegroundColor = ConsoleColor.White;
+            Log.Information("Shutting down all Server Instances...");
 
             foreach (var zoneServerInstance in _zoneServerProcessesRepository.GetZoneServerProcesses())
             {
@@ -384,9 +370,7 @@ namespace OWSShared.Objects
 
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Error connecting to Instance Management API: {ex.Message} - {ex.InnerException}");
-                Console.ForegroundColor = ConsoleColor.White;
+                Log.Error($"Error connecting to Instance Management API: {ex.Message} - {ex.InnerException}");
             }
 
             return -1;
@@ -428,9 +412,7 @@ namespace OWSShared.Objects
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Error connecting to Instance Management API: {ex.Message} - {ex.InnerException}");
-                Console.ForegroundColor = ConsoleColor.White;
+                Log.Error($"Error connecting to Instance Management API: {ex.Message} - {ex.InnerException}");
             }
 
             return -1;
@@ -498,9 +480,7 @@ namespace OWSShared.Objects
 
         public void Dispose()
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Shutting Down OWS Instance Launcher...");
-            Console.ForegroundColor = ConsoleColor.White;
+            Log.Information("Shutting Down OWS Instance Launcher...");
 
             if (_worldServerId > 0)
             {
@@ -524,9 +504,7 @@ namespace OWSShared.Objects
                 connection.Close();
             }
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("Done!");
-            Console.ForegroundColor = ConsoleColor.White;
+            Log.Information("Done!");
         }
     }
 }

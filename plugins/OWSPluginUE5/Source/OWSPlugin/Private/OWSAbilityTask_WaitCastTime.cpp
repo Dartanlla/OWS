@@ -24,7 +24,7 @@ UOWSAbilityTask_WaitCastTime* UOWSAbilityTask_WaitCastTime::RPGWaitCastTime(UGam
 
 void UOWSAbilityTask_WaitCastTime::OnCancelCallback()
 {
-	if (AbilitySystemComponent)
+	if (AbilitySystemComponent.Get())
 	{
 		AbilitySystemComponent->ConsumeGenericReplicatedEvent(EAbilityGenericReplicatedEvent::GenericCancel, GetAbilitySpecHandle(), GetActivationPredictionKey());
 		Cancelled.Broadcast();
@@ -34,9 +34,9 @@ void UOWSAbilityTask_WaitCastTime::OnCancelCallback()
 
 void UOWSAbilityTask_WaitCastTime::OnLocalCancelCallback()
 {
-	FScopedPredictionWindow ScopedPrediction(AbilitySystemComponent, IsPredictingClient());
+	FScopedPredictionWindow ScopedPrediction(AbilitySystemComponent.Get(), IsPredictingClient());
 
-	if (AbilitySystemComponent && IsPredictingClient())
+	if (AbilitySystemComponent.Get() && IsPredictingClient())
 	{
 		AbilitySystemComponent->ServerSetReplicatedEvent(EAbilityGenericReplicatedEvent::GenericCancel, GetAbilitySpecHandle(), GetActivationPredictionKey(), AbilitySystemComponent->ScopedPredictionKey);
 	}
@@ -52,14 +52,14 @@ void UOWSAbilityTask_WaitCastTime::Activate()
 	FTimerHandle TimerHandle;
 	
 
-	if (AbilitySystemComponent)
+	if (AbilitySystemComponent.Get())
 	{
 		const FGameplayAbilityActorInfo* Info = Ability->GetCurrentActorInfo();
 
 		if (IsPredictingClient())
 		{
 			// We have to wait for the callback from the AbilitySystemComponent.
-			AbilitySystemComponent->GenericLocalCancelCallbacks.AddDynamic(this, &UOWSAbilityTask_WaitCastTime::OnLocalCancelCallback);	// Tell me if the cancel input is pressed
+			AbilitySystemComponent.Get()->GenericLocalCancelCallbacks.AddDynamic(this, &UOWSAbilityTask_WaitCastTime::OnLocalCancelCallback);	// Tell me if the cancel input is pressed
 			World->GetTimerManager().SetTimer(TimerHandleClient, this, &UOWSAbilityTask_WaitCastTime::OnCastFinishClient, CastTime, false);
 			RegisteredCallbacks = true;
 		}
@@ -74,7 +74,7 @@ void UOWSAbilityTask_WaitCastTime::Activate()
 
 void UOWSAbilityTask_WaitCastTime::OnDestroy(bool AbilityEnded)
 {
-	if (RegisteredCallbacks && AbilitySystemComponent)
+	if (RegisteredCallbacks && AbilitySystemComponent.Get())
 	{
 		AbilitySystemComponent->GenericLocalCancelCallbacks.RemoveDynamic(this, &UOWSAbilityTask_WaitCastTime::OnLocalCancelCallback);
 	}

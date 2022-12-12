@@ -4,3 +4,7 @@ title: Open World Server
 baseurl: ""
 url: "http://openworldserver.com/"
 github_username:  Dartanlla
+
+aux_links:
+  "GitHub":
+    - "//github.com/Dartanlla/OWS"
