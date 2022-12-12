@@ -14,7 +14,7 @@ namespace OWSData.SQL
 	    public static readonly string AddCharacterCustomDataField = @"INSERT INTO CustomCharacterData (CustomerGUID, CharacterID, CustomFieldName, FieldValue)
 		VALUES (@CustomerGUID, @CharacterID, @CustomFieldName, @FieldValue)";
 
-	    public static readonly string GetCharacterIDFromName = @"SELECT CharacterID
+	    public static readonly string GetCharacterIDByName = @"SELECT CharacterID
 				FROM Characters
 				WHERE CustomerGUID = @CustomerGUID
 				  AND CharName = @CharName";
