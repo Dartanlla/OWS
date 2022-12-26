@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 
 namespace OWSShared.Extensions
@@ -10,7 +11,8 @@ namespace OWSShared.Extensions
             var splits = additional.Select(s => s.Split(pathSplitCharacters)).ToArray();
             var totalLength = splits.Sum(arr => arr.Length);
             var segments = new string[totalLength + 1];
-            segments[0] = "/";
+            segments[0] = "";
+            if (additional.First().StartsWith("/")) { segments[0] = "/"; }
             var i = 0;
             foreach (var split in splits)
             {
