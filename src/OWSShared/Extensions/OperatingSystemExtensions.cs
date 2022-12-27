@@ -21,7 +21,7 @@ namespace OWSShared.Extensions
                 }
                 else if (additional.First().StartsWith("~/"))
                 {
-                    additional = additional.Skip(1).ToArray();
+                    additional = additional.Select(x => x.Replace("~/", string.Empty)).ToArray();
                     splits = additional.Select(s => s.Split(pathSplitCharacters)).ToArray();
                     totalLength = splits.Sum(arr => arr.Length);
                     segments = new string[totalLength + 1];
