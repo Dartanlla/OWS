@@ -1,27 +1,43 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace OWSShared.Extensions
 {
 	public static class OperatingSystemExtension
 	{
-        static char[] pathSplitCharacters = new char[] { '\\', '/' };
-
-        public static string PathCombine(params string[] additional)
+        /// <summary>
+        /// Cross Platform PathCombine
+        /// 
+        /// Includes Linux And MacOS Base and Home Directory ~/
+        /// </summary>
+        /// <param name="pathstring"></param>
+        /// <returns></returns>
+        public static string PathCombine(string pathstring)
         {
-            var splits = additional.Select(s => s.Split(pathSplitCharacters)).ToArray();
-            var totalLength = splits.Sum(arr => arr.Length);
-            var segments = new string[totalLength];
-            var i = 0;
-            foreach (var split in splits)
+            List<string> segments = new List<string>();
+
+            // Linux & MacOS Fix
+            if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
             {
-                foreach (var value in split)
+                // Linux & MacOS Base Directory
+                if (pathstring.StartsWith("/") || pathstring.StartsWith(@"\"))
                 {
-                    segments[i] = value;
-                    i++;
+                    segments.Add("/");
+                }
+                // Linux & MacOS Home Directory
+                else if (pathstring.StartsWith("~/"))
+                {
+                    pathstring = pathstring.Replace("~/", String.Empty);
+                    segments.Add(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
                 }
             }
-            return Path.Combine(segments);
-        } 
-	}
+
+            char[] separators = { '/', '\\' };
+            string[] paths = pathstring.Split(separators);
+            segments.AddRange(paths);
+
+            return Path.Combine(segments.ToArray());
+        }
+    }
 }
