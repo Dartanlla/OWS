@@ -1,46 +1,43 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace OWSShared.Extensions
 {
 	public static class OperatingSystemExtension
 	{
-        public static string PathCombine(params string[] additional)
+        /// <summary>
+        /// Cross Platform PathCombine
+        /// 
+        /// Includes Linux And MacOS Base and Home Directory ~/
+        /// </summary>
+        /// <param name="pathstring"></param>
+        /// <returns></returns>
+        public static string PathCombine(string pathstring)
         {
-            var splits = additional.Select(s => s.Split(pathSplitCharacters)).ToArray();
-            var totalLength = splits.Sum(arr => arr.Length);
-            var segments = new string[totalLength + 1];
-            segments[0] = "";
+            List<string> segments = new List<string>();
 
-            if (OperatingSystem.IsMacOS() || OperatingSystem.IsLinux())
+            // Linux & MacOS Fix
+            if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
             {
-                if (additional.First().StartsWith("/") || additional.First().StartsWith(@"\"))
+                // Linux & MacOS Base Directory
+                if (pathstring.StartsWith("/") || pathstring.StartsWith(@"\"))
                 {
-                    segments[0] = "/";
+                    segments.Add("/");
                 }
-                else if (additional.First().StartsWith("~/"))
+                // Linux & MacOS Home Directory
+                else if (pathstring.StartsWith("~/"))
                 {
-                    additional = additional.Select(x => x.Replace("~/", string.Empty)).ToArray();
-                    splits = additional.Select(s => s.Split(pathSplitCharacters)).ToArray();
-                    totalLength = splits.Sum(arr => arr.Length);
-                    segments = new string[totalLength + 1];
-                    segments[0] = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                    pathstring.Replace("~/", String.Empty);
+                    segments.Add(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
                 }
             }
 
-            var i = 0;
-            foreach (var split in splits)
-            {
-                foreach (var value in split)
-                {
-                    i++;
-                    segments[i] = value;
-                }
-            }
-            return Path.Combine(segments);
+            char[] separators = { '/', '\\' };
+            string[] paths = pathstring.Split(separators);
+            segments.AddRange(paths);
+
+            return Path.Combine(segments.ToArray());
         }
-
-        static char[] pathSplitCharacters = new char[] { '/', '\\' };
     }
 }
