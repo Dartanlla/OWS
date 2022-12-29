@@ -28,7 +28,7 @@ namespace OWSShared.Extensions
                 // Linux & MacOS Home Directory
                 else if (pathstring.StartsWith("~/"))
                 {
-                    pathstring.Replace("~/", String.Empty);
+                    pathstring = pathstring.Replace("~/", String.Empty);
                     segments.Add(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
                 }
             }
