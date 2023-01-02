@@ -2,6 +2,7 @@
 
 #include "OWSProjectileMovementComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Engine/ScopedMovementUpdate.h"
 #include "Runtime/Engine/Classes/Components/PrimitiveComponent.h"
 
 
