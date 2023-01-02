@@ -9,7 +9,7 @@
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
-#include "OWSGameplayAbilityTargetDatafilter.h"
+#include "OWSGameplayAbilityTargetDataFilter.h"
 #include "OWSAbilitySystemBlueprintLibrary.generated.h"
 
 

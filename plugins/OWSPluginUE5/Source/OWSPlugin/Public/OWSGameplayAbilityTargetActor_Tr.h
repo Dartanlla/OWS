@@ -11,7 +11,7 @@
 #include "Abilities/GameplayAbilityTargetTypes.h"
 #include "Abilities/GameplayAbilityTargetDataFilter.h"
 #include "OWSGameplayAbilityTargetActor.h"
-#include "OWSGameplayAbilityTargetDatafilter.h"
+#include "OWSGameplayAbilityTargetDataFilter.h"
 #include "OWSGameplayAbilityTargetActor_Tr.generated.h"
 
 class UGameplayAbility;
