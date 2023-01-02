@@ -915,6 +915,19 @@ struct FGetServerInstanceFromPort
 	GENERATED_BODY()
 
 public:
+	FGetServerInstanceFromPort() {
+		MapName = "";
+		ZoneName = "";
+		WorldCompContainsFilter = "";
+		WorldCompListFilter = "";
+		MapInstanceID = 0;
+		Status = 0;
+		MaxNumberOfInstances = 0;
+		ActiveStartTime = FDateTime();
+		ServerStatus = 0;
+		InternalServerIP = "";
+	}
+
 	UPROPERTY()
 		FString MapName;
 
