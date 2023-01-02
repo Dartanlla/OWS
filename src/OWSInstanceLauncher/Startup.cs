@@ -33,6 +33,8 @@ namespace OWSInstanceLauncher
 
         public Startup(IConfiguration configuration)
         {
+            Log.Information("Starting OWS Instance Launcher...");
+
             container.Options.ResolveUnregisteredConcreteTypes = false;
 
             Configuration = configuration;
@@ -42,6 +44,8 @@ namespace OWSInstanceLauncher
 
             //Check appsettings.json file for potential errors
             bool thereWasAStartupError = false;
+
+            Log.Information("Checking appsettings.json for errors...");
 
             //Abort if there is not a valid OWSAPIKey in appsettings.json
             if (String.IsNullOrEmpty(owsInstanceLauncherOptions.OWSAPIKey))
