@@ -12,7 +12,7 @@
             Contains character related API calls that are all publicly accessible.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Controllers.CharactersController.#ctor(SimpleInjector.Container,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
+        <member name="M:OWSPublicAPI.Controllers.CharactersController.#ctor(SimpleInjector.Container,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,OWSShared.Interfaces.ICustomCharacterDataSelector)">
             <summary>
             Constructor for Public Character related API calls.
             </summary>
@@ -188,7 +188,7 @@
             Handles api/Characters/GetByName requests.
             </remarks>
         </member>
-        <member name="P:OWSPublicAPI.Requests.Characters.GetByNameRequest.CharacterName">
+        <member name="P:OWSPublicAPI.Requests.Characters.GetByNameRequest.UserSessionGUID">
             <summary>
             CharacterName Request Paramater.
             </summary>
@@ -196,7 +196,7 @@
             Contains the Character Name from the request
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Requests.Characters.GetByNameRequest.SetData(OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
+        <member name="M:OWSPublicAPI.Requests.Characters.GetByNameRequest.SetData(OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,OWSShared.Interfaces.ICustomCharacterDataSelector)">
             <summary>
             Set Dependencies for GetByNameRequest
             </summary>

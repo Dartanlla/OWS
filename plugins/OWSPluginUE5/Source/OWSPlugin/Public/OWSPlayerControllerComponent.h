@@ -26,6 +26,10 @@ DECLARE_DELEGATE_OneParam(FErrorGetAllCharactersDelegate, const FString&)
 DECLARE_DELEGATE_OneParam(FNotifyGetCharacterStatsDelegate, TSharedPtr<FJsonObject>)
 DECLARE_DELEGATE_OneParam(FErrorGetCharacterStatsDelegate, const FString&)
 
+//Get Character Data and Custom Data
+DECLARE_DELEGATE_OneParam(FNotifyGetCharacterDataAndCustomDataDelegate, TSharedPtr<FJsonObject>)
+DECLARE_DELEGATE_OneParam(FErrorGetCharacterDataAndCustomDataDelegate, const FString&)
+
 //Update Character Stats
 DECLARE_DELEGATE(FNotifyUpdateCharacterStatsDelegate)
 DECLARE_DELEGATE_OneParam(FErrorUpdateCharacterStatsDelegate, const FString&)
@@ -155,6 +159,15 @@ public:
 
 	FNotifyGetCharacterStatsDelegate OnNotifyGetCharacterStatsDelegate;
 	FErrorGetCharacterStatsDelegate OnErrorGetCharacterStatsDelegate;
+
+	//Get Character Data and Custom Data
+	UFUNCTION(BlueprintCallable, Category = "Character")
+		void GetCharacterDataAndCustomData(FString UserSessionGUID, FString CharName);
+
+	void OnGetCharacterDataAndCustomDataResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	FNotifyGetCharacterDataAndCustomDataDelegate OnNotifyGetCharacterDataAndCustomDataDelegate;
+	FErrorGetCharacterDataAndCustomDataDelegate OnErrorGetCharacterDataAndCustomDataDelegate;
 
 	//Update Character Stats
 	UFUNCTION(BlueprintCallable, Category = "Character")

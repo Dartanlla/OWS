@@ -31,6 +31,7 @@ namespace OWSPublicAPI.Controllers
         private readonly Container _container;
         private readonly ICharactersRepository _charactersRepository;
         private readonly IHeaderCustomerGUID _customerGuid;
+        private readonly ICustomCharacterDataSelector _customCharacterDataSelector;
 
         /// <summary>
         /// Constructor for Public Character related API calls.
@@ -38,11 +39,12 @@ namespace OWSPublicAPI.Controllers
         /// <remarks>
         /// All dependencies are injected.
         /// </remarks>
-        public CharactersController(Container container, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
+        public CharactersController(Container container, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, ICustomCharacterDataSelector customCharacterDataSelector)
         {
             _container = container;
             _charactersRepository = charactersRepository;
             _customerGuid = customerGuid;
+            _customCharacterDataSelector = customCharacterDataSelector;
         }
 
         /// <summary>
@@ -73,7 +75,7 @@ namespace OWSPublicAPI.Controllers
         [SwaggerResponse(404)]*/
         public async Task<IActionResult> GetByName([FromBody] GetByNameRequest request)
         {
-            request.SetData(_charactersRepository, _customerGuid);
+            request.SetData(_charactersRepository, _customerGuid, _customCharacterDataSelector);
             return await request.Handle();
         }
 

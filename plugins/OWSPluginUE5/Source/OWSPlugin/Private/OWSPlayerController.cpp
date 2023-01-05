@@ -51,6 +51,8 @@ AOWSPlayerController::AOWSPlayerController()
 	OWSPlayerControllerComponent->OnNotifyUpdateCharacterStatsDelegate.BindUObject(this, &AOWSPlayerController::NotifyUpdateCharacterStats);
 	OWSPlayerControllerComponent->OnNotifyGetCustomCharacterDataDelegate.BindUObject(this, &AOWSPlayerController::NotifyGetCustomCharacterData);
 	OWSPlayerControllerComponent->OnErrorGetCustomCharacterDataDelegate.BindUObject(this, &AOWSPlayerController::ErrorCustomCharacterData);
+	OWSPlayerControllerComponent->OnNotifyGetCharacterDataAndCustomDataDelegate.BindUObject(this, &AOWSPlayerController::NotifyGetCharacterDataAndCustomData2);
+	OWSPlayerControllerComponent->OnErrorGetCharacterDataAndCustomDataDelegate.BindUObject(this, &AOWSPlayerController::ErrorGetCharacterDataAndCustomData);
 	OWSPlayerControllerComponent->OnNotifyAddAbilityToCharacterDelegate.BindUObject(this, &AOWSPlayerController::NotifyAddAbilityToCharacter);
 	OWSPlayerControllerComponent->OnErrorAddAbilityToCharacterDelegate.BindUObject(this, &AOWSPlayerController::ErrorAddAbilityToCharacter);
 	OWSPlayerControllerComponent->OnNotifyGetCharacterAbilitiesDelegate.BindUObject(this, &AOWSPlayerController::NotifyGetCharacterAbilities);
@@ -200,6 +202,27 @@ void AOWSPlayerController::ErrorGetAbilityBars(const FString& ErrorMsg)
 	OWSCharacter->GetAbilityBarsError(ErrorMsg);
 }
 
+void AOWSPlayerController::NotifyGetCharacterDataAndCustomData2(TSharedPtr<FJsonObject> JsonObject)
+{
+	TArray<FCustomCharacterDataStruct> CustomData;
+
+	if (JsonObject->HasField("CustomCharacterDataRows"))
+	{
+		TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField("CustomCharacterDataRows");
+
+		for (int RowNum = 0; RowNum != Rows.Num(); RowNum++) {
+			FCustomCharacterDataStruct tempCustomData;
+			TSharedPtr<FJsonObject> tempRow = Rows[RowNum]->AsObject();
+			tempCustomData.CustomFieldName = tempRow->GetStringField("CustomFieldName");
+			tempCustomData.FieldValue = tempRow->GetStringField("FieldValue");
+
+			CustomData.Add(tempCustomData);
+		}
+	}
+
+	NotifyGetCharacterDataAndCustomData(CustomData);
+	
+}
 
 void AOWSPlayerController::SetSelectedCharacterAndConnectToLastZone(FString UserSessionGUID, FString SelectedCharacterName)
 {

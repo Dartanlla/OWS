@@ -486,6 +486,41 @@ void UOWSPlayerControllerComponent::OnGetCharacterStatsResponseReceived(FHttpReq
 	}
 }
 
+//GetCharacterDataAndCustomData - This makes a call to the OWS Public API and is usable from the Character Selection screen.
+void UOWSPlayerControllerComponent::GetCharacterDataAndCustomData(FString UserSessionGUID, FString CharName)
+{
+	FGetCharacterStatsJSONPost GetCharacterStatsJSONPost;
+	GetCharacterStatsJSONPost.CharacterName = CharName;
+	FString PostParameters = "";
+	if (FJsonObjectConverter::UStructToJsonObjectString(GetCharacterStatsJSONPost, PostParameters))
+	{
+		ProcessOWS2POSTRequest("OWSPublicAPI", "api/Characters/ByName", PostParameters, &UOWSPlayerControllerComponent::OnGetCharacterDataAndCustomDataResponseReceived);
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("GetCharacterDataAndCustomData Error serializing GetCharacterStatsJSONPost!"));
+	}
+}
+
+void UOWSPlayerControllerComponent::OnGetCharacterDataAndCustomDataResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		TSharedPtr<FJsonObject> JsonObject;
+		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
+
+		if (FJsonSerializer::Deserialize(Reader, JsonObject))
+		{
+			OnNotifyGetCharacterDataAndCustomDataDelegate.ExecuteIfBound(JsonObject);
+		}
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("OnGetCharacterDataAndCustomDataResponseReceived Error accessing server!"));
+		OnErrorGetCharacterDataAndCustomDataDelegate.ExecuteIfBound(TEXT("Unknown error connecting to server!"));
+	}
+}
+
 //Update Character Stats
 void UOWSPlayerControllerComponent::UpdateCharacterStats(FString JSONString)
 {
