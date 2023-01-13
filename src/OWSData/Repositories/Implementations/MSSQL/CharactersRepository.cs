@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Dapper.Transaction;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OWSData.Models.StoredProcs;
@@ -139,32 +140,44 @@ namespace OWSData.Repositories.Implementations.MSSQL
         {
             // TODO Add Logging
 
-            using (Connection)
+            IDbConnection conn = Connection;
+            conn.Open();
+            using (IDbTransaction transaction = conn.BeginTransaction())
             {
-                var parameters = new DynamicParameters();
-                parameters.Add("@CustomerGUID", customerGUID);
-                parameters.Add("@CharacterMinutes", -1); // TODO Add Configuration Parameter
-                parameters.Add("@MapMinutes", -2); // TODO Add Configuration Parameter
-
-                await Connection.ExecuteAsync(MSSQLQueries.RemoveCharactersFromAllInactiveInstances,
-                    parameters,
-                    commandType: CommandType.Text);
-
-                var outputMapInstances = await Connection.QueryAsync<int>(MSSQLQueries.GetAllInactiveMapInstances,
-                    parameters,
-                    commandType: CommandType.Text);
-
-                if (outputMapInstances.Any())
+                try
                 {
-                    parameters.Add("@MapInstances", outputMapInstances);
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@CustomerGUID", customerGUID);
+                    parameters.Add("@CharacterMinutes", -1); // TODO Add Configuration Parameter
+                    parameters.Add("@MapMinutes", -2); // TODO Add Configuration Parameter
 
-                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromInstances,
+                    await transaction.ExecuteAsync(MSSQLQueries.RemoveCharactersFromAllInactiveInstances,
                         parameters,
                         commandType: CommandType.Text);
 
-                    await Connection.ExecuteAsync(GenericQueries.RemoveMapInstances,
+                    var outputMapInstances = await transaction.QueryAsync<int>(MSSQLQueries.GetAllInactiveMapInstances,
                         parameters,
                         commandType: CommandType.Text);
+
+                    if (outputMapInstances.Any())
+                    {
+                        parameters.Add("@MapInstances", outputMapInstances);
+
+                        await transaction.ExecuteAsync(GenericQueries.RemoveCharacterFromInstances,
+                            parameters,
+                            commandType: CommandType.Text);
+
+                        await transaction.ExecuteAsync(GenericQueries.RemoveMapInstances,
+                            parameters,
+                            commandType: CommandType.Text);
+
+                    }
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw new Exception("Database Exception in CleanUpInstances!");
                 }
             }
         }
