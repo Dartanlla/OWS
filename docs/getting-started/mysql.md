@@ -51,7 +51,7 @@ nav_order: 1
    (Optional): A specific GUID can be entered as an optional final parameter, after password, in the format of '00000000-0000-0000-0000-000000000000'.
 
    ```sql
-    CALL AddNewCustomer ('CustomerName', 'FirstName', 'LastName', 'Email', 'Password');
+    CALL AddNewCustomer ('CustomerName', 'FirstName', 'LastName', 'Email', 'Password', NULL);
    ```
    
    Be sure to replace the values:
