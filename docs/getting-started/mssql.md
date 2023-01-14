@@ -42,7 +42,8 @@ nav_order: 1
         <dd>yourStrong(!)Password</dd>
     </dl>
 
-2. Run the following SQL statment against the Open World Server database. 
+2. Run the following SQL statment against the Open World Server database.
+
    (Optional): A specific GUID can be entered as an optional final parameter, after password, in the format of '00000000-0000-0000-0000-000000000000'.
 
    ```sql

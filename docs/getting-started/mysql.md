@@ -47,7 +47,8 @@ nav_order: 1
         <dd>yourStrong(!)Password</dd>
     </dl>
 
-2. Run the following SQL statment against the Open World Server database. 
+2. Run the following SQL statment against the Open World Server database.
+
    (Optional): A specific GUID can be entered as an optional final parameter, after password, in the format of '00000000-0000-0000-0000-000000000000'.
 
    ```sql
@@ -76,7 +77,9 @@ nav_order: 1
    ```
 
 ## Additional
-If you are using an external MySQL/MariaDB, you need will need to run the following as a SUPER user, or grant your SUPER access to your user.
+If you are using an external MySQL/MariaDB, you need to ensure that the `ENCRYPT` function works as is available. Consult your database administrator if unsure.
+
+Secondly you need will need to run the following as a SUPER user, or grant your SUPER access to your user.
 
 ```sql
 SET GLOBAL log_bin_trust_function_creators = 1;
