@@ -6,7 +6,9 @@ namespace OWSData.SQL
 {
     public static class MySQLQueries
     {
-	    
+
+	    #region To Refactor
+
 	    public static readonly string AddAbilityToCharacterSQL = @"INSERT INTO CharHasAbilities (CustomerGUID, CharacterID, AbilityID, AbilityLevel, CharHasAbilitiesCustomJSON)
 				SELECT @CustomerGUID AS CustomerGUID , 
 					(SELECT C.CharacterID FROM Characters C WHERE C.CharName=@CharacterName AND C.CustomerGUID=@CustomerGUID LIMIT 1),
@@ -38,7 +40,7 @@ namespace OWSData.SQL
 					ON AT.AbilityTypeID=AB.AbilityTypeID
 				WHERE AB.CustomerGUID=@CustomerGUID
 				ORDER BY AB.AbilityName";
-	    
+
         public static readonly string GetUserSessionSQL = @"SELECT US.CustomerGUID, US.UserGUID, US.UserSessionGUID, US.LoginDate, US.SelectedCharacterName,
 	            U.Email, U.FirstName, U.LastName, U.CreateDate, U.LastAccess, U.Role,
 	            C.CharacterID, C.CharName, C.X, C.Y, C.Z, C.RX, C.RY, C.RZ, C.MapName as ZoneName
@@ -70,7 +72,7 @@ namespace OWSData.SQL
 	            FROM Characters C
 	            WHERE C.CustomerGUID=@CustomerGUID
 	            AND C.CharName=@CharacterName";
-		
+
 		public static readonly string GetWorldServerSQL = @"SELECT WorldServerID
 				FROM WorldServers 
 				WHERE CustomerGUID=@CustomerGUID
@@ -101,5 +103,31 @@ namespace OWSData.SQL
 				ServerStatus=1
 				WHERE CustomerGUID=@CustomerGUID
 				AND WorldServerID=@WorldServerID";
+
+		#endregion
+
+		#region Character Queries
+
+		public static readonly string RemoveCharactersFromAllInactiveInstances = @"DELETE FROM CharOnMapInstance
+                WHERE CustomerGUID = @CustomerGUID
+                AND CharacterID IN (
+                    SELECT C.CharacterID
+                      FROM Characters C
+                     INNER JOIN Users U ON U.CustomerGUID = C.CustomerGUID AND U.UserGUID = C.UserGUID
+                     WHERE U.LastAccess < DATE_SUB(NOW(), INTERVAL @CharacterMinutes MINUTE) AND C.CustomerGUID = @CustomerGUID)";
+
+		#endregion
+
+		#region Zone Queries
+
+		public static readonly string AddMapInstance = @"INSERT INTO MapInstances (CustomerGUID, WorldServerID, MapID, Port, Status, PlayerGroupID, LastUpdateFromServer)
+		VALUES (@CustomerGUID, @WorldServerID, @MapID, @Port, 1, @PlayerGroupID, NOW());
+		SELECT LAST_INSERT_ID();";
+
+		public static readonly string GetAllInactiveMapInstances = @"SELECT MapInstanceID
+                FROM MapInstances
+                WHERE LastUpdateFromServer < DATE_SUB(NOW(), INTERVAL @MapMinutes MINUTE) AND CustomerGUID = @CustomerGUID";
+
+		#endregion
     }
 }

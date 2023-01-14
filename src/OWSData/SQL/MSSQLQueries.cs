@@ -6,6 +6,9 @@ namespace OWSData.SQL
 {
     public static class MSSQLQueries
     {
+
+	    #region To Refactor
+
 		public static readonly string AddAbilityToCharacterSQL = @"INSERT INTO CharHasAbilities (CustomerGUID, CharacterID, AbilityID, AbilityLevel, CharHasAbilitiesCustomJSON)
 				SELECT @CustomerGUID, 
 					(SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName=@CharacterName AND C.CustomerGUID=@CustomerGUID),
@@ -108,5 +111,31 @@ namespace OWSData.SQL
 				ServerStatus=1
 				WHERE CustomerGUID=@CustomerGUID 
 				AND WorldServerID=@WorldServerID";
+
+		#endregion
+
+		#region Character Queries
+
+		public static readonly string RemoveCharactersFromAllInactiveInstances = @"DELETE FROM CharOnMapInstance
+                WHERE CustomerGUID = @CustomerGUID
+                AND CharacterID IN (
+                    SELECT C.CharacterID
+                      FROM Characters C
+                     INNER JOIN Users U ON U.CustomerGUID = C.CustomerGUID AND U.UserGUID = C.UserGUID
+                     WHERE U.LastAccess < DATEADD(minute, @CharacterMinutes, GETDATE()) AND C.CustomerGUID = @CustomerGUID)";
+
+		#endregion
+
+		#region Zone Queries
+
+		public static readonly string AddMapInstance = @"INSERT INTO MapInstances (CustomerGUID, WorldServerID, MapID, Port, Status, PlayerGroupID, LastUpdateFromServer)
+		OUTPUT inserted.MapInstanceID
+		VALUES (@CustomerGUID, @WorldServerID, @MapID, @Port, 1, @PlayerGroupID, GETDATE())";
+
+		public static readonly string GetAllInactiveMapInstances = @"SELECT MapInstanceID
+                FROM MapInstances
+                WHERE LastUpdateFromServer < DATEADD(minute, @MapMinutes, GETDATE()) AND CustomerGUID = @CustomerGUID";
+
+		#endregion
 	}
 }

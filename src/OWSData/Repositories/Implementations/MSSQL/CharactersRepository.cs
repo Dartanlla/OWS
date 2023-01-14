@@ -5,10 +5,13 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Dapper.Transaction;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.Models;
+using OWSData.Models.Composites;
 using OWSData.Models.Tables;
 using OWSData.SQL;
 
@@ -42,10 +45,10 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 parameters.Add("@CharName", characterName);
                 parameters.Add("@MapInstanceID", mapInstanceID);
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDFromName,
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
                     parameters,
                     commandType: CommandType.Text);
-                
+
                 var outputZone = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetZoneName,
                     parameters,
                     commandType: CommandType.Text);
@@ -73,7 +76,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
         public async Task AddOrUpdateCustomCharacterData(Guid customerGUID, AddOrUpdateCustomCharacterData addOrUpdateCustomCharacterData)
         {
             // TODO Add Logging
-            
+
             using (Connection)
             {
                 var parameters = new DynamicParameters();
@@ -82,14 +85,14 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 parameters.Add("@CustomFieldName", addOrUpdateCustomCharacterData.CustomFieldName);
                 parameters.Add("@FieldValue", addOrUpdateCustomCharacterData.FieldValue);
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDFromName,
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
                     parameters,
                     commandType: CommandType.Text);
 
                 if (outputCharacter.CharacterId > 0)
                 {
                     parameters.Add("@CharacterID", outputCharacter.CharacterId);
-                    
+
                     var hasCustomCharacterData = await Connection.QuerySingleOrDefaultAsync<int>(GenericQueries.HasCustomCharacterDataForField,
                         parameters,
                         commandType: CommandType.Text);
@@ -110,47 +113,93 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
-        public async Task<CheckMapInstanceStatus> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID)
+        public async Task<MapInstances> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID)
         {
-            CheckMapInstanceStatus outputObject = new CheckMapInstanceStatus();
-
-            int mapInstanceStatus = 0;
+            // TODO Add Logging
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@MapInstanceID", mapInstanceID);
-                p.Add("@MapInstanceStatus", mapInstanceStatus, DbType.Int32, ParameterDirection.Output);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@MapInstanceID", mapInstanceID);
 
-                await Connection.QuerySingleOrDefaultAsync("CheckMapInstanceStatus",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                var outputObject = await Connection.QuerySingleOrDefaultAsync<MapInstances>(GenericQueries.GetMapInstanceStatus,
+                    parameters,
+                    commandType: CommandType.Text);
 
-                mapInstanceStatus = p.Get<int>("@MapInstanceStatus");
+                if (outputObject == null)
+                {
+                    return new MapInstances();
+                }
+
+                return outputObject;
             }
+        }
 
-            outputObject = new CheckMapInstanceStatus(mapInstanceStatus);
-            return outputObject;
+        public async Task CleanUpInstances(Guid customerGUID)
+        {
+            // TODO Add Logging
+
+            IDbConnection conn = Connection;
+            conn.Open();
+            using (IDbTransaction transaction = conn.BeginTransaction())
+            {
+                try
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@CustomerGUID", customerGUID);
+                    parameters.Add("@CharacterMinutes", -1); // TODO Add Configuration Parameter
+                    parameters.Add("@MapMinutes", -2); // TODO Add Configuration Parameter
+
+                    await transaction.ExecuteAsync(MSSQLQueries.RemoveCharactersFromAllInactiveInstances,
+                        parameters,
+                        commandType: CommandType.Text);
+
+                    var outputMapInstances = await transaction.QueryAsync<int>(MSSQLQueries.GetAllInactiveMapInstances,
+                        parameters,
+                        commandType: CommandType.Text);
+
+                    if (outputMapInstances.Any())
+                    {
+                        parameters.Add("@MapInstances", outputMapInstances);
+
+                        await transaction.ExecuteAsync(GenericQueries.RemoveCharacterFromInstances,
+                            parameters,
+                            commandType: CommandType.Text);
+
+                        await transaction.ExecuteAsync(GenericQueries.RemoveMapInstances,
+                            parameters,
+                            commandType: CommandType.Text);
+
+                    }
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw new Exception("Database Exception in CleanUpInstances!");
+                }
+            }
         }
 
         public async Task<GetCharByCharName> GetCharByCharName(Guid customerGUID, string characterName)
         {
-            GetCharByCharName outputCharacter;
+            // TODO Add Logging
+
+            IEnumerable<GetCharByCharName> outputCharacter;
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
-                p.Add("@EnableAutoLoopBack", dbType: DbType.Boolean, direction: ParameterDirection.Output);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
 
-                outputCharacter = await Connection.QuerySingleOrDefaultAsync<GetCharByCharName>("GetCharByCharName",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                outputCharacter = await Connection.QueryAsync<GetCharByCharName>(GenericQueries.GetCharByCharName,
+                    parameters,
+                    commandType: CommandType.Text);
             }
 
-            return outputCharacter;
+            return outputCharacter.First();
         }
 
         public async Task<IEnumerable<CustomCharacterData>> GetCustomCharacterData(Guid customerGUID, string characterName)
@@ -175,6 +224,9 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<JoinMapByCharName> JoinMapByCharName(Guid customerGUID, string characterName, string zoneName, int playerGroupType)
         {
+            // TODO: Run Cleanup here for now. Later this can get moved to a scheduler to run periodically.
+            await CleanUpInstances(customerGUID);
+
             JoinMapByCharName outputObject = new JoinMapByCharName();
 
             string serverIp = "";
@@ -191,56 +243,171 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
-                p.Add("@ZoneName", zoneName);
-                p.Add("@PlayerGroupType", playerGroupType);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+                parameters.Add("@ZoneName", zoneName);
+                parameters.Add("@PlayerGroupType", playerGroupType);
 
-                p.Add("@ServerIP", dbType: DbType.String, direction: ParameterDirection.Output, size: 50);
-                p.Add("@WorldServerID", dbType: DbType.Int32, direction: ParameterDirection.Output);
-                p.Add("@WorldServerIP", dbType: DbType.String, direction: ParameterDirection.Output, size: 50);
-                p.Add("@WorldServerPort", dbType: DbType.Int32, direction: ParameterDirection.Output);
-                p.Add("@Port", dbType: DbType.Int32, direction: ParameterDirection.Output);
-                p.Add("@MapInstanceID", dbType: DbType.Int32, direction: ParameterDirection.Output);
-                p.Add("@MapNameToStart", dbType: DbType.String, direction: ParameterDirection.Output, size: 50);
-                p.Add("@MapInstanceStatus", dbType: DbType.Int32, direction: ParameterDirection.Output);
-                p.Add("@NeedToStartupMap", dbType: DbType.Boolean, direction: ParameterDirection.Output);
-                p.Add("@EnableAutoLoopback", dbType: DbType.Boolean, direction: ParameterDirection.Output);
-                p.Add("@NoPortForwarding", noPortForwarding, dbType: DbType.Boolean, direction: ParameterDirection.Output);
+                Maps outputMap = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetMapByZoneName,
+                    parameters,
+                    commandType: CommandType.Text);
 
-                await Connection.QuerySingleOrDefaultAsync("JoinMapByCharName",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName,
+                    parameters,
+                    commandType: CommandType.Text);
 
-                serverIp = p.Get<string>("@ServerIP");
-                worldServerId = p.Get<int?>("@WorldServerID");
-                worldServerIp = p.Get<string>("@WorldServerIP");
-                worldServerPort = p.Get<int>("@WorldServerPort");
-                port = p.Get<int>("@Port");
-                mapInstanceID = p.Get<int>("@MapInstanceID");
-                mapNameToStart = p.Get<string>("@MapNameToStart");
-                mapInstanceStatus = p.Get<int?>("@MapInstanceStatus");
-                needToStartupMap = p.Get<bool>("@NeedToStartupMap");
-                enableAutoLoopback = p.Get<bool>("@EnableAutoLoopback");
-                noPortForwarding = p.Get<bool>("@NoPortForwarding");
+                Customers outputCustomer = await Connection.QuerySingleOrDefaultAsync<Customers>(GenericQueries.GetCustomer,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                if (outputCharacter == null)
+                {
+                    outputObject = new JoinMapByCharName() {
+                        ServerIP = serverIp,
+                        Port = port,
+                        WorldServerID = -1,
+                        WorldServerIP = worldServerIp,
+                        WorldServerPort = worldServerPort,
+                        MapInstanceID = mapInstanceID,
+                        MapNameToStart = mapNameToStart,
+                        MapInstanceStatus = -1,
+                        NeedToStartupMap = false,
+                        EnableAutoLoopback = enableAutoLoopback,
+                        NoPortForwarding = noPortForwarding
+                    };
+
+                    return outputObject;
+                }
+
+                PlayerGroup outputPlayerGroup = new PlayerGroup();
+
+                if (playerGroupType > 0)
+                {
+                    outputPlayerGroup = await Connection.QuerySingleOrDefaultAsync<PlayerGroup>(GenericQueries.GetPlayerGroupIDByType,
+                        parameters,
+                        commandType: CommandType.Text);
+                }
+                else
+                {
+                    outputPlayerGroup.PlayerGroupId = 0;
+                }
+
+                parameters.Add("@IsInternalNetworkTestUser", outputCharacter.IsInternalNetworkTestUser);
+                parameters.Add("@SoftPlayerCap", outputMap.SoftPlayerCap);
+                parameters.Add("@PlayerGroupID", outputPlayerGroup.PlayerGroupId);
+                parameters.Add("@MapID", outputMap.MapId);
+
+                JoinMapByCharName outputJoinMapByCharName = await Connection.QuerySingleOrDefaultAsync<JoinMapByCharName>(GenericQueries.GetMapInstancesByMapAndGroup,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                if (outputJoinMapByCharName != null)
+                {
+                    outputObject.NeedToStartupMap = false;
+                    outputObject.WorldServerID = outputJoinMapByCharName.WorldServerID;
+                    outputObject.ServerIP = outputJoinMapByCharName.ServerIP;
+                    if (outputCharacter.IsInternalNetworkTestUser)
+                    {
+                        outputObject.ServerIP = outputJoinMapByCharName.WorldServerIP;
+                    }
+                    outputObject.WorldServerIP = outputJoinMapByCharName.WorldServerIP;
+                    outputObject.WorldServerPort = outputJoinMapByCharName.WorldServerPort;
+                    outputObject.Port = outputJoinMapByCharName.Port;
+                    outputObject.MapInstanceID = outputJoinMapByCharName.MapInstanceID;
+                    outputObject.MapNameToStart = outputMap.MapName;
+                }
+                else
+                {
+                    MapInstances outputMapInstance = await SpinUpInstance(customerGUID, zoneName, outputPlayerGroup.PlayerGroupId);
+
+                    parameters.Add("@WorldServerId", outputMapInstance.WorldServerId);
+
+                    WorldServers outputWorldServers =  await Connection.QuerySingleOrDefaultAsync<WorldServers>(GenericQueries.GetWorldByID,
+                        parameters,
+                        commandType: CommandType.Text);
+
+                    outputObject.NeedToStartupMap = true;
+                    outputObject.WorldServerID = outputMapInstance.WorldServerId;
+                    outputObject.ServerIP = outputWorldServers.ServerIp;
+                    if (outputCharacter.IsInternalNetworkTestUser)
+                    {
+                        outputObject.ServerIP = outputWorldServers.InternalServerIp;
+                    }
+                    outputObject.WorldServerIP = outputWorldServers.InternalServerIp;
+                    outputObject.WorldServerPort = outputWorldServers.Port;
+                    outputObject.Port = outputMapInstance.Port;
+                    outputObject.MapInstanceID = outputMapInstance.MapInstanceId;
+                    outputObject.MapNameToStart = outputMap.MapName;
+                }
+
+                if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
+                {
+                    outputObject.ServerIP = "127.0.0.1";
+                }
+
             }
 
-            outputObject = new JoinMapByCharName() {
-                ServerIP = serverIp,
-                Port = port,
-                WorldServerID = worldServerId ?? -1,
-                WorldServerIP = worldServerIp,
-                WorldServerPort = worldServerPort,
-                MapInstanceID = mapInstanceID,
-                MapNameToStart = mapNameToStart,
-                MapInstanceStatus = mapInstanceStatus ?? -1,
-                NeedToStartupMap = needToStartupMap,
-                EnableAutoLoopback = enableAutoLoopback,
-                NoPortForwarding = noPortForwarding
-            };
-
             return outputObject;
+        }
+
+        public async Task<MapInstances> SpinUpInstance(Guid customerGUID, string zoneName, int playerGroupId = 0)
+        {
+            // TODO Add Logging
+
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@ZoneName", zoneName);
+                parameters.Add("@PlayerGroupId", playerGroupId);
+
+                List<WorldServers> outputWorldServers = (List<WorldServers>)await Connection.QueryAsync<WorldServers>(GenericQueries.GetActiveWorldServersByLoad,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                if (outputWorldServers.Any())
+                {
+                    int? firstAvailable = null;
+                    foreach (var worldServer in outputWorldServers)
+                    {
+                        parameters.Add("@WorldServerID", worldServer.WorldServerId);
+                        var portsInUse = await Connection.QueryAsync<int>(GenericQueries.GetPortsInUseByWorldServer,
+                            parameters,
+                            commandType: CommandType.Text);
+
+                        firstAvailable = Enumerable.Range(worldServer.StartingMapInstancePort, worldServer.StartingMapInstancePort + worldServer.MaxNumberOfInstances)
+                            .Except(portsInUse)
+                            .FirstOrDefault();
+
+                        if (firstAvailable >= worldServer.StartingMapInstancePort)
+                        {
+
+                            Maps outputMaps = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetMapByZoneName,
+                                parameters,
+                                commandType: CommandType.Text);
+
+                            parameters.Add("@WorldServerID", worldServer.WorldServerId);
+                            parameters.Add("@MapID", outputMaps.MapId);
+                            parameters.Add("@Port", firstAvailable);
+
+                            int outputMapInstanceID = await Connection.QuerySingleOrDefaultAsync<int>(MSSQLQueries.AddMapInstance,
+                                parameters,
+                                commandType: CommandType.Text);
+
+                            parameters.Add("@MapInstanceID", outputMapInstanceID);
+
+                            MapInstances outputMapInstances = await Connection.QuerySingleOrDefaultAsync<MapInstances>(GenericQueries.GetMapInstance,
+                                parameters,
+                                commandType: CommandType.Text);
+
+                            return outputMapInstances;
+                        }
+                    }
+                }
+            }
+
+            return new MapInstances { MapInstanceId = -1 };
         }
 
         public async Task UpdateCharacterStats(UpdateCharacterStats updateCharacterStats)
