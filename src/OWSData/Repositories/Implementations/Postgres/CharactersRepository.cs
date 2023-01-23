@@ -29,9 +29,10 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task AddCharacterToMapInstanceByCharName(Guid customerGUID, string characterName, int mapInstanceID)
         {
-            // TODO Add Logging
-
-            using (Connection)
+            IDbConnection conn = Connection;
+            conn.Open();
+            using IDbTransaction transaction = conn.BeginTransaction();
+            try
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
@@ -63,13 +64,17 @@ namespace OWSData.Repositories.Implementations.Postgres
                         parameters,
                         commandType: CommandType.Text);
                 }
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw new Exception("Database Exception in AddCharacterToMapInstanceByCharName!");
             }
         }
 
         public async Task AddOrUpdateCustomCharacterData(Guid customerGUID, AddOrUpdateCustomCharacterData addOrUpdateCustomCharacterData)
         {
-            // TODO Add Logging
-
             using (Connection)
             {
                 var parameters = new DynamicParameters();
@@ -108,8 +113,6 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<MapInstances> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID)
         {
-            // TODO Add Logging
-
             using (Connection)
             {
                 var parameters = new DynamicParameters();
@@ -131,54 +134,48 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task CleanUpInstances(Guid customerGUID)
         {
-            // TODO Add Logging
-
             IDbConnection conn = Connection;
             conn.Open();
-            using (IDbTransaction transaction = conn.BeginTransaction())
+            using IDbTransaction transaction = conn.BeginTransaction();
+            try
             {
-                try
-                {
-                    var parameters = new DynamicParameters();
-                    parameters.Add("@CustomerGUID", customerGUID);
-                    parameters.Add("@CharacterMinutes", 1); // TODO Add Configuration Parameter
-                    parameters.Add("@MapMinutes", 2); // TODO Add Configuration Parameter
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharacterMinutes", 1); // TODO Add Configuration Parameter
+                parameters.Add("@MapMinutes", 2); // TODO Add Configuration Parameter
 
-                    await transaction.ExecuteAsync(PostgresQueries.RemoveCharactersFromAllInactiveInstances,
+                await transaction.ExecuteAsync(PostgresQueries.RemoveCharactersFromAllInactiveInstances,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                var outputMapInstances = await transaction.QueryAsync<int>(PostgresQueries.GetAllInactiveMapInstances,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                if (outputMapInstances.Any())
+                {
+                    parameters.Add("@MapInstances", outputMapInstances);
+
+                    await transaction.ExecuteAsync(PostgresQueries.RemoveCharacterFromInstances,
                         parameters,
                         commandType: CommandType.Text);
 
-                    var outputMapInstances = await transaction.QueryAsync<int>(PostgresQueries.GetAllInactiveMapInstances,
+                    await transaction.ExecuteAsync(PostgresQueries.RemoveMapInstances,
                         parameters,
                         commandType: CommandType.Text);
 
-                    if (outputMapInstances.Any())
-                    {
-                        parameters.Add("@MapInstances", outputMapInstances);
-
-                        await transaction.ExecuteAsync(PostgresQueries.RemoveCharacterFromInstances,
-                            parameters,
-                            commandType: CommandType.Text);
-
-                        await transaction.ExecuteAsync(PostgresQueries.RemoveMapInstances,
-                            parameters,
-                            commandType: CommandType.Text);
-
-                    }
-                    transaction.Commit();
                 }
-                catch
-                {
-                    transaction.Rollback();
-                    throw new Exception("Database Exception in CleanUpInstances!");
-                }
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw new Exception("Database Exception in CleanUpInstances!");
             }
         }
 
         public async Task<GetCharByCharName> GetCharByCharName(Guid customerGUID, string characterName)
         {
-            // TODO Add Logging
-
             IEnumerable<GetCharByCharName> outputCharacter;
 
             using (Connection)
@@ -197,8 +194,6 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<IEnumerable<CustomCharacterData>> GetCustomCharacterData(Guid customerGUID, string characterName)
         {
-            // TODO Add Logging
-
             IEnumerable<CustomCharacterData> outputCustomCharacterDataRows;
 
             using (Connection)
@@ -657,8 +652,6 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<MapInstances> SpinUpInstance(Guid customerGUID, string zoneName, int playerGroupId = 0)
         {
-            // TODO Add Logging
-
             using (Connection)
             {
                 var parameters = new DynamicParameters();
