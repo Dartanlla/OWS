@@ -33,16 +33,16 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 
 ## Projects
 
-| [Benchmarks](https://github.com/Wurlox/OWS/tree/main/src/OWSBenchmarks){: .fw-500 } | This project will allow us to configure and run performance testing on the OWS API. This will be important for comparing the impact of certain changes. |  
-| [Character Persistence](https://github.com/Wurlox/OWS/tree/main/src/OWSCharacterPersistence){: .fw-500 } | The Character Persistence API will be responsible for storing our player characters and all related data. |
-| [Data](https://github.com/Wurlox/OWS/tree/main/src/OWSData){: .fw-500 } | This is a shared project that houses our data repository access code. |
-| [External Login Providers](https://github.com/Wurlox/OWS/tree/main/src/OWSExternalLoginProviders){: .fw-500 } | This project contains code for integrating with external login providers such as Xsolla, Google, Facebook, etc. |
-| [Instance Launcher](https://github.com/Wurlox/OWS/tree/main/src/OWSInstanceLauncher){: .fw-500 } | This project builds our Instance Launcher that replaces the RPG World Server in OWS 1. |
-| [Instance Management](https://github.com/Wurlox/OWS/tree/main/src/OWSInstanceManagement){: .fw-500 } | This API manages Zone Instances and the OWS Instance Launchers. |
-| [Public API](https://github.com/Wurlox/OWS/tree/main/src/OWSPublicAPI){: .fw-500 } | This API handles all API calls that come directly from player clients such as registration, login, and connecting to the game. |
-| [Shared](https://github.com/Wurlox/OWS/tree/main/src/OWSShared){: .fw-500 } | This project houses various miscellaneous code that multiple other projects require. |
-| [Status](https://github.com/Wurlox/OWS/tree/main/src/OWSStatus){: .fw-500 } <span class="label label-yellow">Beta</span> | This service provides Monitoring & Health Checking. |
-| [Tests](https://github.com/Wurlox/OWS/tree/main/src/OWSTests){: .fw-500 } | This project provides Unit testing and Functional testing and Benchmark Tools. |
+| [Benchmarks](https://github.com/Dartanlla/OWS/tree/main/src/OWSBenchmarks){: .fw-500 } | This project will allow us to configure and run performance testing on the OWS API. This will be important for comparing the impact of certain changes. |
+| [Character Persistence](https://github.com/Dartanlla/OWS/tree/main/src/OWSCharacterPersistence){: .fw-500 } | The Character Persistence API will be responsible for storing our player characters and all related data. |
+| [Data](https://github.com/Dartanlla/OWS/tree/main/src/OWSData){: .fw-500 } | This is a shared project that houses our data repository access code. |
+| [External Login Providers](https://github.com/Dartanlla/OWS/tree/main/src/OWSExternalLoginProviders){: .fw-500 } | This project contains code for integrating with external login providers such as Xsolla, Google, Facebook, etc. |
+| [Instance Launcher](https://github.com/Dartanlla/OWS/tree/main/src/OWSInstanceLauncher){: .fw-500 } | This project builds our Instance Launcher that replaces the RPG World Server in OWS 1. |
+| [Instance Management](https://github.com/Dartanlla/OWS/tree/main/src/OWSInstanceManagement){: .fw-500 } | This API manages Zone Instances and the OWS Instance Launchers. |
+| [Public API](https://github.com/Dartanlla/OWS/tree/main/src/OWSPublicAPI){: .fw-500 } | This API handles all API calls that come directly from player clients such as registration, login, and connecting to the game. |
+| [Shared](https://github.com/Dartanlla/OWS/tree/main/src/OWSShared){: .fw-500 } | This project houses various miscellaneous code that multiple other projects require. |
+| [Status](https://github.com/Dartanlla/OWS/tree/main/src/OWSStatus){: .fw-500 } <span class="label label-yellow">Beta</span> | This service provides Monitoring & Health Checking. |
+| [Tests](https://github.com/Dartanlla/OWS/tree/main/src/OWSTests){: .fw-500 } | This project provides Unit testing and Functional testing and Benchmark Tools. |
 
 [Get started now](/getting-started){: .btn .btn-blue .mr-4}
 [View on GitHub](https://github.com/Dartanlla/OWS){: .btn }

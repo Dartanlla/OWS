@@ -148,7 +148,7 @@ namespace OWSData.SQL
 				WHERE CustomerGUID = @CustomerGUID
 				  AND ZoneName = @ZoneName";
 
-	        public static readonly string GetZoneName = @"SELECT M.ZoneName
+		 public static readonly string GetZoneName = @"SELECT M.ZoneName
 				FROM Maps M
 				INNER JOIN MapInstances MI ON MI.CustomerGUID = M.CustomerGUID
 				                          AND MI.MapID = M.MapID
@@ -156,6 +156,15 @@ namespace OWSData.SQL
 				  AND MI.MapInstanceID = @MapInstanceID";
 
 	        public static readonly string RemoveMapInstances = @"DELETE FROM MapInstances WHERE CustomerGUID = @CustomerGUID AND MapInstanceID IN @MapInstances";
+
+        #endregion
+
+		#region Global Data Queries
+
+        public static readonly string GetGlobalDataByGlobalDataKey = @"SELECT CustomerGUID, GlobalDataKey, GlobalDataValue
+			FROM GlobalData GD
+			WHERE GD.CustomerGUID = @CustomerGUID
+			AND GD.GlobalDataKey = @GlobalDataKey";
 
         #endregion
     }
