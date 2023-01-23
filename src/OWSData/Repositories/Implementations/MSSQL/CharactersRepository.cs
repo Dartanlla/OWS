@@ -26,13 +26,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
             _storageOptions = storageOptions;
         }
 
-        public IDbConnection Connection
-        {
-            get
-            {
-                return new SqlConnection(_storageOptions.Value.OWSDBConnectionString);
-            }
-        }
+        private IDbConnection Connection => new SqlConnection(_storageOptions.Value.OWSDBConnectionString);
 
         public async Task AddCharacterToMapInstanceByCharName(Guid customerGUID, string characterName, int mapInstanceID)
         {
