@@ -161,10 +161,18 @@ namespace OWSData.SQL
 
 		#region Global Data Queries
 
+		public static readonly string AddGlobalData = @"INSERT INTO GlobalData (CustomerGUID, GlobalDataKey, GlobalDataValue)
+		VALUES (@CustomerGUID, @GlobalDataKey, @GlobalDataValue)";
+
         public static readonly string GetGlobalDataByGlobalDataKey = @"SELECT CustomerGUID, GlobalDataKey, GlobalDataValue
 			FROM GlobalData GD
 			WHERE GD.CustomerGUID = @CustomerGUID
 			AND GD.GlobalDataKey = @GlobalDataKey";
+
+        public static readonly string UpdateGlobalData = @"UPDATE GlobalData
+				SET GlobalDataValue = @GlobalDataValue
+				WHERE CustomerGUID = @CustomerGUID
+				  AND GlobalDataKey = @GlobalDataKey";
 
         #endregion
     }
