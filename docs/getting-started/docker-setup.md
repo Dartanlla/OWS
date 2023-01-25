@@ -10,7 +10,7 @@ nav_order: 1
 ## Requirements  
 * Download or clone OWS
 * Download and install [Visual Studio 2022 Community](https://visualstudio.microsoft.com/downloads/)
-  * The ASP.NET and Web Development workload is required
+  * The ASP.NET and Web Development and Node.js Development workloads are required
 * Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop) for Windows/macOS/Linux
 * [.Net 6.0 SDK]([another-page](https://dotnet.microsoft.com/download/dotnet/6.0))
 <br />
