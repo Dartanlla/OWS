@@ -409,7 +409,10 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task UpdatePosition(Guid customerGUID, string characterName, string mapName, float X, float Y, float Z, float RX, float RY, float RZ)
         {
-            using (Connection)
+            IDbConnection conn = Connection;
+            conn.Open();
+            using IDbTransaction transaction = conn.BeginTransaction();
+            try
             {
                 var p = new DynamicParameters();
                 p.Add("@CustomerGUID", customerGUID);
@@ -417,14 +420,34 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 p.Add("@MapName", mapName);
                 p.Add("@X", X);
                 p.Add("@Y", Y);
-                p.Add("@Z", Z);
+                p.Add("@Z", Z + 1);
                 p.Add("@RX", RX);
                 p.Add("@RY", RY);
                 p.Add("@RZ", RZ);
 
-                await Connection.ExecuteAsync("UpdatePositionOfCharacterByName",
+                if (mapName != String.Empty)
+                {
+                    await Connection.ExecuteAsync(GenericQueries.UpdateCharacterPositionAndMap,
+                        p,
+                        commandType: CommandType.Text);
+                }
+                else
+                {
+                    await Connection.ExecuteAsync(GenericQueries.UpdateCharacterPosition,
+                        p,
+                        commandType: CommandType.Text);
+                }
+
+                await Connection.ExecuteAsync(MSSQLQueries.UpdateUserLastAccess,
                     p,
-                    commandType: CommandType.StoredProcedure);
+                    commandType: CommandType.Text);
+
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw new Exception("Database Exception in UpdatePosition!");
             }
         }
 
@@ -432,13 +455,22 @@ namespace OWSData.Repositories.Implementations.MSSQL
         {
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
 
-                await Connection.ExecuteAsync("PlayerLogout",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                if (outputCharacter.CharacterId > 0)
+                {
+                    parameters.Add("@CharacterID", outputCharacter.CharacterId);
+
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
+                        parameters,
+                        commandType: CommandType.Text);
+                }
             }
         }
 
@@ -446,7 +478,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
         {
             using (Connection)
             {
-                var paremeters = new
+                var parameters = new
                 {
                     CustomerGUID = customerGUID,
                     AbilityName = abilityName,
@@ -455,7 +487,16 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
                 };
 
-                var getWorldServerID = await Connection.ExecuteAsync(MSSQLQueries.AddAbilityToCharacterSQL, paremeters);
+                var outputCharacterAbility = await Connection.QuerySingleOrDefaultAsync<GlobalData>(GenericQueries.GetCharacterAbilityByName,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                if (outputCharacterAbility == null)
+                {
+                    await Connection.ExecuteAsync(MSSQLQueries.AddAbilityToCharacter,
+                        parameters,
+                        commandType: CommandType.Text);
+                }
             }
         }
 
@@ -465,12 +506,12 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
 
-                outputGetAbilities = await Connection.QueryAsync<Abilities>("GetAbilities",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                outputGetAbilities = await Connection.QueryAsync<Abilities>(GenericQueries.GetAbilities,
+                    parameters,
+                    commandType: CommandType.Text);
             }
 
             return outputGetAbilities;
@@ -482,13 +523,13 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
 
-                outputGetCharacterAbilities = await Connection.QueryAsync<GetCharacterAbilities>("GetCharacterAbilities",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                outputGetCharacterAbilities = await Connection.QueryAsync<GetCharacterAbilities>(GenericQueries.GetCharacterAbilities,
+                    parameters,
+                    commandType: CommandType.Text);
             }
 
             return outputGetCharacterAbilities;
@@ -500,13 +541,13 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
 
-                outputGetAbilityBars = await Connection.QueryAsync<GetAbilityBars>("GetAbilityBars",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                outputGetAbilityBars = await Connection.QueryAsync<GetAbilityBars>(GenericQueries.GetCharacterAbilityBars,
+                    parameters,
+                    commandType: CommandType.Text);
             }
 
             return outputGetAbilityBars;
@@ -518,13 +559,13 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
 
-                outputGetAbilityBarsAndAbilities = await Connection.QueryAsync<GetAbilityBarsAndAbilities>("GetAbilityBarsAndAbilities",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                outputGetAbilityBarsAndAbilities = await Connection.QueryAsync<GetAbilityBarsAndAbilities>(GenericQueries.GetCharacterAbilityBarsAndAbilities,
+                    parameters,
+                    commandType: CommandType.Text);
             }
 
             return outputGetAbilityBarsAndAbilities;
@@ -541,7 +582,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     CharacterName = characterName
                 };
 
-                await Connection.ExecuteAsync(MSSQLQueries.RemoveAbilityFromCharacterSQL, parameters);
+                await Connection.ExecuteAsync(MSSQLQueries.RemoveAbilityFromCharacter, parameters);
             }
         }
 
@@ -558,7 +599,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
                 };
 
-                await Connection.ExecuteAsync(MSSQLQueries.UpdateAbilityOnCharacterSQL, parameters);
+                await Connection.ExecuteAsync(MSSQLQueries.UpdateAbilityOnCharacter, parameters);
             }
         }
     }

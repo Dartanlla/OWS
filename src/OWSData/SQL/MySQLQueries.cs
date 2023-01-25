@@ -9,23 +9,6 @@ namespace OWSData.SQL
 
 	    #region To Refactor
 
-	    public static readonly string AddAbilityToCharacterSQL = @"INSERT INTO CharHasAbilities (CustomerGUID, CharacterID, AbilityID, AbilityLevel, CharHasAbilitiesCustomJSON)
-				SELECT @CustomerGUID AS CustomerGUID , 
-					(SELECT C.CharacterID FROM Characters C WHERE C.CharName=@CharacterName AND C.CustomerGUID=@CustomerGUID LIMIT 1),
-					(SELECT A.AbilityID FROM Abilities A WHERE A.AbilityName=@AbilityName AND A.CustomerGUID=@CustomerGUID LIMIT 1),
-					@AbilityLevel,
-					@CharHasAbilitiesCustomJSON
-				WHERE NOT EXISTS (SELECT 1 FROM CharHasAbilities CHA 
-									INNER JOIN Characters C 
-										ON C.CharacterID=CHA.CharacterID 
-										AND C.CustomerGUID=CHA.CustomerGUID
-									INNER JOIN Abilities A 
-										ON A.AbilityID=CHA.AbilityID 
-										AND A.CustomerGUID=CHA.CustomerGUID
-									WHERE CHA.CustomerGUID=@CustomerGUID 
-										AND C.CharName=@CharacterName 
-										AND A.AbilityName=@AbilityName)";
-
 	    public static readonly string AddOrUpdateWorldServerSQL = @"call AddOrUpdateWorldServer(
             @CustomerGUID,
             @ZoneServerGUID,
@@ -78,18 +61,6 @@ namespace OWSData.SQL
 				WHERE CustomerGUID=@CustomerGUID
 				AND ZoneServerGUID=@ZoneServerGUID";
 
-		public static readonly string RemoveAbilityFromCharacterSQL = @"DELETE FROM CharHasAbilities
-				WHERE CustomerGUID=@CustomerGUID
-					AND CharacterID=(SELECT C.CharacterID FROM Characters C WHERE C.CharName=@CharacterName LIMIT 1)
-					AND AbilityID=(SELECT A.AbilityID FROM Abilities A WHERE A.AbilityName=@AbilityName LIMIT 1)";
-
-		public static readonly string UpdateAbilityOnCharacterSQL = @"UPDATE CharHasAbilities
-				SET AbilityLevel = @AbilityLevel,
-				CharHasAbilitiesCustomJSON = @CharHasAbilitiesCustomJSON
-				WHERE CustomerGUID=@CustomerGUID
-					AND CharacterID=(SELECT C.CharacterID FROM Characters C WHERE C.CharName=@CharacterName LIMIT 1)
-					AND AbilityID=(SELECT A.AbilityID FROM Abilities A WHERE A.AbilityName=@AbilityName LIMIT 1)";
-
 		public static readonly string UpdateNumberOfPlayersSQL = @"UPDATE MapInstances
 				SET NumberOfReportedPlayers=@NumberOfReportedPlayers,
 				LastUpdateFromServer=NOW(),
@@ -108,6 +79,18 @@ namespace OWSData.SQL
 
 		#region Character Queries
 
+		public static readonly string AddAbilityToCharacter = @"INSERT INTO CharHasAbilities (CustomerGUID, CharacterID, AbilityID, AbilityLevel, CharHasAbilitiesCustomJSON)
+				SELECT @CustomerGUID, 
+					(SELECT C.CharacterID FROM Characters C WHERE C.CharName = @CharacterName AND C.CustomerGUID = @CustomerGUID ORDER BY C.CharacterID LIMIT 1),
+					(SELECT A.AbilityID FROM Abilities A WHERE A.AbilityName = @AbilityName AND A.CustomerGUID = @CustomerGUID ORDER BY A.AbilityID LIMIT 1),
+					@AbilityLevel,
+					@CharHasAbilitiesCustomJSON";
+
+		public static readonly string RemoveAbilityFromCharacter = @"DELETE FROM CharHasAbilities
+				WHERE CustomerGUID = @CustomerGUID
+					AND CharacterID = (SELECT C.CharacterID FROM Characters C WHERE C.CharName = @CharacterName ORDER BY C.CharacterID LIMIT 1)
+					AND AbilityID = (SELECT A.AbilityID FROM Abilities A WHERE A.AbilityName = @AbilityName ORDER BY A.AbilityID LIMIT 1)";
+
 		public static readonly string RemoveCharactersFromAllInactiveInstances = @"DELETE FROM CharOnMapInstance
                 WHERE CustomerGUID = @CustomerGUID
                 AND CharacterID IN (
@@ -115,6 +98,25 @@ namespace OWSData.SQL
                       FROM Characters C
                      INNER JOIN Users U ON U.CustomerGUID = C.CustomerGUID AND U.UserGUID = C.UserGUID
                      WHERE U.LastAccess < DATE_SUB(NOW(), INTERVAL @CharacterMinutes MINUTE) AND C.CustomerGUID = @CustomerGUID)";
+
+		public static readonly string UpdateAbilityOnCharacter = @"UPDATE CharHasAbilities
+				SET AbilityLevel = @AbilityLevel,
+				CharHasAbilitiesCustomJSON = @CharHasAbilitiesCustomJSON
+				WHERE CustomerGUID = @CustomerGUID
+					AND CharacterID = (SELECT C.CharacterID FROM Characters C WHERE C.CharName = @CharacterName ORDER BY C.CharacterID LIMIT 1)
+					AND AbilityID = (SELECT A.AbilityID FROM Abilities A WHERE A.AbilityName = @AbilityName ORDER BY A.AbilityID LIMIT 1)";
+
+		#endregion
+
+		#region User Queries
+
+		public static readonly string UpdateUserLastAccess = @"UPDATE Users
+				SET LastAccess = NOW()
+                WHERE CustomerGUID = @CustomerGUID
+                AND UserGUID IN (
+                    SELECT C.UserGUID
+                      FROM Characters C
+                      WHERE C.CustomerGUID = @CustomerGUID AND C.CharName = @CharName)";
 
 		#endregion
 

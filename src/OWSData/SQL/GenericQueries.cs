@@ -7,6 +7,16 @@ namespace OWSData.SQL
     public static class GenericQueries
     {
 
+	    #region System Queries
+
+	    public static readonly string GetAbilities = @"SELECT AB.*, AT.AbilityTypeName
+				FROM Abilities AB
+				INNER JOIN AbilityTypes AT ON AT.AbilityTypeID = AB.AbilityTypeID
+				WHERE AB.CustomerGUID = @CustomerGUID
+				ORDER BY AB.AbilityName";
+
+	    #endregion
+
 	    #region Customer Queries
 
 	    public static readonly string GetCustomer = @"SELECT CustomerGUID
@@ -50,6 +60,42 @@ namespace OWSData.SQL
 				  AND C.CustomerGUID = @CustomerGUID
 				ORDER BY MI.MapInstanceID DESC";
 
+	    public static readonly string GetCharacterAbilities = @"SELECT A.AbilityID, A.AbilityCustomJSON, A.AbilityName, A.AbilityTypeID, A.Class, A.CustomerGUID, A.Race, A.TextureToUseForIcon, A.GameplayAbilityClassName,
+			CHA.CharHasAbilitiesID, CHA.AbilityLevel, CHA.CharHasAbilitiesCustomJSON, C.CharacterID, C.CharName 
+				FROM CharHasAbilities CHA
+				INNER JOIN Abilities A ON A.AbilityID = CHA.AbilityID AND A.CustomerGUID = CHA.CustomerGUID
+				INNER JOIN Characters C	ON C.CharacterID = CHA.CharacterID AND C.CustomerGUID = CHA.CustomerGUID
+				WHERE C.CustomerGUID = @CustomerGUID
+				  AND C.CharName = @CharName";
+
+	    public static readonly string GetCharacterAbilityByName = @"SELECT A.AbilityID, A.AbilityCustomJSON, A.AbilityName, A.AbilityTypeID, A.Class, A.CustomerGUID, A.Race, A.TextureToUseForIcon, A.GameplayAbilityClassName,
+			CHA.CharHasAbilitiesID, CHA.AbilityLevel, CHA.CharHasAbilitiesCustomJSON, C.CharacterID, C.CharName 
+				FROM CharHasAbilities CHA
+				INNER JOIN Abilities A ON A.AbilityID = CHA.AbilityID AND A.CustomerGUID = CHA.CustomerGUID
+				INNER JOIN Characters C	ON C.CharacterID = CHA.CharacterID AND C.CustomerGUID = CHA.CustomerGUID
+				WHERE C.CustomerGUID = @CustomerGUID
+				  AND C.CharName = @CharacterName
+				  AND A.AbilityName = @AbilityName";
+
+	    public static readonly string GetCharacterAbilityBars = @"SELECT CAB.AbilityBarName, CAB.CharAbilityBarID, COALESCE(CAB.CharAbilityBarsCustomJSON,'') as CharAbilityBarsCustomJSON, CAB.CharacterID, CAB.CustomerGUID, 
+				CAB.MaxNumberOfSlots, CAB.NumberOfUnlockedSlots 
+				FROM CharAbilityBars CAB
+				INNER JOIN Characters C ON C.CharacterID = CAB.CharacterID AND C.CustomerGUID = CAB.CustomerGUID
+				WHERE C.CustomerGUID = @CustomerGUID
+				  AND C.CharName = @CharName";
+
+	    public static readonly string GetCharacterAbilityBarsAndAbilities = @"SELECT CAB.AbilityBarName, CAB.CharAbilityBarID, COALESCE(CAB.CharAbilityBarsCustomJSON,'') as CharAbilityBarsCustomJSON, CAB.CharacterID, CAB.CustomerGUID, CAB.MaxNumberOfSlots, CAB.NumberOfUnlockedSlots, 
+				CHA.AbilityLevel, COALESCE(CHA.CharHasAbilitiesCustomJSON, '') as CharHasAbilitiesCustomJSON,
+				AB.AbilityID, AB.AbilityName, AB.AbilityTypeID, AB.Class, AB.Race, AB.TextureToUseForIcon, AB.GameplayAbilityClassName, AB.AbilityCustomJSON,
+				CABA.InSlotNumber
+				FROM CharAbilityBars CAB
+				INNER JOIN CharAbilityBarAbilities CABA ON CABA.CharAbilityBarID = CAB.CharAbilityBarID AND CABA.CustomerGUID = CAB.CustomerGUID
+				INNER JOIN CharHasAbilities CHA ON CHA.CharHasAbilitiesID = CABA.CharHasAbilitiesID AND CHA.CustomerGUID = CABA.CustomerGUID
+				INNER JOIN Abilities AB ON AB.AbilityID = CHA.AbilityID AND AB.CustomerGUID = CHA.CustomerGUID
+				INNER JOIN Characters C ON C.CharacterID = CAB.CharacterID AND C.CustomerGUID = CAB.CustomerGUID
+				WHERE C.CustomerGUID = @CustomerGUID
+				  AND C.CharName = @CharName";
+
 	    public static readonly string GetCharacterCustomDataByName = @"SELECT *
 				FROM CustomCharacterData CCD
 				INNER JOIN Characters C ON C.CharacterID = CCD.CharacterID
@@ -80,6 +126,27 @@ namespace OWSData.SQL
 				WHERE CustomerGUID = @CustomerGUID
 				  AND CustomFieldName = @CustomFieldName
 				  AND CharacterID = @CharacterID";
+
+	    public static readonly string UpdateCharacterPosition = @"UPDATE Characters
+				SET X = @X,
+					Y = @Y,
+					Z = @Z,
+					RX = @RX,
+					RY = @RY,
+					RZ = @RZ
+				WHERE CharName = @CharName
+				  AND CustomerGUID = @CustomerGUID";
+
+	    public static readonly string UpdateCharacterPositionAndMap = @"UPDATE Characters
+				SET	MapName = @MapName,
+					X = @X,
+					Y = @Y,
+					Z = @Z,
+					RX = @RX,
+					RY = @RY,
+					RZ = @RZ
+				WHERE CharName = @CharName
+				  AND CustomerGUID = @CustomerGUID";
 
 	    public static readonly string UpdateCharacterStats = @"UPDATE Characters
 				SET	CharacterLevel = @CharacterLevel,

@@ -339,144 +339,7 @@ namespace OWSData.Repositories.Implementations.MySQL
             return outputObject;
         }
 
-        public async Task UpdateCharacterStats(UpdateCharacterStats updateCharacterStats)
-        {
-            using (Connection)
-            {
-                await Connection.ExecuteAsync(GenericQueries.UpdateCharacterStats.Replace("Range = ", "`Range` = "), // TODO Remove post Table cleanup
-                    updateCharacterStats,
-                    commandType: CommandType.Text);
-            }
-        }
-
-        public async Task UpdatePosition(Guid customerGUID, string characterName, string mapName, float X, float Y, float Z, float RX, float RY, float RZ)
-        {
-            using (Connection)
-            {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
-                p.Add("@MapName", mapName);
-                p.Add("@X", X);
-                p.Add("@Y", Y);
-                p.Add("@Z", Z);
-                p.Add("@RX", RX);
-                p.Add("@RY", RY);
-                p.Add("@RZ", RZ);
-
-                await Connection.ExecuteAsync("call UpdatePositionOfCharacterByName (@CustomerGUID,@CharName,@MapName,@X,@Y,@Z,@RX,@RY,@RZ)",
-                    p,
-                    commandType: CommandType.Text);
-            }
-        }
-
-        public async Task PlayerLogout(Guid customerGUID, string characterName)
-        {
-            using (Connection)
-            {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
-
-                await Connection.ExecuteAsync("call PlayerLogout(@CustomerGUID, @CharName)",
-                    p,
-                    commandType: CommandType.Text);
-            }
-        }
-
-        public async Task AddAbilityToCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
-        {
-            using (Connection)
-            {
-                var parameters = new
-                {
-                    CustomerGUID = customerGUID,
-                    AbilityName = abilityName,
-                    CharacterName = characterName,
-                    AbilityLevel = abilityLevel,
-                    CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
-                };
-
-                await Connection.ExecuteAsync(MySQLQueries.AddAbilityToCharacterSQL,
-                    parameters,
-                    commandType: CommandType.Text);
-            }
-        }
-
-        public async Task<IEnumerable<Abilities>> GetAbilities(Guid customerGUID)
-        {
-            IEnumerable<Abilities> outputGetAbilities;
-
-            using (Connection)
-            {
-                var parameters = new
-                {
-                    CustomerGUID = customerGUID
-                };
-
-                outputGetAbilities = await Connection.QueryAsync<Abilities>(MySQLQueries.GetAbilities,
-                    parameters,
-                    commandType: CommandType.Text);
-            }
-
-            return outputGetAbilities;
-        }
-
-        public async Task<IEnumerable<GetCharacterAbilities>> GetCharacterAbilities(Guid customerGUID, string characterName)
-        {
-            IEnumerable<GetCharacterAbilities> outputGetCharacterAbilities;
-
-            using (Connection)
-            {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
-
-                outputGetCharacterAbilities = await Connection.QueryAsync<GetCharacterAbilities>("call GetCharacterAbilities(@CustomerGUID, @CharName)",
-                    p,
-                    commandType: CommandType.Text);
-            }
-
-            return outputGetCharacterAbilities;
-        }
-
-        public async Task<IEnumerable<GetAbilityBars>> GetAbilityBars(Guid customerGUID, string characterName)
-        {
-            IEnumerable<GetAbilityBars> outputGetAbilityBars;
-
-            using (Connection)
-            {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
-
-                outputGetAbilityBars = await Connection.QueryAsync<GetAbilityBars>("call GetAbilityBars(@CustomerGUID, @CharName)",
-                    p,
-                    commandType: CommandType.Text);
-            }
-
-            return outputGetAbilityBars;
-        }
-
-        public async Task<IEnumerable<GetAbilityBarsAndAbilities>> GetAbilityBarsAndAbilities(Guid customerGUID, string characterName)
-        {
-            IEnumerable<GetAbilityBarsAndAbilities> outputGetAbilityBarsAndAbilities;
-
-            using (Connection)
-            {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
-
-                outputGetAbilityBarsAndAbilities = await Connection.QueryAsync<GetAbilityBarsAndAbilities>("call GetAbilityBarsAndAbilities (@CustomerGUID, @CharName)",
-                    p,
-                    commandType: CommandType.Text);
-            }
-
-            return outputGetAbilityBarsAndAbilities;
-        }
-
-         public async Task<MapInstances> SpinUpInstance(Guid customerGUID, string zoneName, int playerGroupId = 0)
+                 public async Task<MapInstances> SpinUpInstance(Guid customerGUID, string zoneName, int playerGroupId = 0)
         {
             using (Connection)
             {
@@ -532,6 +395,180 @@ namespace OWSData.Repositories.Implementations.MySQL
             return new MapInstances { MapInstanceId = -1 };
         }
 
+        public async Task UpdateCharacterStats(UpdateCharacterStats updateCharacterStats)
+        {
+            using (Connection)
+            {
+                await Connection.ExecuteAsync(GenericQueries.UpdateCharacterStats.Replace("Range = ", "`Range` = "), // TODO Remove post Table cleanup
+                    updateCharacterStats,
+                    commandType: CommandType.Text);
+            }
+        }
+
+        public async Task UpdatePosition(Guid customerGUID, string characterName, string mapName, float X, float Y, float Z, float RX, float RY, float RZ)
+        {
+            IDbConnection conn = Connection;
+            conn.Open();
+            using IDbTransaction transaction = conn.BeginTransaction();
+            try
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@CharName", characterName);
+                p.Add("@MapName", mapName);
+                p.Add("@X", X);
+                p.Add("@Y", Y);
+                p.Add("@Z", Z + 1);
+                p.Add("@RX", RX);
+                p.Add("@RY", RY);
+                p.Add("@RZ", RZ);
+
+                if (mapName != String.Empty)
+                {
+                    await Connection.ExecuteAsync(GenericQueries.UpdateCharacterPositionAndMap,
+                        p,
+                        commandType: CommandType.Text);
+                }
+                else
+                {
+                    await Connection.ExecuteAsync(GenericQueries.UpdateCharacterPosition,
+                        p,
+                        commandType: CommandType.Text);
+                }
+
+                await Connection.ExecuteAsync(MySQLQueries.UpdateUserLastAccess,
+                    p,
+                    commandType: CommandType.Text);
+
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw new Exception("Database Exception in UpdatePosition!");
+            }
+        }
+
+        public async Task PlayerLogout(Guid customerGUID, string characterName)
+        {
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                if (outputCharacter.CharacterId > 0)
+                {
+                    parameters.Add("@CharacterID", outputCharacter.CharacterId);
+
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
+                        parameters,
+                        commandType: CommandType.Text);
+                }
+            }
+        }
+
+        public async Task AddAbilityToCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
+        {
+            using (Connection)
+            {
+                var parameters = new
+                {
+                    CustomerGUID = customerGUID,
+                    AbilityName = abilityName,
+                    CharacterName = characterName,
+                    AbilityLevel = abilityLevel,
+                    CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
+                };
+
+                var outputCharacterAbility = await Connection.QuerySingleOrDefaultAsync<GlobalData>(GenericQueries.GetCharacterAbilityByName,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                if (outputCharacterAbility == null)
+                {
+                    await Connection.ExecuteAsync(MySQLQueries.AddAbilityToCharacter,
+                        parameters,
+                        commandType: CommandType.Text);
+                }
+            }
+        }
+
+        public async Task<IEnumerable<Abilities>> GetAbilities(Guid customerGUID)
+        {
+            IEnumerable<Abilities> outputGetAbilities;
+
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+
+                outputGetAbilities = await Connection.QueryAsync<Abilities>(GenericQueries.GetAbilities,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return outputGetAbilities;
+        }
+
+        public async Task<IEnumerable<GetCharacterAbilities>> GetCharacterAbilities(Guid customerGUID, string characterName)
+        {
+            IEnumerable<GetCharacterAbilities> outputGetCharacterAbilities;
+
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+
+                outputGetCharacterAbilities = await Connection.QueryAsync<GetCharacterAbilities>(GenericQueries.GetCharacterAbilities,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return outputGetCharacterAbilities;
+        }
+
+        public async Task<IEnumerable<GetAbilityBars>> GetAbilityBars(Guid customerGUID, string characterName)
+        {
+            IEnumerable<GetAbilityBars> outputGetAbilityBars;
+
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+
+                outputGetAbilityBars = await Connection.QueryAsync<GetAbilityBars>(GenericQueries.GetCharacterAbilityBars,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return outputGetAbilityBars;
+        }
+
+        public async Task<IEnumerable<GetAbilityBarsAndAbilities>> GetAbilityBarsAndAbilities(Guid customerGUID, string characterName)
+        {
+            IEnumerable<GetAbilityBarsAndAbilities> outputGetAbilityBarsAndAbilities;
+
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+
+                outputGetAbilityBarsAndAbilities = await Connection.QueryAsync<GetAbilityBarsAndAbilities>(GenericQueries.GetCharacterAbilityBarsAndAbilities,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return outputGetAbilityBarsAndAbilities;
+        }
+
         public async Task RemoveAbilityFromCharacter(Guid customerGUID, string abilityName, string characterName)
         {
             using (Connection)
@@ -543,7 +580,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                     CharacterName = characterName
                 };
 
-                await Connection.ExecuteAsync(MySQLQueries.RemoveAbilityFromCharacterSQL, parameters);
+                await Connection.ExecuteAsync(MySQLQueries.RemoveAbilityFromCharacter, parameters);
             }
         }
 
@@ -560,7 +597,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                     CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
                 };
 
-                await Connection.ExecuteAsync(MySQLQueries.UpdateAbilityOnCharacterSQL, parameters);
+                await Connection.ExecuteAsync(MySQLQueries.UpdateAbilityOnCharacter, parameters);
             }
         }
     }
