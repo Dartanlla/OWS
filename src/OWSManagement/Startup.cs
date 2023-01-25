@@ -69,8 +69,6 @@ namespace OWSManagement
                 c.IncludeXmlComments(filePath);
             });
 
-            Console.WriteLine(System.AppContext.BaseDirectory);
-
             services.AddHttpClient("OWSPublicApi", c =>
             {
                 c.BaseAddress = new Uri(apiPathOptions.InternalPublicApiURL);
