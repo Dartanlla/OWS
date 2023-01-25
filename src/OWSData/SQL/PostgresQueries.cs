@@ -142,6 +142,14 @@ ON CONFLICT ON CONSTRAINT ak_zoneservers
                 FROM MapInstances
                 WHERE LastUpdateFromServer < CURRENT_TIMESTAMP - (@MapMinutes || ' minutes')::INTERVAL AND CustomerGUID = @CustomerGUID";
 
+		public static readonly string GetMapInstancesByWorldServerID = @"SELECT MI.*, M.SoftPlayerCap, M.HardPlayerCap, M.MapName, M.MapMode, M.MinutesToShutdownAfterEmpty, 
+		       FLOOR(EXTRACT(EPOCH FROM NOW()::TIMESTAMP - MI.LastServerEmptyDate) / 60)  AS MinutesServerHasBeenEmpty,
+		       FLOOR(EXTRACT(EPOCH FROM NOW()::TIMESTAMP - MI.LastUpdateFromServer) / 60) AS MinutesSinceLastUpdate
+				FROM Maps M
+				INNER JOIN MapInstances MI ON MI.MapID = M.MapID
+				WHERE M.CustomerGUID = @CustomerGUID
+				AND MI.WorldServerID = @WorldServerID";
+
 		public static readonly string RemoveMapInstances = @"DELETE FROM MapInstances WHERE CustomerGUID = @CustomerGUID AND MapInstanceID = ANY(@MapInstances)";
 
 		#endregion

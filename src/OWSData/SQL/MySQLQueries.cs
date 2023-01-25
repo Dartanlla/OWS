@@ -130,6 +130,14 @@ namespace OWSData.SQL
                 FROM MapInstances
                 WHERE LastUpdateFromServer < DATE_SUB(NOW(), INTERVAL @MapMinutes MINUTE) AND CustomerGUID = @CustomerGUID";
 
+		public static readonly string GetMapInstancesByWorldServerID = @"SELECT MI.*, M.SoftPlayerCap, M.HardPlayerCap, M.MapName, M.MapMode, M.MinutesToShutdownAfterEmpty, 
+				FLOOR(TIMESTAMPDIFF(MINUTE, MI.LastServerEmptyDate, NOW()))  AS MinutesServerHasBeenEmpty,
+           		FLOOR(TIMESTAMPDIFF(MINUTE, MI.LastUpdateFromServer, NOW())) AS MinutesSinceLastUpdate
+				FROM Maps M
+				INNER JOIN MapInstances MI ON MI.MapID = M.MapID
+				WHERE M.CustomerGUID = @CustomerGUID
+				AND MI.WorldServerID = @WorldServerID";
+
 		#endregion
     }
 }

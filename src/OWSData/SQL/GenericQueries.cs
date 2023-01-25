@@ -115,6 +115,10 @@ namespace OWSData.SQL
 				  AND CustomFieldName = @CustomFieldName
 				  AND CharacterID = @CharacterID";
 
+	    public static readonly string RemoveAllCharactersFromAllInstancesByWorldID = @"DELETE FROM CharOnMapInstance 
+				WHERE CustomerGUID = @CustomerGUID
+				  AND MapInstanceID IN (SELECT MapInstanceID FROM MapInstances MI WHERE MI.WorldServerID = @WorldServerID)";
+
 	    public static readonly string RemoveCharacterFromAllInstances = @"DELETE FROM CharOnMapInstance 
 				WHERE CustomerGUID = @CustomerGUID
 				  AND CharacterID = @CharacterID";
@@ -265,6 +269,11 @@ namespace OWSData.SQL
 				  AND WorldServerID = @WorldServerID
 				ORDER BY Port";
 
+        public static readonly string UpdateWorldServerStatus = @"UPDATE WorldServers
+					SET ActiveStartTime = NULL
+					  , ServerStatus = @ServerStatus
+				  WHERE CustomerGUID = @CustomerGUID
+				    AND WorldServerID = @WorldServerID";
         #endregion
 
         #region Zone Queries
@@ -273,6 +282,16 @@ namespace OWSData.SQL
 				FROM MapInstances
 				WHERE CustomerGUID = @CustomerGUID
 				  AND MapInstanceID = @MapInstanceID";
+
+        public static readonly string GetMapInstancesByIpAndPort = @"SELECT M.MapName, M.ZoneName, M.WorldCompContainsFilter, M.WorldCompListFilter, 
+				MI.MapInstanceID, MI.Status, 
+				WS.MaxNumberOfInstances, WS.ActiveStartTime, WS.ServerStatus, WS.InternalServerIP
+				FROM MapInstances MI
+				INNER JOIN Maps M ON M.MapID = MI.MapID AND M.CustomerGUID = MI.CustomerGUID
+				INNER JOIN WorldServers WS ON WS.WorldServerID = MI.WorldServerID AND WS.CustomerGUID = MI.CustomerGUID
+				WHERE WS.CustomerGUID = @CustomerGUID
+				AND (WS.ServerIP = @ServerIP OR InternalServerIP = @ServerIP)
+				AND MI.Port = @Port";
 
         public static readonly string GetMapInstancesByMapAndGroup = @"SELECT WS.ServerIP AS ServerIP
 					, WS.InternalServerIP AS WorldServerIP
@@ -311,6 +330,11 @@ namespace OWSData.SQL
 				  AND MI.MapInstanceID = @MapInstanceID";
 
 	        public static readonly string RemoveMapInstances = @"DELETE FROM MapInstances WHERE CustomerGUID = @CustomerGUID AND MapInstanceID IN @MapInstances";
+
+	        public static readonly string UpdateMapInstanceStatus = @"UPDATE MapInstances
+				SET Status = @MapInstanceStatus
+				WHERE CustomerGUID = @CustomerGUID
+				  AND MapInstanceID = @MapInstanceID";
 
         #endregion
 

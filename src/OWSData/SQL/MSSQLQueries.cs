@@ -138,6 +138,14 @@ namespace OWSData.SQL
                 FROM MapInstances
                 WHERE LastUpdateFromServer < DATEADD(minute, @MapMinutes, GETDATE()) AND CustomerGUID = @CustomerGUID";
 
+		public static readonly string GetMapInstancesByWorldServerID = @"SELECT MI.*, M.SoftPlayerCap, M.HardPlayerCap, M.MapName, M.MapMode, M.MinutesToShutdownAfterEmpty, 
+				DateDiff(minute, ISNULL(MI.LastServerEmptyDate, GETDATE()), GETDATE()) as MinutesServerHasBeenEmpty,
+				DateDiff(minute, ISNULL(MI.LastUpdateFromServer, GETDATE()), GETDATE()) as MinutesSinceLastUpdate
+				FROM Maps M
+				INNER JOIN MapInstances MI ON MI.MapID = M.MapID
+				WHERE M.CustomerGUID = @CustomerGUID
+				AND MI.WorldServerID = @WorldServerID";
+
 		#endregion
 
     }
