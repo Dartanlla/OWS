@@ -115,8 +115,8 @@ public:
 
 	AOWSGameMode();
 
-	UPROPERTY()
-		UOWSGameModeComponent* OWSGameModeComponent;
+//	UPROPERTY()
+//		UOWSGameModeComponent* OWSGameModeComponent;
 
 	virtual void StartPlay();
 
@@ -228,10 +228,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Global Data")
 		void GetGlobalDataItem(FString GlobalDataKey);
 
-	void OnGetGlobalDataItemResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void GetGlobalDataItemSuccess(TSharedPtr<FGlobalDataItem> GlobalDataItem);
+	void GetGlobalDataItemError(const FString& ErrorMsg);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Global Data")
-		void NotifyGetGlobalDataItem(const FString &GlobalDataKey);
+		void NotifyGetGlobalDataItem(const FString& GlobalDataKey, const FString& GlobalDataValue);
 	UFUNCTION(BlueprintImplementableEvent, Category = "Global Data")
 		void ErrorGetGlobalDataItem(const FString &ErrorMsg);
 
@@ -239,7 +240,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Global Data")
 		void AddOrUpdateGlobalDataItem(FString GlobalDataKey, FString GlobalDataValue);
 
-	void OnAddOrUpdateGlobalDataItemResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void AddOrUpdateGlobalDataItemSuccess();
+	void AddOrUpdateGlobalDataItemError(const FString& ErrorMsg);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Global Data")
 		void NotifyAddOrUpdateGlobalDataItem();
@@ -335,6 +337,7 @@ public:
 	*/
 
 
+	void InitializeOWSAPISubsystemOnGameMode();
 	AOWSPlayerController* GetPlayerControllerFromCharacterName(const FString CharacterName);
 
 	void ProcessOWS2POSTRequest(FString ApiModuleToCall, FString ApiToCall, FString PostParameters, void (AOWSGameMode::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful));
