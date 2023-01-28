@@ -67,7 +67,7 @@ namespace OWSGlobalData.Controllers
         /// Gets an item from the Global Data system by looking it up based on globalDataKey
         /// </remarks>
         [HttpGet]
-        [Route("GetGlobalDataItem")]
+        [Route("GetGlobalDataItem/{globalDataKey}")]
         [Produces(typeof(GlobalData))]
         public async Task<GlobalData> GetGlobalDataItem(string globalDataKey)
         {

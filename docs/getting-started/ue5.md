@@ -7,13 +7,13 @@ nav_order: 1
 ---
 
 # OWS Starter Project for Unreal Engine 5.1.0
-Follow these instructions if you want to setup the OWS Starter Project for Unreal Engine 5.0.3. Before you are able to setup this project you need to finish the [Docker Setup](docker-setup) and [Database setup](setup-database) sections.
+Follow these instructions if you want to setup the OWS Starter Project for Unreal Engine 5. Before you are able to setup this project you need to finish the [Docker Setup](docker-setup) and [Database setup](setup-database) sections.
 
 ## Download the project
 
 Click on the button below to download the Open World Starter project.
 
-[Download OpenWorldStarterDockerUE5.zip - 20230104 Release - UE 5.1.0](https://drive.google.com/file/d/1NEqcuAKsiMSfq-9FmrSJDt8gEakPDPi3/view?usp=share_link){: .btn .btn-blue .mr-4}
+[Download OpenWorldStarterDockerUE5.zip - 20230128 Release - UE 5.1.0](https://drive.google.com/file/d/1GRHRZUwgU7nk-JBsPu1_yPHt4TDjf5UF/view?usp=share_link){: .btn .btn-blue .mr-4}
 
 ## Initial setup
 

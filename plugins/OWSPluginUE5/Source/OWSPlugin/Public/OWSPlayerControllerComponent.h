@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Runtime/Online/HTTP/Public/Http.h"
-#include "OWS2API.h"
 #include "OWSCharacter.h"
 #include "OWSPlayerState.h"
 #include "OWSPlayerControllerComponent.generated.h"
