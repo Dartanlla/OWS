@@ -26,7 +26,20 @@ namespace OWSData.SQL
 										AND C.CharName=@CharacterName 
 										AND A.AbilityName=@AbilityName)";
 
-		public static readonly string AddOrUpdateWorldServerSQL = @"MERGE WorldServers AS tbl
+        public static readonly string AddOrUpdateGlobalData = @"MERGE GlobalData AS tbl
+			USING (SELECT @CustomerGUID AS CustomerGUID, 
+				@GlobalDataKey AS GlobalDataKey,
+				@GlobalDataValue as GlobalDataValue
+			) as row
+			ON tbl.CustomerGUID = row.CustomerGUID AND tbl.GlobalDataKey = row.GlobalDataKey
+			WHEN NOT MATCHED THEN
+				INSERT(CustomerGUID, GlobalDataKey, GlobalDataValue)
+				VALUES (row.CustomerGUID, row.GlobalDataKey, row.GlobalDataValue)
+			WHEN MATCHED THEN
+				UPDATE SET
+				tbl.GlobalDataValue = row.GlobalDataValue;";
+
+        public static readonly string AddOrUpdateWorldServerSQL = @"MERGE WorldServers AS tbl
 				USING (SELECT @CustomerGUID AS CustomerGUID, 
 					@ServerIP AS ServerIP, 
 					@MaxNumberOfInstances AS MaxNumberOfInstances,

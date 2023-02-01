@@ -960,6 +960,23 @@ public:
 
 };
 
+USTRUCT()
+struct FGlobalDataItem
+{
+	GENERATED_BODY()
+
+public:
+	FGlobalDataItem() {
+		GlobalDataKey = "";
+		GlobalDataValue = "";
+	}
+
+	UPROPERTY()
+		FString GlobalDataKey;
+	UPROPERTY()
+		FString GlobalDataValue;
+};
+
 UENUM(BlueprintType)
 namespace ERPGSchemeToChooseMap
 {

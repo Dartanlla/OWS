@@ -115,6 +115,48 @@ services:
       - database
       - messaging
 
+  # OWS Global Data
+  owsglobaldata:
+    image: ${REGISTRY:-ows}/owsglobaldata:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: OWSGlobalData/Dockerfile
+    environment:
+     - OWSStorageConfig__OWSDBBackend=${DATABASE}
+     - OWSStorageConfig__OWSDBConnectionString=${DATABASE_CONNECTION_STRING}
+     - OWSAPIPathConfig__InternalPublicApiURL=${InternalPublicApiURL}
+     - OWSAPIPathConfig__InternalInstanceManagementApiURL=${InternalInstanceManagementApiURL}
+     - OWSAPIPathConfig__InternalCharacterPersistenceApiURL=${InternalCharacterPersistenceApiURL}
+     - RabbitMQOptions__RabbitMQHostName=${RabbitMQHostName}
+     - RabbitMQOptions__RabbitMQPort=${RabbitMQPort}
+     - RabbitMQOptions__RabbitMQUserName=${RabbitMQUserName}
+     - RabbitMQOptions__RabbitMQPassword=${RabbitMQPassword}
+    ports:
+      - "44325:80"
+      - "44326:443"
+    depends_on:
+      - database
+      - messaging
+
+  # OWS Management
+  owsmanagement:
+    image: ${REGISTRY:-ows}/owsmanagement:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: OWSManagement/Dockerfile
+    environment:
+     - OWSStorageConfig__OWSDBBackend=${DATABASE}
+     - OWSStorageConfig__OWSDBConnectionString=${DATABASE_CONNECTION_STRING}
+     - OWSAPIPathConfig__InternalPublicApiURL=${InternalPublicApiURL}
+     - OWSAPIPathConfig__InternalInstanceManagementApiURL=${InternalInstanceManagementApiURL}
+     - OWSAPIPathConfig__InternalCharacterPersistenceApiURL=${InternalCharacterPersistenceApiURL}
+    ports:
+      - "44410:80"
+      - "44411:443"
+    depends_on:
+      - database
+      - messaging
+
 networks:
   elk:
     driver: bridge

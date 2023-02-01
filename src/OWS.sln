@@ -31,6 +31,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSExternalLoginProviders",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSTests", "OWSTests\OWSTests.csproj", "{ABE0555E-7D6A-4B1E-8991-490F8ADC2F42}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSGlobalData", "OWSGlobalData\OWSGlobalData.csproj", "{06C26295-CDA9-4AF2-BF15-57274D0E84D3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSManagement", "OWSManagement\OWSManagement.csproj", "{64DBC291-970E-47F1-AC1F-94F3990649BB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +81,14 @@ Global
 		{ABE0555E-7D6A-4B1E-8991-490F8ADC2F42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ABE0555E-7D6A-4B1E-8991-490F8ADC2F42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ABE0555E-7D6A-4B1E-8991-490F8ADC2F42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06C26295-CDA9-4AF2-BF15-57274D0E84D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06C26295-CDA9-4AF2-BF15-57274D0E84D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06C26295-CDA9-4AF2-BF15-57274D0E84D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06C26295-CDA9-4AF2-BF15-57274D0E84D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64DBC291-970E-47F1-AC1F-94F3990649BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64DBC291-970E-47F1-AC1F-94F3990649BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64DBC291-970E-47F1-AC1F-94F3990649BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64DBC291-970E-47F1-AC1F-94F3990649BB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
