@@ -12,7 +12,7 @@ namespace OWSData.Models.Tables
         public int Port { get; set; }
         public int Status { get; set; } = 0;
         public int? PlayerGroupId { get; set; }
-        public bool NumberOfReportedPlayers { get; set; }
+        public int NumberOfReportedPlayers { get; set; }
         public DateTime? LastUpdateFromServer { get; set; }
         public DateTime? LastServerEmptyDate { get; set; }
     }

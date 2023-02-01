@@ -7,6 +7,13 @@ namespace OWSData.Models.StoredProcs
 {
     public class JoinMapByCharName
     {
+        public JoinMapByCharName()
+        {
+            NeedToStartupMap = false; //Will get set to true if we can't find a running Zone Instance of zoneName that meets all the required conditions.
+            EnableAutoLoopback = false; //No longer using the Customer setting EnableAutoLoopback.  Always false.
+            NoPortForwarding = false; //No longer used.  Always false.
+        }
+
         public string ServerIP { get; set; }
         public string WorldServerIP { get; set; }
         public int WorldServerPort { get; set; }
