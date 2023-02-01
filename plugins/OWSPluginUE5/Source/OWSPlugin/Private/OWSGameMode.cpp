@@ -161,7 +161,7 @@ void AOWSGameMode::StartPlay()
 		FParse::Value(FCommandLine::Get(), TEXT("zoneinstanceid="), CommandLineZoneInstanceID);
 		ZoneInstanceID = FCString::Atoi(*CommandLineZoneInstanceID);
 
-		UE_LOG(OWS, Warning, TEXT("OWSGameMode::StartPlay - ZoneInstaceID: %d"), ZoneInstanceID)
+		UE_LOG(OWS, Warning, TEXT("OWSGameMode::StartPlay - ZoneInstanceID: %d"), ZoneInstanceID)
 
 		//Lookup which Zone this server is running for and get the ZoneName into IAmZoneName var
 		GetServerInstanceFromZoneInstanceID();

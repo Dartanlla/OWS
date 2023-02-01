@@ -66,7 +66,7 @@ namespace OWSPublicAPI.Requests.Users
 
             JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharName(CustomerGUID, CharacterName, ZoneName, PlayerGroupType);
 
-            bool readyForPlayersToConenct = false;
+            bool readyForPlayersToConnect = false;
 
             if (joinMapByCharacterName == null || joinMapByCharacterName.WorldServerID < 1)
             {
@@ -83,23 +83,23 @@ namespace OWSPublicAPI.Requests.Users
                 //Wait OWSGeneralConfig.SecondsToWaitBeforeFirstPollForSpinUp seconds before the first CheckMapInstanceStatus to give it time to spin up
                 System.Threading.Thread.Sleep(owsGeneralConfig.Value.SecondsToWaitBeforeFirstPollForSpinUp);
 
-                readyForPlayersToConenct = await WaitForServerReadyToConnect(CustomerGUID, joinMapByCharacterName.MapInstanceID);
+                readyForPlayersToConnect = await WaitForServerReadyToConnect(CustomerGUID, joinMapByCharacterName.MapInstanceID);
             }
             //We found a zone server we can connect to, but it is still spinning up.  Wait until it is ready to connect to (up to OWSGeneralConfig.SecondsToWaitForServerSpinUp seconds).
             else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 1)
             {
                 //CheckMapInstanceStatus every OWSGeneralConfig.SecondsToWaitInBetweenSpinUpPolling seconds for up to OWSGeneralConfig.SecondsToWaitForServerSpinUp seconds
-                readyForPlayersToConenct = await WaitForServerReadyToConnect(CustomerGUID, joinMapByCharacterName.MapInstanceID);
+                readyForPlayersToConnect = await WaitForServerReadyToConnect(CustomerGUID, joinMapByCharacterName.MapInstanceID);
             }
             //We found a zone server we can connect to and it is ready to connect
             else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 2)
             {
                 //The zone server is ready to connect to
-                readyForPlayersToConenct = true;
+                readyForPlayersToConnect = true;
             }
 
             //The zone instance is ready, so connect the character to the map instance in our data store
-            if (readyForPlayersToConenct)
+            if (readyForPlayersToConnect)
             {
                 await charactersRepository.AddCharacterToMapInstanceByCharName(CustomerGUID, CharacterName, joinMapByCharacterName.MapInstanceID);
             }
