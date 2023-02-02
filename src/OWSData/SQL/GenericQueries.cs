@@ -112,6 +112,15 @@ namespace OWSData.SQL
 
         #endregion
 
+        #region Global Data Queries
+
+        public static readonly string GetGlobalDataByGlobalDataKey = @"SELECT CustomerGUID, GlobalDataKey, GlobalDataValue  
+			FROM GlobalData GD
+			WHERE GD.CustomerGUID=@CustomerGUID
+			AND GD.GlobalDataKey=@GlobalDataKey";
+
+        #endregion
+
         #region Zone Queries
 
         public static readonly string GetMapInstance = @"SELECT *
