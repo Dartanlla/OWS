@@ -103,7 +103,7 @@ namespace OWSInstanceManagement.Requests.Instance
                 //Check Map Status
                 var resultCheckMapInstanceStatus = await charactersRepository.CheckMapInstanceStatus(CustomerGUID, mapInstanceID);
 
-                if (resultCheckMapInstanceStatus.MapInstanceStatus == 2) //Ready to play
+                if (resultCheckMapInstanceStatus.Status == 2) //Ready to play
                 {
                     /*using (RPGDataDataContext dc = new RPGDataDataContext())
                     {

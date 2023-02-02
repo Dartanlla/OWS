@@ -13,5 +13,6 @@ namespace OWSData.Models.Tables
         public int Port { get; set; }
         public byte ServerStatus { get; set; }
         public string InternalServerIp { get; set; }
+        public int StartingMapInstancePort { get; set; }
     }
 }

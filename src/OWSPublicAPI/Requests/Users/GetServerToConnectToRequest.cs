@@ -119,7 +119,7 @@ namespace OWSPublicAPI.Requests.Users
                 //Check Map Status
                 var resultCheckMapInstanceStatus = await charactersRepository.CheckMapInstanceStatus(CustomerGUID, zoneInstanceID);
 
-                if (resultCheckMapInstanceStatus.MapInstanceStatus == 2) //Ready to play
+                if (resultCheckMapInstanceStatus.Status == 2) //Ready to play
                 {
                     return true;
                 }

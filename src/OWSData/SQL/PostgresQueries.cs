@@ -6,7 +6,9 @@ namespace OWSData.SQL
 {
     public static class PostgresQueries
     {
-	    
+
+	    #region To Refactor
+
 	    public static readonly string AddAbilityToCharacterSQL = @"call AddAbilityToCharacter(
 			@CustomerGUID,
 			@AbilityName,
@@ -38,7 +40,7 @@ ON CONFLICT ON CONSTRAINT ak_zoneservers
 					ON AT.AbilityTypeID=AB.AbilityTypeID
 				WHERE AB.CustomerGUID=@CustomerGUID
 				ORDER BY AB.AbilityName";
-	    
+
 		public static readonly string GetUserSessionSQL = @"SELECT US.CustomerGUID, US.UserGUID, US.UserSessionGUID, US.LoginDate, US.SelectedCharacterName,
 	            U.Email, U.FirstName, U.LastName, U.CreateDate, U.LastAccess, U.Role,
 	            C.CharacterID, C.CharName, C.X, C.Y, C.Z, C.RX, C.RY, C.RZ, C.MapName as ZoneName
@@ -95,12 +97,41 @@ ON CONFLICT ON CONSTRAINT ak_zoneservers
 				Status=2
 				WHERE CustomerGUID=@CustomerGUID
 					AND MapInstanceID=@ZoneInstanceID";
-					
+
 		public static readonly string UpdateWorldServerSQL = @"UPDATE WorldServers
 				SET ActiveStartTime=NOW(),
 				ServerStatus=1
 				WHERE CustomerGUID=@CustomerGUID::UUID 
 				AND WorldServerID=@WorldServerID";
+
+		#endregion
+
+		#region Character Queries
+
+		public static readonly string RemoveCharactersFromAllInactiveInstances = @"DELETE FROM CharOnMapInstance
+                WHERE CustomerGUID = @CustomerGUID
+                AND CharacterID IN (
+                    SELECT C.CharacterID
+                      FROM Characters C
+                     INNER JOIN Users U ON U.CustomerGUID = C.CustomerGUID AND U.UserGUID = C.UserGUID
+                     WHERE U.LastAccess < CURRENT_TIMESTAMP - (@CharacterMinutes || ' minutes')::INTERVAL AND C.CustomerGUID = CharOnMapInstance.CustomerGUID)";
+
+		public static readonly string RemoveCharacterFromInstances = @"DELETE FROM CharOnMapInstance WHERE CustomerGUID = @CustomerGUID AND MapInstanceID = ANY(@MapInstances)";
+
+		#endregion
+
+		#region Zone Queries
+
+		public static readonly string AddMapInstance = @"INSERT INTO MapInstances (CustomerGUID, WorldServerID, MapID, Port, Status, PlayerGroupID, LastUpdateFromServer)
+		VALUES (@CustomerGUID, @WorldServerID, @MapID, @Port, 1, @PlayerGroupID, NOW())
+		RETURNING mapinstanceid";
+
+		public static readonly string GetAllInactiveMapInstances = @"SELECT MapInstanceID
+                FROM MapInstances
+                WHERE LastUpdateFromServer < CURRENT_TIMESTAMP - (@MapMinutes || ' minutes')::INTERVAL AND CustomerGUID = @CustomerGUID";
+
+		public static readonly string RemoveMapInstances = @"DELETE FROM MapInstances WHERE CustomerGUID = @CustomerGUID AND MapInstanceID = ANY(@MapInstances)";
+
+		#endregion
 	}
 }
-
