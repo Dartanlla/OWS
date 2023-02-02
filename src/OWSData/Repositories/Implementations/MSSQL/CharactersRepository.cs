@@ -219,37 +219,37 @@ namespace OWSData.Repositories.Implementations.MSSQL
             JoinMapByCharName outputObject = new JoinMapByCharName();
 
             string serverIp = "";
-            int? worldServerId = 0;
             string worldServerIp = "";
             int worldServerPort = 0;
             int port = 0;
             int mapInstanceID = 0;
             string mapNameToStart = "";
-            int? mapInstanceStatus = 0;
-            bool needToStartupMap = false;
-            bool enableAutoLoopback = false;
-            bool noPortForwarding = false;
 
             using (Connection)
             {
+                //Used and reused by multiple queries
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
-                parameters.Add("@CharName", characterName);
-                parameters.Add("@ZoneName", zoneName);
-                parameters.Add("@PlayerGroupType", playerGroupType);
 
+                //Lookup the Zone row by zoneName
+                parameters.Add("@ZoneName", zoneName);
                 Maps outputMap = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetMapByZoneName,
                     parameters,
                     commandType: CommandType.Text);
 
+                //Lookup the Character row by characterName
+                parameters.Add("@CharName", characterName);
                 Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName,
                     parameters,
                     commandType: CommandType.Text);
 
+                /*
                 Customers outputCustomer = await Connection.QuerySingleOrDefaultAsync<Customers>(GenericQueries.GetCustomer,
                     parameters,
                     commandType: CommandType.Text);
+                */
 
+                //We could not find a valid character for characterName in this customerGUID
                 if (outputCharacter == null)
                 {
                     outputObject = new JoinMapByCharName() {
@@ -261,18 +261,17 @@ namespace OWSData.Repositories.Implementations.MSSQL
                         MapInstanceID = mapInstanceID,
                         MapNameToStart = mapNameToStart,
                         MapInstanceStatus = -1,
-                        NeedToStartupMap = false,
-                        EnableAutoLoopback = enableAutoLoopback,
-                        NoPortForwarding = noPortForwarding
+                        NeedToStartupMap = false
                     };
 
                     return outputObject;
                 }
 
+                //If there is a playerGroupType, then look up the player group by type.  This assumes that for this playerGroupType, the player can only be in at most one Player Group
                 PlayerGroup outputPlayerGroup = new PlayerGroup();
-
                 if (playerGroupType > 0)
                 {
+                    parameters.Add("@PlayerGroupType", playerGroupType);
                     outputPlayerGroup = await Connection.QuerySingleOrDefaultAsync<PlayerGroup>(GenericQueries.GetPlayerGroupIDByType,
                         parameters,
                         commandType: CommandType.Text);
@@ -282,21 +281,25 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     outputPlayerGroup.PlayerGroupId = 0;
                 }
 
+                //This query has the conditions required to find a Zone Instance to connect the player to
                 parameters.Add("@IsInternalNetworkTestUser", outputCharacter.IsInternalNetworkTestUser);
                 parameters.Add("@SoftPlayerCap", outputMap.SoftPlayerCap);
                 parameters.Add("@PlayerGroupID", outputPlayerGroup.PlayerGroupId);
                 parameters.Add("@MapID", outputMap.MapId);
-
-                JoinMapByCharName outputJoinMapByCharName = await Connection.QuerySingleOrDefaultAsync<JoinMapByCharName>(GenericQueries.GetMapInstancesByMapAndGroup,
+                JoinMapByCharName outputJoinMapByCharName = await Connection.QuerySingleOrDefaultAsync<JoinMapByCharName>(GenericQueries.GetZoneInstancesByZoneAndGroup,
                     parameters,
                     commandType: CommandType.Text);
 
+                //We found a Zone Instance to connect the player to
                 if (outputJoinMapByCharName != null)
                 {
-                    outputObject.NeedToStartupMap = false;
+                    outputObject.NeedToStartupMap = false; //false means that the OWS Instance Launcher will NOT be called to spin up a new Zone Instance
                     outputObject.WorldServerID = outputJoinMapByCharName.WorldServerID;
                     outputObject.ServerIP = outputJoinMapByCharName.ServerIP;
-                    if (outputCharacter.IsInternalNetworkTestUser)
+
+                    //If the login username has @localhost in it or if Users.IsInternalNetworkTestUser is set to true, then redirect the client IP to the InternalServerIP (usually 127.0.0.1 on a development PC)
+                    //This is useful if you want to play a game client on the same device (development PC) as the game server while still allowing players from outside the network to connect with an external IP.
+                    if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
                     {
                         outputObject.ServerIP = outputJoinMapByCharName.WorldServerIP;
                     }
@@ -308,18 +311,22 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 }
                 else
                 {
+                    //We don't have a Zone Instance for the player to connect to, so spin up a new one
                     MapInstances outputMapInstance = await SpinUpInstance(customerGUID, zoneName, outputPlayerGroup.PlayerGroupId);
 
+                    //Get the World Server row by WorldServerID
                     parameters.Add("@WorldServerId", outputMapInstance.WorldServerId);
-
                     WorldServers outputWorldServers =  await Connection.QuerySingleOrDefaultAsync<WorldServers>(GenericQueries.GetWorldByID,
                         parameters,
                         commandType: CommandType.Text);
 
-                    outputObject.NeedToStartupMap = true;
+                    outputObject.NeedToStartupMap = true; //true means that the OWS Instance Launcher will be called to spin up a new Zone Instance
                     outputObject.WorldServerID = outputMapInstance.WorldServerId;
                     outputObject.ServerIP = outputWorldServers.ServerIp;
-                    if (outputCharacter.IsInternalNetworkTestUser)
+
+                    //If the login username has @localhost in it or if Users.IsInternalNetworkTestUser is set to true, then redirect the client IP to the InternalServerIP (usually 127.0.0.1 on a development PC)
+                    //This is useful if you want to play a game client on the same device (development PC) as the game server while still allowing players from outside the network to connect with an external IP.
+                    if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
                     {
                         outputObject.ServerIP = outputWorldServers.InternalServerIp;
                     }
@@ -329,12 +336,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     outputObject.MapInstanceID = outputMapInstance.MapInstanceId;
                     outputObject.MapNameToStart = outputMap.MapName;
                 }
-
-                if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
-                {
-                    outputObject.ServerIP = "127.0.0.1";
-                }
-
             }
 
             return outputObject;
@@ -344,55 +345,80 @@ namespace OWSData.Repositories.Implementations.MSSQL
         {
             using (Connection)
             {
+                //Used and reused by multiple queries
                 var parameters = new DynamicParameters();
+
+                //Finds the Active World Server with the least number of Zone Instances running on it
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@ZoneName", zoneName);
                 parameters.Add("@PlayerGroupId", playerGroupId);
-
                 List<WorldServers> outputWorldServers = (List<WorldServers>)await Connection.QueryAsync<WorldServers>(GenericQueries.GetActiveWorldServersByLoad,
                     parameters,
                     commandType: CommandType.Text);
 
+                //If there are any Active World Servers
                 if (outputWorldServers.Any())
                 {
                     int? firstAvailable = null;
                     foreach (var worldServer in outputWorldServers)
                     {
+                        //Get a list of the ports in use by Zone Instances running on the specified WorldServerID
                         parameters.Add("@WorldServerID", worldServer.WorldServerId);
                         var portsInUse = await Connection.QueryAsync<int>(GenericQueries.GetPortsInUseByWorldServer,
                             parameters,
                             commandType: CommandType.Text);
 
+                        //Find the first port number between StartingMapInstancePort and (StartingMapInstancePort + MaxNumberOfInstances) while ignoring any portsInUse
                         firstAvailable = Enumerable.Range(worldServer.StartingMapInstancePort, worldServer.StartingMapInstancePort + worldServer.MaxNumberOfInstances)
                             .Except(portsInUse)
                             .FirstOrDefault();
 
+                        //If the firstAvailable port is valid (greater than StartingMapInstancePort)
                         if (firstAvailable >= worldServer.StartingMapInstancePort)
                         {
-
+                            //Lookup the Zone row based on the ZoneName
                             Maps outputMaps = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetMapByZoneName,
                                 parameters,
                                 commandType: CommandType.Text);
 
-                            parameters.Add("@WorldServerID", worldServer.WorldServerId);
+                            //Add the new Zone Instance row for the instance server we are spinning up
                             parameters.Add("@MapID", outputMaps.MapId);
                             parameters.Add("@Port", firstAvailable);
-
                             int outputMapInstanceID = await Connection.QuerySingleOrDefaultAsync<int>(MSSQLQueries.AddMapInstance,
                                 parameters,
                                 commandType: CommandType.Text);
 
+                            //Get the recently inserted Zone Instance row
+                            /*
                             parameters.Add("@MapInstanceID", outputMapInstanceID);
-
                             MapInstances outputMapInstances = await Connection.QuerySingleOrDefaultAsync<MapInstances>(GenericQueries.GetMapInstance,
                                 parameters,
                                 commandType: CommandType.Text);
+                            */
+
+                            //Return the inserted Zone Instance row
+                            MapInstances outputMapInstances = new MapInstances() { 
+                                CustomerGuid = customerGUID,
+                                MapId = outputMaps.MapId,
+                                MapInstanceId = outputMapInstanceID,
+                                WorldServerId = worldServer.WorldServerId,
+                                Port = firstAvailable ?? 0,
+                                Status = 1, //Starting up status
+                                PlayerGroupId = playerGroupId,
+                                NumberOfReportedPlayers = 0
+                            };
 
                             return outputMapInstances;
                         }
                     }
+
+                    //No available ports
                 }
             }
+
+            //No active World Servers were found
+
+            //Log the error
 
             return new MapInstances { MapInstanceId = -1 };
         }

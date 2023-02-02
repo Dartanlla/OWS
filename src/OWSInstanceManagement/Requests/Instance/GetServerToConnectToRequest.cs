@@ -43,7 +43,7 @@ namespace OWSInstanceManagement.Requests.Instance
 
             JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharName(CustomerGUID, CharacterName, ZoneName, PlayerGroupType);
 
-            bool readyForPlayersToConenct = false;
+            bool readyForPlayersToConnect = false;
 
             if (joinMapByCharacterName.NeedToStartupMap)
             {
@@ -58,14 +58,14 @@ namespace OWSInstanceManagement.Requests.Instance
                             durable: false,
                             autoDelete: false);
 
-                        MQSpinUpServerMessage testMessage = new()
+                        MQSpinUpServerMessage serverSpinUpMessage = new()
                         {
                             WorldServerID = joinMapByCharacterName.WorldServerID,
                             MapName = ZoneName,
                             Port = joinMapByCharacterName.WorldServerPort
                         };
 
-                        var body = testMessage.Serialize();
+                        var body = serverSpinUpMessage.Serialize();
 
                         channel.BasicPublish(exchange: "ServerSpinUp",
                                              routingKey: String.Format("ServerSpinUp.{0}" + joinMapByCharacterName.WorldServerID),
@@ -77,17 +77,17 @@ namespace OWSInstanceManagement.Requests.Instance
                 //Wait 5 seconds before the first CheckMapInstanceStatus to give it time to spin up
                 System.Threading.Thread.Sleep(5);
 
-                readyForPlayersToConenct = await WaitForServerReadyToConnect(joinMapByCharacterName.MapInstanceID);
+                readyForPlayersToConnect = await WaitForServerReadyToConnect(joinMapByCharacterName.MapInstanceID);
             }
             else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 1)
             {
                 //CheckMapInstanceStatus every 2 seconds for up to 90 seconds
-                readyForPlayersToConenct = await WaitForServerReadyToConnect(joinMapByCharacterName.MapInstanceID);
+                readyForPlayersToConnect = await WaitForServerReadyToConnect(joinMapByCharacterName.MapInstanceID);
             }
             else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 2)
             {
                 //The zone server is ready to connect to
-                readyForPlayersToConenct = true;
+                readyForPlayersToConnect = true;
             }
 
             Output = joinMapByCharacterName;
