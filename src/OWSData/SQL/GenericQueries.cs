@@ -293,29 +293,6 @@ namespace OWSData.SQL
 				AND (WS.ServerIP = @ServerIP OR InternalServerIP = @ServerIP)
 				AND MI.Port = @Port";
 
-        public static readonly string GetZoneInstancesByZoneAndGroup = @"SELECT WS.ServerIP AS ServerIP
-					, WS.InternalServerIP AS WorldServerIP
-					, WS.Port AS WorldServerPort
-					, MI.Port
-     				, MI.MapInstanceID
-     				, WS.WorldServerID
-     				, MI.Status AS MapInstanceStatus
-				FROM WorldServers WS
-				LEFT JOIN MapInstances MI 
-					ON MI.WorldServerID = WS.WorldServerID 
-					AND MI.CustomerGUID = WS.CustomerGUID
-				LEFT JOIN CharOnMapInstance CMI 
-					ON CMI.MapInstanceID = MI.MapInstanceID 
-					AND CMI.CustomerGUID = MI.CustomerGUID
-				WHERE MI.MapID = @MapID
-				AND WS.ActiveStartTime IS NOT NULL
-				AND WS.CustomerGUID = @CustomerGUID
-				AND MI.NumberOfReportedPlayers < @SoftPlayerCap 
-				AND (MI.PlayerGroupID = @PlayerGroupID OR @PlayerGroupID = 0)
-				AND MI.Status = 2
-				GROUP BY MI.MapInstanceID, WS.ServerIP, MI.Port, WS.WorldServerID, WS.InternalServerIP, WS.Port, MI.Status
-				ORDER BY COUNT(DISTINCT CMI.CharacterID)";
-
         public static readonly string GetMapInstanceStatus = @"SELECT Status
 				FROM MapInstances
 				WHERE CustomerGUID = @CustomerGUID

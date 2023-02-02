@@ -286,7 +286,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 parameters.Add("@SoftPlayerCap", outputMap.SoftPlayerCap);
                 parameters.Add("@PlayerGroupID", outputPlayerGroup.PlayerGroupId);
                 parameters.Add("@MapID", outputMap.MapId);
-                JoinMapByCharName outputJoinMapByCharName = await Connection.QuerySingleOrDefaultAsync<JoinMapByCharName>(GenericQueries.GetZoneInstancesByZoneAndGroup,
+                JoinMapByCharName outputJoinMapByCharName = await Connection.QuerySingleOrDefaultAsync<JoinMapByCharName>(MSSQLQueries.GetZoneInstancesByZoneAndGroup,
                     parameters,
                     commandType: CommandType.Text);
 
