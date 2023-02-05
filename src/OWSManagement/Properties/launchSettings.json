@@ -12,11 +12,11 @@
     "OWSManagement": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "swagger",
+      "launchUrl": "",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:7205;http://localhost:5205",
+      "applicationUrl": "http://localhost:5205",
       "dotnetRunMessages": true
     },
     "IIS Express": {
