@@ -9,36 +9,6 @@ namespace OWSData.SQL
 
 	    #region To Refactor
 
-		public static readonly string AddAbilityToCharacterSQL = @"INSERT INTO CharHasAbilities (CustomerGUID, CharacterID, AbilityID, AbilityLevel, CharHasAbilitiesCustomJSON)
-				SELECT @CustomerGUID, 
-					(SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName=@CharacterName AND C.CustomerGUID=@CustomerGUID),
-					(SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName=@AbilityName AND A.CustomerGUID=@CustomerGUID),
-					@AbilityLevel,
-					@CharHasAbilitiesCustomJSON
-				WHERE NOT EXISTS (SELECT 1 FROM CharHasAbilities CHA 
-									INNER JOIN Characters C 
-										ON C.CharacterID=CHA.CharacterID 
-										AND C.CustomerGUID=CHA.CustomerGUID
-									INNER JOIN Abilities A 
-										ON A.AbilityID=CHA.AbilityID 
-										AND A.CustomerGUID=CHA.CustomerGUID
-									WHERE CHA.CustomerGUID=@CustomerGUID 
-										AND C.CharName=@CharacterName 
-										AND A.AbilityName=@AbilityName)";
-
-        public static readonly string AddOrUpdateGlobalData = @"MERGE GlobalData AS tbl
-			USING (SELECT @CustomerGUID AS CustomerGUID, 
-				@GlobalDataKey AS GlobalDataKey,
-				@GlobalDataValue as GlobalDataValue
-			) as row
-			ON tbl.CustomerGUID = row.CustomerGUID AND tbl.GlobalDataKey = row.GlobalDataKey
-			WHEN NOT MATCHED THEN
-				INSERT(CustomerGUID, GlobalDataKey, GlobalDataValue)
-				VALUES (row.CustomerGUID, row.GlobalDataKey, row.GlobalDataValue)
-			WHEN MATCHED THEN
-				UPDATE SET
-				tbl.GlobalDataValue = row.GlobalDataValue;";
-
         public static readonly string AddOrUpdateWorldServerSQL = @"MERGE WorldServers AS tbl
 				USING (SELECT @CustomerGUID AS CustomerGUID, 
 					@ServerIP AS ServerIP, 
@@ -98,18 +68,6 @@ namespace OWSData.SQL
 				WHERE CustomerGUID=@CustomerGUID 
 				AND ZoneServerGUID=@ZoneServerGUID";
 
-		public static readonly string RemoveAbilityFromCharacterSQL = @"DELETE FROM CharHasAbilities
-				WHERE CustomerGUID=@CustomerGUID
-					AND CharacterID=(SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName=@CharacterName)
-					AND AbilityID=(SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName=@AbilityName)";
-
-		public static readonly string UpdateAbilityOnCharacterSQL = @"UPDATE CharHasAbilities
-				SET AbilityLevel = @AbilityLevel,
-				CharHasAbilitiesCustomJSON = @CharHasAbilitiesCustomJSON
-				WHERE CustomerGUID=@CustomerGUID
-					AND CharacterID=(SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName=@CharacterName)
-					AND AbilityID=(SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName=@AbilityName)";
-
 		public static readonly string UpdateNumberOfPlayersSQL = @"UPDATE MI
 				SET NumberOfReportedPlayers=@NumberOfReportedPlayers,
 				LastUpdateFromServer=GETDATE(),
@@ -129,6 +87,18 @@ namespace OWSData.SQL
 
 		#region Character Queries
 
+		public static readonly string AddAbilityToCharacter = @"INSERT INTO CharHasAbilities (CustomerGUID, CharacterID, AbilityID, AbilityLevel, CharHasAbilitiesCustomJSON)
+				SELECT @CustomerGUID, 
+					(SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName = @CharacterName AND C.CustomerGUID = @CustomerGUID ORDER BY C.CharacterID),
+					(SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName = @AbilityName AND A.CustomerGUID = @CustomerGUID ORDER BY A.AbilityID),
+					@AbilityLevel,
+					@CharHasAbilitiesCustomJSON";
+
+		public static readonly string RemoveAbilityFromCharacter = @"DELETE FROM CharHasAbilities
+				WHERE CustomerGUID = @CustomerGUID
+					AND CharacterID = (SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName = @CharacterName ORDER BY C.CharacterID)
+					AND AbilityID = (SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName = @AbilityName ORDER BY A.AbilityID)";
+
 		public static readonly string RemoveCharactersFromAllInactiveInstances = @"DELETE FROM CharOnMapInstance
                 WHERE CustomerGUID = @CustomerGUID
                 AND CharacterID IN (
@@ -136,6 +106,25 @@ namespace OWSData.SQL
                       FROM Characters C
                      INNER JOIN Users U ON U.CustomerGUID = C.CustomerGUID AND U.UserGUID = C.UserGUID
                      WHERE U.LastAccess < DATEADD(minute, @CharacterMinutes, GETDATE()) AND C.CustomerGUID = @CustomerGUID)";
+
+		public static readonly string UpdateAbilityOnCharacter = @"UPDATE CharHasAbilities
+				SET AbilityLevel = @AbilityLevel,
+				CharHasAbilitiesCustomJSON = @CharHasAbilitiesCustomJSON
+				WHERE CustomerGUID = @CustomerGUID
+					AND CharacterID = (SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName = @CharacterName ORDER BY C.CharacterID)
+					AND AbilityID = (SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName = @AbilityName ORDER BY A.AbilityID)";
+
+		#endregion
+
+		#region User Queries
+
+		public static readonly string UpdateUserLastAccess = @"UPDATE Users
+				SET LastAccess = GETDATE()
+                WHERE CustomerGUID = @CustomerGUID
+                AND UserGUID IN (
+                    SELECT C.UserGUID
+                      FROM Characters C
+                      WHERE C.CustomerGUID = @CustomerGUID AND C.CharName = @CharName)";
 
 		#endregion
 
@@ -149,6 +138,39 @@ namespace OWSData.SQL
                 FROM MapInstances
                 WHERE LastUpdateFromServer < DATEADD(minute, @MapMinutes, GETDATE()) AND CustomerGUID = @CustomerGUID";
 
+		public static readonly string GetMapInstancesByWorldServerID = @"SELECT MI.*, M.SoftPlayerCap, M.HardPlayerCap, M.MapName, M.MapMode, M.MinutesToShutdownAfterEmpty, 
+				DateDiff(minute, ISNULL(MI.LastServerEmptyDate, GETDATE()), GETDATE()) as MinutesServerHasBeenEmpty,
+				DateDiff(minute, ISNULL(MI.LastUpdateFromServer, GETDATE()), GETDATE()) as MinutesSinceLastUpdate
+				FROM Maps M
+				INNER JOIN MapInstances MI ON MI.MapID = M.MapID
+				WHERE M.CustomerGUID = @CustomerGUID
+				AND MI.WorldServerID = @WorldServerID";
+
+        public static readonly string GetZoneInstancesByZoneAndGroup = @"SELECT TOP 1
+					  WS.ServerIP AS ServerIP
+					, WS.InternalServerIP AS WorldServerIP
+					, WS.Port AS WorldServerPort
+					, MI.Port
+     				, MI.MapInstanceID
+     				, WS.WorldServerID
+     				, MI.Status AS MapInstanceStatus
+				FROM WorldServers WS
+				LEFT JOIN MapInstances MI 
+					ON MI.WorldServerID = WS.WorldServerID 
+					AND MI.CustomerGUID = WS.CustomerGUID
+				LEFT JOIN CharOnMapInstance CMI 
+					ON CMI.MapInstanceID = MI.MapInstanceID 
+					AND CMI.CustomerGUID = MI.CustomerGUID
+				WHERE MI.MapID = @MapID
+				AND WS.ActiveStartTime IS NOT NULL
+				AND WS.CustomerGUID = @CustomerGUID
+				AND MI.NumberOfReportedPlayers < @SoftPlayerCap 
+				AND (MI.PlayerGroupID = @PlayerGroupID OR @PlayerGroupID = 0)
+				AND MI.Status = 2
+				GROUP BY MI.MapInstanceID, WS.ServerIP, MI.Port, WS.WorldServerID, WS.InternalServerIP, WS.Port, MI.Status
+				ORDER BY COUNT(DISTINCT CMI.CharacterID)";
+
 		#endregion
-	}
+
+    }
 }

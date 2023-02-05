@@ -32,19 +32,19 @@ namespace OWSData.Repositories.Implementations.Postgres
             {
                 using (Connection)
                 {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@ServerIP", serverIP);
-                    p.Add("@Port", port);
+                    var parameter = new DynamicParameters();
+                    parameter.Add("@CustomerGUID", customerGUID);
+                    parameter.Add("@ServerIP", serverIP);
+                    parameter.Add("@Port", port);
 
-                    output = await Connection.QuerySingleAsync<GetServerInstanceFromPort>("select * from GetServerInstanceFromIPAndPort(@CustomerGUID,@ServerIP,@Port)",
-                        p,
+                    output = await Connection.QuerySingleAsync<GetServerInstanceFromPort>(GenericQueries.GetMapInstancesByIpAndPort,
+                        parameter,
                         commandType: CommandType.Text);
                 }
 
                 return output;
             }
-            catch (Exception) {
+            catch (Exception ex) {
                 output = new GetServerInstanceFromPort();
                 return output;
             }
@@ -56,12 +56,12 @@ namespace OWSData.Repositories.Implementations.Postgres
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@WorldServerID", worldServerID);
+                var parameter = new DynamicParameters();
+                parameter.Add("@CustomerGUID", customerGUID);
+                parameter.Add("@WorldServerID", worldServerID);
 
-                output = await Connection.QueryAsync<GetZoneInstancesForWorldServer>("select * from GetMapInstancesForWorldServerID(@CustomerGUID,@WorldServerID)",
-                    p,
+                output = await Connection.QueryAsync<GetZoneInstancesForWorldServer>(PostgresQueries.GetMapInstancesByWorldServerID,
+                    parameter,
                     commandType: CommandType.Text);
             }
 
@@ -73,12 +73,13 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@MapInstanceID", zoneInstanceID);
-                p.Add("@MapInstanceStatus", instanceStatus);
+                var parameter = new DynamicParameters();
+                parameter.Add("@CustomerGUID", customerGUID);
+                parameter.Add("@MapInstanceID", zoneInstanceID);
+                parameter.Add("@MapInstanceStatus", instanceStatus);
 
-                await Connection.QueryFirstOrDefaultAsync("call SetMapInstanceStatus(@MapInstanceID,@MapInstanceStatus)",
-                    p,
+                await Connection.QueryFirstOrDefaultAsync(GenericQueries.UpdateMapInstanceStatus,
+                    parameter,
                     commandType: CommandType.Text);
             }
 
@@ -93,15 +94,30 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<SuccessAndErrorMessage> ShutDownWorldServer(Guid customerGUID, int worldServerID)
         {
-            using (Connection)
+            IDbConnection conn = Connection;
+            conn.Open();
+            using IDbTransaction transaction = conn.BeginTransaction();
+            try
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@WorldServerID", worldServerID);
+                var parameter = new DynamicParameters();
+                parameter.Add("@CustomerGUID", customerGUID);
+                parameter.Add("@WorldServerID", worldServerID);
+                parameter.Add("@ServerStatus", 0);
 
-                await Connection.ExecuteAsync("call ShutdownWorldServer(@CustomerGUID,@WorldServerID)",
-                    p,
+                await Connection.ExecuteAsync(GenericQueries.RemoveAllCharactersFromAllInstancesByWorldID,
+                    parameter,
                     commandType: CommandType.Text);
+
+                await Connection.ExecuteAsync(GenericQueries.UpdateWorldServerStatus,
+                    parameter,
+                    commandType: CommandType.Text);
+
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw new Exception("Database Exception in ShutDownWorldServer!");
             }
 
             SuccessAndErrorMessage output = new SuccessAndErrorMessage()
@@ -125,12 +141,12 @@ namespace OWSData.Repositories.Implementations.Postgres
                 };
 
                 GetWorldServerID getWorldServerID  = await Connection.QueryFirstOrDefaultAsync<GetWorldServerID>(PostgresQueries.GetWorldServerSQL, parameters);
-                
+
                 if (getWorldServerID != null)
                 {
                     worldServerId = getWorldServerID.WorldServerID;
                 }
-                
+
                 if (worldServerId > 0)
                 {
                     var parameters2 = new {
@@ -141,7 +157,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     await Connection.ExecuteAsync(PostgresQueries.UpdateWorldServerSQL, parameters2);
                 }
             }
- 
+
             return worldServerId;
         }
 

@@ -53,8 +53,8 @@ namespace OWSGlobalData.Controllers
         public async Task<SuccessAndErrorMessage> AddOrUpdateGlobalDataItem([FromBody] AddOrUpdateGlobalDataItemDTO addOrUpdateGlobalDataItemDTO)
         {
             var addOrUpdateGlobalDataItemRequest = new AddOrUpdateGlobalDataItemRequest(
-                addOrUpdateGlobalDataItemDTO, 
-                _globalDataRepository, 
+                addOrUpdateGlobalDataItemDTO,
+                _globalDataRepository,
                 _customerGuid);
 
             return await addOrUpdateGlobalDataItemRequest.Handle();

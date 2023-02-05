@@ -32,7 +32,22 @@ namespace OWSData.Repositories.Implementations.MSSQL
         {
             using (Connection)
             {
-                await Connection.ExecuteAsync(MSSQLQueries.AddOrUpdateGlobalData, globalData);
+                var outputGlobalData = await Connection.QuerySingleOrDefaultAsync<GlobalData>(GenericQueries.GetGlobalDataByGlobalDataKey,
+                    globalData,
+                    commandType: CommandType.Text);
+
+                if (outputGlobalData != null)
+                {
+                    await Connection.ExecuteAsync(GenericQueries.UpdateGlobalData,
+                        globalData,
+                        commandType: CommandType.Text);
+                }
+                else
+                {
+                    await Connection.ExecuteAsync(GenericQueries.AddGlobalData,
+                        globalData,
+                        commandType: CommandType.Text);
+                }
             }
         }
 
