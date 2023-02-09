@@ -167,3 +167,5 @@ volumes:
     name: "ows2-elasticsearch"
   database:
     name: "ows2-database"
+  messaging:
+    name: "ows2-messaging"
