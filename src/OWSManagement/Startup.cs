@@ -5,7 +5,7 @@ using OWSShared.Interfaces;
 using OWSShared.Middleware;
 using System.Net.Http.Headers;
 using SimpleInjector;
-using VueCliMiddleware;
+using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 
 namespace OWSManagement
 {
@@ -103,11 +103,9 @@ namespace OWSManagement
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
             app.UseSpa(spa =>
             {
-                spa.Options.SourcePath = "wwwroot";
-                if (env.IsDevelopment())
+                if (!env.IsDevelopment())
                 {
-                    spa.UseProxyToSpaDevelopmentServer("http://localhost:5001");
-                    spa.UseVueCli(npmScript: "serve", port: 5001);
+                    spa.Options.SourcePath = "wwwroot/dist";
                 }
             });
             
