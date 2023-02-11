@@ -19,9 +19,9 @@ a {
   color: #646cff;
   text-decoration: inherit;
 }
-a:hover {
-  color: #535bf2;
-}
+    a:hover {
+        color: #535bf2;
+    }
 
 body {
   margin: 0;
@@ -47,14 +47,15 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+/*
 button:hover {
   border-color: #646cff;
 }
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
+    button:focus,
+    button:focus-visible {
+        outline: 4px auto -webkit-focus-ring-color;
+    }
+*/
 .card {
   padding: 2em;
 }
@@ -63,7 +64,7 @@ button:focus-visible {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
-  text-align: center;
+  text-align: left;
 }
 
 @media (prefers-color-scheme: light) {
@@ -78,3 +79,4 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+

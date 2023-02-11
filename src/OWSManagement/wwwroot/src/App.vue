@@ -33,7 +33,9 @@
         </v-app-bar>
 
         <v-main>
-            <Dashboard msg="Vite + Vue" />
+            <router-view v-slot="{ Component }">
+                <component :is="Component" />
+            </router-view>
         </v-main>
     </v-app>
 </template>

@@ -1,10 +1,14 @@
 ﻿import { createVuetify } from 'vuetify';
-import * as components from 'vuetify/lib/components/index';
+import * as vuetifyComponents from 'vuetify/lib/components/index';
 import * as directives from 'vuetify/lib/directives/index';
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
+import * as labs from 'vuetify/labs/components';
 
 export const vuetify = createVuetify({
-    components,
+    components: {
+        ...vuetifyComponents,
+        ...labs,
+    },
     directives,
     theme: {
         themes: {
@@ -32,5 +36,11 @@ export const vuetify = createVuetify({
         sets: {
             mdi,
         }
+    },
+    defaults: {
+        VDataTable: {
+            fixedHeader: true,
+            noDataText: 'Results not found',
+        },
     },
 });

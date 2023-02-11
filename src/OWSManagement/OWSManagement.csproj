@@ -18,6 +18,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\src\components\CharactersGrid.vue" />
+    <Content Remove="wwwroot\src\components\WorldServersGrid.vue" />
+    <Content Remove="wwwroot\src\router\index.ts" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="wwwroot\src\plugins\vuetify.ts" />
   </ItemGroup>
 
@@ -38,7 +44,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <TypeScriptCompile Include="wwwroot\src\components\CharactersGrid.vue" />
+    <TypeScriptCompile Include="wwwroot\src\components\WorldServersGrid.vue" />
     <TypeScriptCompile Include="wwwroot\src\plugins\vuetify.ts" />
+    <TypeScriptCompile Include="wwwroot\src\router\index.ts" />
   </ItemGroup>
 
   <ItemGroup>
