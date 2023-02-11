@@ -1,0 +1,4 @@
+bin/
+obj/
+wwwroot/dist
+wwwroot/node_modules
