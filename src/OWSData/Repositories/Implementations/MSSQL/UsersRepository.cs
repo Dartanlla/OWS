@@ -129,6 +129,29 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             return outputObject;
         }
+
+        public async Task<IEnumerable<User>> GetUsers(Guid customerGuid)
+        {
+            IEnumerable<User> outputObject = null;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGuid);
+
+                try
+                {
+                    outputObject = await Connection.QueryAsync<User>(GenericQueries.GetUsers, p);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            }
+
+            return outputObject;
+        }
+
         public async Task<GetUserSession> GetUserSession(Guid customerGUID, Guid userSessionGUID)
         {
             GetUserSession outputObject = new GetUserSession();
@@ -299,6 +322,40 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     await Connection.ExecuteAsync("RemoveCharacter",
                         p,
                         commandType: CommandType.StoredProcedure);
+                }
+
+                outputObject.Success = true;
+                outputObject.ErrorMessage = "";
+
+                return outputObject;
+            }
+            catch (Exception ex)
+            {
+                outputObject.Success = false;
+                outputObject.ErrorMessage = ex.Message;
+
+                return outputObject;
+            }
+        }
+
+        public async Task<SuccessAndErrorMessage> UpdateUser(Guid customerGuid, Guid userGuid, string firstName, string lastName, string email)
+        {
+            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGuid);
+                    p.Add("@UserGUID", userGuid);
+                    p.Add("@FirstName", firstName);
+                    p.Add("@LastName", lastName);
+                    p.Add("@Email", email);
+
+                    await Connection.ExecuteAsync(GenericQueries.UpdateUser,
+                        p,
+                        commandType: CommandType.Text);
                 }
 
                 outputObject.Success = true;
