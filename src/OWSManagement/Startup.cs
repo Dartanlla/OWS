@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using OWSData.Repositories.Interfaces;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
 using OWSShared.Middleware;
@@ -84,6 +86,8 @@ namespace OWSManagement
                 c.DefaultRequestHeaders.Add("X-CustomerGUID", owsManagementOptions.OWSAPIKey);
             });
 
+            services.Configure<OWSData.Models.StorageOptions>(Configuration.GetSection(OWSData.Models.StorageOptions.SectionName));
+
             InitializeContainer(services);
 
         }
@@ -120,7 +124,30 @@ namespace OWSManagement
 
         private void InitializeContainer(IServiceCollection services)
         {
+            var OWSStorageConfig = Configuration.GetSection("OWSStorageConfig");
+            if (OWSStorageConfig.Exists())
+            {
+                string dbBackend = OWSStorageConfig.GetValue<string>("OWSDBBackend");
+
+                switch (dbBackend)
+                {
+                    case "postgres":
+                        container.Register<ICharactersRepository, OWSData.Repositories.Implementations.Postgres.CharactersRepository>(Lifestyle.Transient);
+                        container.Register<IUsersRepository, OWSData.Repositories.Implementations.Postgres.UsersRepository>(Lifestyle.Transient);
+                        break;
+                    case "mysql":
+                        container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MySQL.CharactersRepository>(Lifestyle.Transient);
+                        container.Register<IUsersRepository, OWSData.Repositories.Implementations.MySQL.UsersRepository>(Lifestyle.Transient);
+                        break;
+                    default: // Default to MSSQL
+                        container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MSSQL.CharactersRepository>(Lifestyle.Transient);
+                        container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Transient);
+                        break;
+                }
+            }
+
             container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
+
         }
     }
 }
