@@ -57,10 +57,10 @@ namespace OWSManagement.Controllers
         /// <remarks>
         /// Adds a new user
         /// </remarks>
-        [HttpPut]
+        [HttpPost]
         [Route("")]
         [Produces(typeof(SuccessAndErrorMessage))]
-        public async Task<SuccessAndErrorMessage> Put([FromBody] AddUserDTO addUserDTO)
+        public async Task<SuccessAndErrorMessage> Post([FromBody] AddUserDTO addUserDTO)
         {
             AddUserRequest addUserRequest = new AddUserRequest(_customerGuid.CustomerGUID, addUserDTO, _usersRepository);
 
@@ -73,10 +73,10 @@ namespace OWSManagement.Controllers
         /// <remarks>
         /// Edit an existing user.  Don't allow editing of the password.
         /// </remarks>
-        [HttpPost]
+        [HttpPut]
         [Route("")]
         [Produces(typeof(SuccessAndErrorMessage))]
-        public async Task<SuccessAndErrorMessage> Post([FromBody] EditUserDTO editUserDTO)
+        public async Task<SuccessAndErrorMessage> Put([FromBody] EditUserDTO editUserDTO)
         {
             EditUserRequest editUserRequest = new EditUserRequest(_customerGuid.CustomerGUID, editUserDTO, _usersRepository);
 

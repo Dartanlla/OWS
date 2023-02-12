@@ -8,10 +8,10 @@ export default {
         return client.get('/Users');
     },
     addUser(data: Record<string, unknown>) {
-        return client.put('/Users', data);
+        return client.post('/Users', data);
     },
     updateUser(data: Record<string, unknown>) {
-        return client.post('/Users', data);
+        return client.put('/Users', data);
     },
 
 }
