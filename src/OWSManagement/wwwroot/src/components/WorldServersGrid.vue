@@ -15,6 +15,7 @@
 </script>
 
 <template>
+    <v-container>
     <div class="world-servers-container" >
         <h2>World Servers</h2>
         <div>
@@ -26,11 +27,13 @@
             </v-data-table>
         </div>
     </div>
+</v-container>
 </template>
 
 <style scoped>
     .world-servers-container {
         margin-top: 0px;
+        text-align: center;
     }
 
 </style>
