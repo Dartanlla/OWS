@@ -4,12 +4,12 @@
     import owsApi from '../owsApi';
 
     interface Data {
-        headers: Array<Object>,
-        rows: Array<Object>,
-        showEditingUserDialog: Boolean,
+        headers: Array<object>,
+        rows: Array<object>,
+        showEditingUserDialog: boolean,
         editUser: Record<string, unknown>,
         editUserIndex: number,
-        addingANewUser: Boolean
+        addingANewUser: boolean
     }
 
     const data: Data = reactive({

@@ -1,6 +1,6 @@
 ﻿import { owsApiClient } from "../src/owsApiClient";
 
-let client = new owsApiClient("/api");
+const client: owsApiClient = new owsApiClient("/api");
 
 export default {
 
