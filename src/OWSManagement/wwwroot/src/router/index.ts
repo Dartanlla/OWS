@@ -1,11 +1,11 @@
 ﻿import { createWebHistory, createRouter } from "vue-router";
-import Dashboard from "@/components/Dashboard.vue";
-import UsersGrid from "@/components/UsersGrid.vue";
-import CharactersGrid from "@/components/CharactersGrid.vue";
-import WorldServersGrid from "@/components/WorldServersGrid.vue";
-import ZonesGrid from "@/components/ZonesGrid.vue";
-import ZoneInstancesGrid from "@/components/ZoneInstancesGrid.vue";
-import GlobalDataGrid from "@/components/GlobalDataGrid.vue";
+import Dashboard from "../components/Dashboard.vue";
+import UsersGrid from "../components/UsersGrid.vue";
+import CharactersGrid from "../components/CharactersGrid.vue";
+import WorldServersGrid from "../components/WorldServersGrid.vue";
+import ZonesGrid from "../components/ZonesGrid.vue";
+import ZoneInstancesGrid from "../components/ZoneInstancesGrid.vue";
+import GlobalDataGrid from "../components/GlobalDataGrid.vue";
 
 const routes = [
     {

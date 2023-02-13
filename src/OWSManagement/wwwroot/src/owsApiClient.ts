@@ -1,12 +1,13 @@
 ﻿import axios from 'axios';
+import { AxiosInstance } from 'axios';
 
 /**
  * Create a new Axios client instance
  * @see https://github.com/mzabriskie/axios#creating-an-instance
  */
-const getClient = (baseUrl = null) => {
+const getClient = (baseUrl = "") => {
 
-    const options = {
+    const options: object | undefined = {
         baseURL: baseUrl,
         headers: {
             'Content-Type': 'application/json',
@@ -23,17 +24,17 @@ const getClient = (baseUrl = null) => {
             return response;
         },
         function (error) {
-            let res = error.response;
-            if (res == null) {
+            const res = error.response;
+            if (res === null) {
                 window.location.href = "/";
                 console.error("Timeout!");
             }
             else {
-                if (res.status == 401) {
+                if (res.status === 401) {
                     window.location.href = "/";
                     console.error("Unauthorized API Call!");
                 }
-                if (res.status == 500) {
+                if (res.status === 500) {
                     alert("An error has occured!");
                 }
             }
@@ -47,47 +48,49 @@ const getClient = (baseUrl = null) => {
 };
 
 class owsApiClient {
-    constructor(baseUrl = null) {
+    client: AxiosInstance;
+
+    constructor(baseUrl: string) {
         this.client = getClient(baseUrl);
     }
 
-    get(url, conf = {}) {
+    get(url: string, conf = {}) {
         return this.client.get(url, conf)
             .then(response => Promise.resolve(response))
             .catch(error => Promise.reject(error));
     }
 
-    delete(url, conf = {}) {
+    delete(url: string, conf = {}) {
         return this.client.delete(url, conf)
             .then(response => Promise.resolve(response))
             .catch(error => Promise.reject(error));
     }
 
-    head(url, conf = {}) {
+    head(url: string, conf = {}) {
         return this.client.head(url, conf)
             .then(response => Promise.resolve(response))
             .catch(error => Promise.reject(error));
     }
 
-    options(url, conf = {}) {
+    options(url: string, conf = {}) {
         return this.client.options(url, conf)
             .then(response => Promise.resolve(response))
             .catch(error => Promise.reject(error));
     }
 
-    post(url, data = {}, conf = {}) {
+    post(url: string, data = {}, conf = {}) {
         return this.client.post(url, data, conf)
             .then(response => Promise.resolve(response))
             .catch(error => Promise.reject(error));
     }
 
-    put(url, data = {}, conf = {}) {
+    put(url: string, data = {}, conf = {}) {
         return this.client.put(url, data, conf)
             .then(response => Promise.resolve(response))
             .catch(error => Promise.reject(error));
     }
 
-    patch(url, data = {}, conf = {}) {
+    patch(url: string, data = {}, conf = {}) {
         return this.client.patch(url, data, conf)
             .then(response => Promise.resolve(response))
             .catch(error => Promise.reject(error));
@@ -101,43 +104,43 @@ export { owsApiClient };
  */
 export default {
     // Provide request methods with the default base_url
-    get(url, conf = {}) {
+    get(url: string, conf = {}) {
         return getClient().get(url, conf)
             .then(response => Promise.resolve(response))
             .catch(error => Promise.reject(error));
     },
 
-    delete(url, conf = {}) {
+    delete(url: string, conf = {}) {
         return getClient().delete(url, conf)
             .then(response => Promise.resolve(response))
             .catch(error => Promise.reject(error));
     },
 
-    head(url, conf = {}) {
+    head(url: string, conf = {}) {
         return getClient().head(url, conf)
             .then(response => Promise.resolve(response))
             .catch(error => Promise.reject(error));
     },
 
-    options(url, conf = {}) {
+    options(url: string, conf = {}) {
         return getClient().options(url, conf)
             .then(response => Promise.resolve(response))
             .catch(error => Promise.reject(error));
     },
 
-    post(url, data = {}, conf = {}) {
+    post(url: string, data = {}, conf = {}) {
         return getClient().post(url, data, conf)
             .then(response => Promise.resolve(response))
             .catch(error => Promise.reject(error));
     },
 
-    put(url, data = {}, conf = {}) {
+    put(url: string, data = {}, conf = {}) {
         return getClient().put(url, data, conf)
             .then(response => Promise.resolve(response))
             .catch(error => Promise.reject(error));
     },
 
-    patch(url, data = {}, conf = {}) {
+    patch(url: string, data = {}, conf = {}) {
         return getClient().patch(url, data, conf)
             .then(response => Promise.resolve(response))
             .catch(error => Promise.reject(error));

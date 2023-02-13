@@ -4,10 +4,11 @@
     import owsApi from '../owsApi';
 
     interface Data {
-        valid: Boolean,
+        valid: boolean,
         addUserForm: Record<string, unknown>,
-        nameRules: Array<String>,
-        emailRules: Array<String>
+        nameRules: Array<any>,
+        emailRules: Array<any>,
+        passwordRules: Array<any>
     }
 
     const data: Data = reactive({
@@ -19,16 +20,16 @@
             password: ''
         },
         nameRules: [
-            v => !!v || 'Name is required',
-            v => (v && v.length < 20) || 'Name must be less than 20 characters',
+            (v: string) => !!v || 'Name is required',
+            (v: HTMLFormElement) => (v && v.length < 20) || "Name must be less than 20 characters",
         ],
         emailRules: [
-            v => !!v || 'E-mail is required',
-            v => /.+@.+\..+/.test(v) || 'E-mail must be valid',
+            (v: string) => !!v || 'E-mail is required',
+            (v: string) => /.+@.+\..+/.test(v) || 'E-mail must be valid',
         ],
         passwordRules: [
-            v => !!v || 'Password is required',
-            v => (v && v.length >= 6) || 'Password must be 6 or more characters in length',
+            (v: string) => !!v || 'Password is required',
+            (v: HTMLFormElement) => (v && v.length >= 6) || 'Password must be 6 or more characters in length',
         ],
     });
 
