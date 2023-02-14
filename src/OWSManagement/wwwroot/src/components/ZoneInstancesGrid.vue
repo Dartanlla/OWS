@@ -15,7 +15,8 @@
 </script>
 
 <template>
-    <div class="zones-instances-container">
+<v-container>
+    <div class="zone-instances-container">
         <h2>Zone Instances</h2>
         <div>
             <v-data-table :headers="data.headers"
@@ -25,10 +26,12 @@
             </v-data-table>
         </div>
     </div>
+</v-container>
 </template>
 
 <style scoped>
     .zone-instances-container {
         margin-top: 0px;
+        text-align: center;
     }
 </style>
