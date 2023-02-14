@@ -12,7 +12,7 @@ const getClient = (baseUrl = "") => {
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'X-CustomerGUID': 'B92D35CA-5E85-4C21-83B9-58677CC36887'
+            'X-CustomerGUID': ''
         },
         timeout: 60000
     };
