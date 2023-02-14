@@ -15,6 +15,7 @@
 </script>
 
 <template>
+<v-container>
     <div class="zones-container">
         <h2>Zones</h2>
         <div>
@@ -25,10 +26,12 @@
             </v-data-table>
         </div>
     </div>
+</v-container>
 </template>
 
 <style scoped>
     .zones-container {
         margin-top: 0px;
+        text-align: center;
     }
 </style>

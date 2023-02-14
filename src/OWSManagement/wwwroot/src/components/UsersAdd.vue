@@ -65,6 +65,7 @@
 </script>
 
 <template>
+    <v-container class="container">
     <v-card class="add-a-new-player-card">
         <v-card-title>Add a new Player User</v-card-title>
         <v-card-text>
@@ -112,11 +113,22 @@
             </v-form>
         </v-card-text>
     </v-card>
+    
+    </v-container>
 </template>
 
 <style scoped>
     .add-a-new-player-card
     {
-        min-width:500px;
+        min-width: 300px;
+        justify-content: center;
+        
+            
     }
+    .container
+    {
+        justify-content: center;
+        display: flex;
+    }
+    
 </style>

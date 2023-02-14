@@ -85,6 +85,7 @@
 </script>
 
 <template>
+<v-container>
     <div class="users-container">
         <div v-if="data.addingANewUser">
             <UsersAdd />
@@ -170,8 +171,7 @@
             </div>
         </div>
     </div>
-
-    
+</v-container>
 </template>
 
 <style scoped>

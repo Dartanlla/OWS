@@ -15,6 +15,7 @@
 </script>
 
 <template>
+<v-container>
     <div class="characters-container" >
         <h2>Characters</h2>
         <div>
@@ -26,11 +27,13 @@
             </v-data-table>
         </div>
     </div>
+</v-container>
 </template>
 
 <style scoped>
     .characters-container {
         margin-top: 0px;
+        text-align: center;
     }
 
 </style>
