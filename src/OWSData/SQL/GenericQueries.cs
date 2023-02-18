@@ -109,7 +109,11 @@ namespace OWSData.SQL
 				  AND PGC.CharacterID = @CharacterID
 				  AND PG.PlayerGroupTypeID = @PlayerGroupType";
 
-	    public static readonly string HasCustomCharacterDataForField = @"SELECT 1
+		public static readonly string GetUsers = "SELECT UserGUID, FirstName, LastName, Email, CreateDate, LastAccess, Role FROM Users WHERE CustomerGUID = @CustomerGUID";
+
+		public static readonly string UpdateUser = "UPDATE Users SET FirstName=@FirstName, LastName=@LastName, Email=@Email WHERE CustomerGUID=@CustomerGUID AND UserGUID=@UserGUID";
+
+        public static readonly string HasCustomCharacterDataForField = @"SELECT 1
 				FROM CustomCharacterData
 				WHERE CustomerGUID = @CustomerGUID
 				  AND CustomFieldName = @CustomFieldName
