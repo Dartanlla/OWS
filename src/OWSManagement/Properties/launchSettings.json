@@ -12,11 +12,12 @@
     "OWSManagement": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "swagger",
+      "launchUrl": "",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy"
       },
-      "applicationUrl": "https://localhost:7205;http://localhost:5205",
+      "applicationUrl": "http://localhost:5205",
       "dotnetRunMessages": true
     },
     "IIS Express": {

@@ -15,7 +15,7 @@ COPY . .
 WORKDIR "/src/OWSManagement"
 RUN dotnet build "OWSManagement.csproj" -c Release -o /app/build
 
-FROM node:12.0 as build-node
+FROM node:latest as build-node
 WORKDIR /wwwroot
 COPY --from=build /src/OWSManagement/wwwroot .
 RUN npm install
@@ -27,5 +27,5 @@ RUN dotnet publish "OWSManagement.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-COPY --from=build-node /wwwroot ./wwwroot
+COPY --from=build-node /wwwroot/dist ./wwwroot/dist
 ENTRYPOINT ["dotnet", "OWSManagement.dll"]

@@ -15,6 +15,7 @@ namespace OWSData.Repositories.Interfaces
         Task<IEnumerable<GetAllCharacters>> GetAllCharacters(Guid customerGUID, Guid userSessionGUID);
         Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid customerGUID, Guid userSessionGUID, string characterName, int playerGroupTypeID = 0);
         Task<User> GetUser(Guid customerGuid, Guid userGuid);
+        Task<IEnumerable<User>> GetUsers(Guid customerGuid);
         Task<GetUserSession> GetUserSession(Guid customerGUID, Guid userSessionGUID);
         Task<GetUserSession> GetUserSessionORM(Guid customerGUID, Guid userSessionGUID);
         Task<GetUserSessionComposite> GetUserSessionParallel(Guid customerGUID, Guid userSessionGUID);
@@ -23,6 +24,7 @@ namespace OWSData.Repositories.Interfaces
         Task<SuccessAndErrorMessage> RegisterUser(Guid customerGUID, string userName, string password, string firstName, string lastName);
         Task<GetUserSession> GetUserFromEmail(Guid customerGUID, string email);
         Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGUID, Guid userSessionGUID, string characterName);
-        
+        Task<SuccessAndErrorMessage> UpdateUser(Guid customerGuid, Guid userGuid, string firstName, string lastName, string email);
+
     }
 }
