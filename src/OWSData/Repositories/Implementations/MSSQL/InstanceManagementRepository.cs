@@ -40,14 +40,14 @@ namespace OWSData.Repositories.Implementations.MSSQL
             {
                 using (Connection)
                 {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@ServerIP", serverIP);
-                    p.Add("@Port", port);
+                    var parameter = new DynamicParameters();
+                    parameter.Add("@CustomerGUID", customerGUID);
+                    parameter.Add("@ServerIP", serverIP);
+                    parameter.Add("@Port", port);
 
-                    output = await Connection.QuerySingleAsync<GetServerInstanceFromPort>("GetServerInstanceFromIPAndPort",
-                        p,
-                        commandType: CommandType.StoredProcedure);
+                    output = await Connection.QuerySingleAsync<GetServerInstanceFromPort>(GenericQueries.GetMapInstancesByIpAndPort,
+                        parameter,
+                        commandType: CommandType.Text);
                 }
 
                 return output;
@@ -64,13 +64,13 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@WorldServerID", worldServerID);
+                var parameter = new DynamicParameters();
+                parameter.Add("@CustomerGUID", customerGUID);
+                parameter.Add("@WorldServerID", worldServerID);
 
-                output = await Connection.QueryAsync<GetZoneInstancesForWorldServer>("GetMapInstancesForWorldServerID",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                output = await Connection.QueryAsync<GetZoneInstancesForWorldServer>(MSSQLQueries.GetMapInstancesByWorldServerID,
+                    parameter,
+                    commandType: CommandType.Text);
             }
 
 
@@ -81,13 +81,14 @@ namespace OWSData.Repositories.Implementations.MSSQL
         {
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@MapInstanceID", zoneInstanceID);
-                p.Add("@MapInstanceStatus", instanceStatus);
+                var parameter = new DynamicParameters();
+                parameter.Add("@CustomerGUID", customerGUID);
+                parameter.Add("@MapInstanceID", zoneInstanceID);
+                parameter.Add("@MapInstanceStatus", instanceStatus);
 
-                await Connection.QueryFirstOrDefaultAsync("SetMapInstanceStatus",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                await Connection.QueryFirstOrDefaultAsync(GenericQueries.UpdateMapInstanceStatus,
+                    parameter,
+                    commandType: CommandType.Text);
             }
 
             SuccessAndErrorMessage output = new SuccessAndErrorMessage()
@@ -101,15 +102,30 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<SuccessAndErrorMessage> ShutDownWorldServer(Guid customerGUID, int worldServerID)
         {
-            using (Connection)
+            IDbConnection conn = Connection;
+            conn.Open();
+            using IDbTransaction transaction = conn.BeginTransaction();
+            try
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@WorldServerID", worldServerID);
+                var parameter = new DynamicParameters();
+                parameter.Add("@CustomerGUID", customerGUID);
+                parameter.Add("@WorldServerID", worldServerID);
+                parameter.Add("@ServerStatus", 0);
 
-                await Connection.ExecuteAsync("ShutdownWorldServer",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                await Connection.ExecuteAsync(GenericQueries.RemoveAllCharactersFromAllInstancesByWorldID,
+                    parameter,
+                    commandType: CommandType.Text);
+
+                await Connection.ExecuteAsync(GenericQueries.UpdateWorldServerStatus,
+                    parameter,
+                    commandType: CommandType.Text);
+
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw new Exception("Database Exception in ShutDownWorldServer!");
             }
 
             SuccessAndErrorMessage output = new SuccessAndErrorMessage()
@@ -127,13 +143,13 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             using (Connection)
             {
-                var paremeters = new { 
-                    CustomerGUID = customerGUID, 
-                    ZoneServerGUID = launcherGuid 
+                var paremeters = new {
+                    CustomerGUID = customerGUID,
+                    ZoneServerGUID = launcherGuid
                 };
 
                 var getWorldServerID = await Connection.QueryFirstOrDefaultAsync<GetWorldServerID>(MSSQLQueries.GetWorldServerSQL, paremeters);
-                
+
                 if (getWorldServerID != null)
                 {
                     worldServerId = getWorldServerID.WorldServerID;
@@ -142,8 +158,8 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 if (worldServerId > 0)
                 {
                     var paremeters2 = new {
-                        CustomerGUID = customerGUID, 
-                        WorldServerID = worldServerId 
+                        CustomerGUID = customerGUID,
+                        WorldServerID = worldServerId
                     };
 
                     await Connection.ExecuteAsync(MSSQLQueries.UpdateWorldServerSQL, paremeters2);
