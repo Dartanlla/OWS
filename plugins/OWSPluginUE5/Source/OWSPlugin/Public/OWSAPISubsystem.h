@@ -17,6 +17,9 @@ DECLARE_DELEGATE_OneParam(FErrorGetGlobalDataItemDelegate, const FString&)
 DECLARE_DELEGATE(FNotifyAddOrUpdateGlobalDataItemDelegate)
 DECLARE_DELEGATE_OneParam(FErrorAddOrUpdateGlobalDataItemDelegate, const FString&)
 
+//Create Character Using Default Character Values
+DECLARE_DELEGATE(FNotifyCreateCharacterUsingDefaultCharacterValuesDelegate)
+DECLARE_DELEGATE_OneParam(FErrorCreateCharacterUsingDefaultCharacterValuesDelegate, const FString&)
 
 /**
  * 
@@ -70,6 +73,15 @@ public:
 
 	FNotifyAddOrUpdateGlobalDataItemDelegate OnNotifyAddOrUpdateGlobalDataItemDelegate;
 	FErrorAddOrUpdateGlobalDataItemDelegate OnErrorAddOrUpdateGlobalDataItemDelegate;
+
+	//Create Character Using Default Character Values
+	UFUNCTION(BlueprintCallable, Category = "Users")
+		void CreateCharacterUsingDefaultCharacterValues(FString UserSessionGUID, FString CharacterName, FString DefaultSetName);
+
+	void OnCreateCharacterUsingDefaultCharacterValuesResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	FNotifyCreateCharacterUsingDefaultCharacterValuesDelegate OnNotifyCreateCharacterUsingDefaultCharacterValuesDelegate;
+	FErrorCreateCharacterUsingDefaultCharacterValuesDelegate OnErrorCreateCharacterUsingDefaultCharacterValuesDelegate;
 
 protected:
 	void ProcessOWS2POSTRequest(FString ApiModuleToCall, FString ApiToCall, FString PostParameters, void (UOWSAPISubsystem::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful));

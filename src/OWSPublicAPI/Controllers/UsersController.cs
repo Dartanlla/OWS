@@ -19,6 +19,7 @@ using Microsoft.Extensions.Options;
 using System.Net.Http;
 using OWSData.Models.Tables;
 using Microsoft.Extensions.Logging;
+using OWSPublicAPI.DTOs;
 
 namespace OWSPublicAPI.Controllers
 {
@@ -78,8 +79,8 @@ namespace OWSPublicAPI.Controllers
         /// </summary>
         /// <remarks>
         /// Create a new Character and attach it to the User referenced by the UserSessionGUID. ClassName is the name of the Class you setup in the management console (from the Characters tab). 
-        /// Classes are meant to be default values for creating characters. The purpose is to ensure that players are not able to hack their starting stats. This is needed because Characters are created from and unsecure UE4 client
-        /// that has not connected to a UE4 server yet.
+        /// Classes are meant to be default values for creating characters. The purpose is to ensure that players are not able to hack their starting stats. This is needed because Characters are created from and unsecure UE client
+        /// that has not connected to a UE server yet.
         /// </remarks>
         [HttpPost]
         [Route("CreateCharacter")]
@@ -88,6 +89,24 @@ namespace OWSPublicAPI.Controllers
         {
             
             request.SetData(_usersRepository, _publicAPIInputValidation, _customerGuid);
+            return await request.Handle();
+        }
+
+        /// <summary>
+        /// Creates a new Character using DefaultCharacterValues.
+        /// </summary>
+        /// <remarks>
+        /// Create a new Character and attach it to the User referenced by the UserSessionGUID. DefaultSetName is the name of the DefaultCharacterValues row. 
+        /// DefaultCharacterValues and DefaultCustomCharacterData are used to set the default starting values for new characters. The purpose is to ensure that players are not able to hack their starting stats. This is needed because Characters are created from and unsecure UE client
+        /// that has not connected to a UE server yet.
+        /// </remarks>
+        [HttpPost]
+        [Route("CreateCharacterUsingDefaultCharacterValues")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<SuccessAndErrorMessage> CreateCharacterUsingDefaultCharacterValues([FromBody] CreateCharacterUsingDefaultCharacterValuesDTO createCharacterUsingDefaultCharacterValuesDTO)
+        {
+            CreateCharacterUsingDefaultCharacterValuesRequest request = 
+                new CreateCharacterUsingDefaultCharacterValuesRequest(createCharacterUsingDefaultCharacterValuesDTO, _usersRepository, _charactersRepository, _publicAPIInputValidation, _customerGuid);
             return await request.Handle();
         }
 

@@ -36,7 +36,23 @@ namespace OWSData.SQL
 	    public static readonly string AddCharacterCustomDataField = @"INSERT INTO CustomCharacterData (CustomerGUID, CharacterID, CustomFieldName, FieldValue)
 		VALUES (@CustomerGUID, @CharacterID, @CustomFieldName, @FieldValue)";
 
-	    public static readonly string GetCharacterByName = @"SELECT *
+        public static readonly string CreateCharacterUsingDefaultCharacterValuesSQL = @"DECLARE @NewCharacterID int;
+				INSERT INTO Characters ([CustomerGUID], [UserGUID], [Email], [CharName], [MapName], [X], [Y], [Z], [RX], [RY], [RZ], Perception, Acrobatics, Climb, Stealth, ClassID)
+				SELECT @CustomerGUID, @UserGUID, '', @CharacterName, DCR.StartingMapName, DCR.X, DCR.Y, DCR.Z, DCR.RX, DCR.RY, DCR.RZ, 0, 0, 0, 0, 0
+				FROM DefaultCharacterValues DCR 
+				WHERE DCR.CustomerGUID=@CustomerGUID 
+					AND DCR.DefaultSetName=@DefaultSetName;
+				SELECT @NewCharacterID = SCOPE_IDENTITY();
+				INSERT INTO CustomCharacterData ([CustomerGUID], [CharacterID], [CustomFieldName], [FieldValue])
+				SELECT DCR.CustomerGUID, @NewCharacterID, DCCD.CustomFieldName, DCCD.FieldValue 
+				FROM DefaultCustomCharacterData DCCD
+				INNER JOIN DefaultCharacterValues DCR
+					ON DCR.CustomerGUID=DCCD.CustomerGUID
+					AND DCR.DefaultCharacterValuesID=DCCD.DefaultCharacterValuesID
+				WHERE DCR.CustomerGUID=@CustomerGUID
+					AND DCR.DefaultSetName=@DefaultSetName;";
+
+        public static readonly string GetCharacterByName = @"SELECT *
 				FROM Characters
 				WHERE CustomerGUID = @CustomerGUID
 				  AND CharName = @CharName";
@@ -46,9 +62,9 @@ namespace OWSData.SQL
 				WHERE CustomerGUID = @CustomerGUID
 				  AND CharName = @CharName";
 
-	    public static readonly string GetCharByCharName = @"SELECT C.*, MI.Port, WS.ServerIP, CMI.MapInstanceID, CL.ClassName
+	    public static readonly string GetCharByCharName = @"SELECT C.*, MI.Port, WS.ServerIP, CMI.MapInstanceID, ISNULL(CL.ClassName,'') AS ClassName
 				FROM Characters C
-				INNER JOIN Class CL
+				LEFT JOIN Class CL
 					ON CL.ClassID = C.ClassID
 				LEFT JOIN CharOnMapInstance CMI
 					ON CMI.CharacterID = C.CharacterID

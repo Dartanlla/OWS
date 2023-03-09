@@ -1008,6 +1008,26 @@ namespace ERPGPlayerGroupType
 	};
 }
 
+USTRUCT()
+struct FCreateCharacterUsingDefaultCharacterValues
+{
+	GENERATED_BODY()
+
+public:
+	FCreateCharacterUsingDefaultCharacterValues() {
+		UserSessionGUID = "";
+		CharacterName = "";
+		DefaultSetName = "";
+	}
+
+	UPROPERTY()
+		FString UserSessionGUID;
+	UPROPERTY()
+		FString CharacterName;
+	UPROPERTY()
+		FString DefaultSetName;
+};
+
 /**
  * 
  */

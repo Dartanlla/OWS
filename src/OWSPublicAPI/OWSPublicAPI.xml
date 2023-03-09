@@ -74,8 +74,18 @@
             </summary>
             <remarks>
             Create a new Character and attach it to the User referenced by the UserSessionGUID. ClassName is the name of the Class you setup in the management console (from the Characters tab). 
-            Classes are meant to be default values for creating characters. The purpose is to ensure that players are not able to hack their starting stats. This is needed because Characters are created from and unsecure UE4 client
-            that has not connected to a UE4 server yet.
+            Classes are meant to be default values for creating characters. The purpose is to ensure that players are not able to hack their starting stats. This is needed because Characters are created from and unsecure UE client
+            that has not connected to a UE server yet.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.UsersController.CreateCharacterUsingDefaultCharacterValues(OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO)">
+            <summary>
+            Creates a new Character using DefaultCharacterValues.
+            </summary>
+            <remarks>
+            Create a new Character and attach it to the User referenced by the UserSessionGUID. DefaultSetName is the name of the DefaultCharacterValues row. 
+            DefaultCharacterValues and DefaultCustomCharacterData are used to set the default starting values for new characters. The purpose is to ensure that players are not able to hack their starting stats. This is needed because Characters are created from and unsecure UE client
+            that has not connected to a UE server yet.
             </remarks>
         </member>
         <member name="M:OWSPublicAPI.Controllers.UsersController.GetAllCharacters(OWSPublicAPI.Requests.Users.GetAllCharactersRequest)">
@@ -154,6 +164,38 @@
             </summary>
             <remarks>
             Removes a Character from the User.  This method permanently deletes the character and all associated data.  In the future, it might make sense to modify this to only mark the character as removed to support restoring an accidentally removed character.
+            </remarks>
+        </member>
+        <member name="T:OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO">
+            <summary>
+            CreateCharacterUsingDefaultCharacterValues Data Transfer Object
+            </summary>
+            <remarks>
+            The object is used to collect input from the CreateCharacterUsingDefaultCharacterValues Request
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO.UserSessionGUID">
+            <summary>
+            UserSessionGUID Request Paramater.
+            </summary>
+            <remarks>
+            Contains the User Session GUID from the request.  This identifies the User we are modifying.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO.CharacterName">
+            <summary>
+            CharacterName Request Paramater.
+            </summary>
+            <remarks>
+            Contains the Character Name from the request.  This is the new Character Name to create.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO.DefaultSetName">
+            <summary>
+            Default Set Name Paramater.
+            </summary>
+            <remarks>
+            Contains the Default Set Name from the request.  This sets the default values for the new Character.
             </remarks>
         </member>
         <member name="T:OWSPublicAPI.Program">
@@ -253,6 +295,30 @@
             </remarks>
         </member>
         <member name="M:OWSPublicAPI.Requests.Users.CreateCharacterRequest.Handle">
+            <summary>
+            Handles the CreateCharacterRequest
+            </summary>
+            <remarks>
+            Overrides IRequestHandler Handle().
+            </remarks>
+        </member>
+        <member name="T:OWSPublicAPI.Requests.Users.CreateCharacterUsingDefaultCharacterValuesRequest">
+            <summary>
+            CreateCharacterRequest Handler
+            </summary>
+            <remarks>
+            Handles api/Users/CreateCharacter requests.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Users.CreateCharacterUsingDefaultCharacterValuesRequest.#ctor(OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO,OWSData.Repositories.Interfaces.IUsersRepository,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IPublicAPIInputValidation,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            Constrcutor for CreateCharacterUsingDefaultCharacterValuesRequest
+            </summary>
+            <remarks>
+            Injects the dependencies for the CreateCharacterUsingDefaultCharacterValuesRequest.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Users.CreateCharacterUsingDefaultCharacterValuesRequest.Handle">
             <summary>
             Handles the CreateCharacterRequest
             </summary>
