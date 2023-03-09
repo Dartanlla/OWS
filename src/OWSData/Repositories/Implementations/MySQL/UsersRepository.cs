@@ -75,6 +75,37 @@ namespace OWSData.Repositories.Implementations.MySQL
             }
         }
 
+        public async Task<SuccessAndErrorMessage> CreateCharacterUsingDefaultCharacterValues(Guid customerGUID, Guid userGUID, string characterName, string defaultSetName)
+        {
+            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("CustomerGUID", customerGUID);
+                    p.Add("UserGUID", userGUID);
+                    p.Add("CharacterName", characterName);
+                    p.Add("DefaultSetName", defaultSetName);
+
+                    await Connection.ExecuteAsync(GenericQueries.CreateCharacterUsingDefaultCharacterValuesSQL,
+                    p,
+                    commandType: CommandType.Text);
+                }
+
+                outputObject.Success = true;
+                return outputObject;
+            }
+            catch (Exception ex)
+            {
+                outputObject.Success = false;
+                outputObject.ErrorMessage = ex.Message;
+
+                return outputObject;
+            }
+        }
+
         //_PlayerGroupTypeID 0 returns all group types
         public async Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid customerGUID, Guid userSessionGUID, string characterName, int playerGroupTypeID = 0) 
         {

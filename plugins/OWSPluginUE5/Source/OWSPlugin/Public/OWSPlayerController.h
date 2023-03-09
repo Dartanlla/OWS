@@ -244,6 +244,16 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Login")
 		void ErrorCreateCharacter(const FString &ErrorMsg);
 
+	//Create Character
+	UFUNCTION(BlueprintCallable, Category = "Login")
+		void CreateCharacterUsingDefaultCharacterValues(FString UserSessionGUID, FString CharacterName, FString DefaultSetName);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Login")
+		void NotifyCreateCharacterUsingDefaultCharacterValues();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Login")
+		void ErrorCreateCharacterUsingDefaultCharacterValues(const FString& ErrorMsg);
+
 	//Get Cosmetic Character Custom Data
 	UFUNCTION(BlueprintCallable, Category = "Stats")
 		void GetCosmeticCustomCharacterData(FString UserSessionGUID, FString CharacterName);

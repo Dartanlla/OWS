@@ -94,7 +94,7 @@ namespace OWSData.SQL
 					@AbilityLevel,
 					@CharHasAbilitiesCustomJSON";
 
-		public static readonly string RemoveAbilityFromCharacter = @"DELETE FROM CharHasAbilities
+        public static readonly string RemoveAbilityFromCharacter = @"DELETE FROM CharHasAbilities
 				WHERE CustomerGUID = @CustomerGUID
 					AND CharacterID = (SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName = @CharacterName ORDER BY C.CharacterID)
 					AND AbilityID = (SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName = @AbilityName ORDER BY A.AbilityID)";

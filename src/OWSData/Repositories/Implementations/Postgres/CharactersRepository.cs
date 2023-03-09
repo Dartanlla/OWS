@@ -189,7 +189,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     commandType: CommandType.Text);
             }
 
-            return outputCharacter.First();
+            return outputCharacter.FirstOrDefault();
         }
 
         public async Task<IEnumerable<CustomCharacterData>> GetCustomCharacterData(Guid customerGUID, string characterName)

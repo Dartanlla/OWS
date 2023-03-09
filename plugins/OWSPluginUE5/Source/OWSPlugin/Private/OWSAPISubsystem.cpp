@@ -15,6 +15,27 @@ void UOWSAPISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	GConfig->GetString(
 		TEXT("/Script/EngineSettings.GeneralProjectSettings"),
+		TEXT("OWS2APIPath"),
+		OWS2APIPath,
+		GGameIni
+	);
+
+	GConfig->GetString(
+		TEXT("/Script/EngineSettings.GeneralProjectSettings"),
+		TEXT("OWS2InstanceManagementAPIPath"),
+		OWS2InstanceManagementAPIPath,
+		GGameIni
+	);
+
+	GConfig->GetString(
+		TEXT("/Script/EngineSettings.GeneralProjectSettings"),
+		TEXT("OWS2CharacterPersistenceAPIPath"),
+		OWS2CharacterPersistenceAPIPath,
+		GGameIni
+	);
+
+	GConfig->GetString(
+		TEXT("/Script/EngineSettings.GeneralProjectSettings"),
 		TEXT("OWS2GlobalDataAPIPath"),
 		OWS2GlobalDataAPIPath,
 		GGameIni
@@ -191,4 +212,46 @@ void UOWSAPISubsystem::OnAddOrUpdateGlobalDataItemResponseReceived(FHttpRequestP
 	}
 
 	OnNotifyAddOrUpdateGlobalDataItemDelegate.ExecuteIfBound();
+}
+
+
+//Create Character Using Default Character Values
+void UOWSAPISubsystem::CreateCharacterUsingDefaultCharacterValues(FString UserSessionGUID, FString CharacterName, FString DefaultSetName)
+{
+	FCreateCharacterUsingDefaultCharacterValues CreateCharacterUsingDefaultCharacterValues;
+	CreateCharacterUsingDefaultCharacterValues.UserSessionGUID = UserSessionGUID;
+	CreateCharacterUsingDefaultCharacterValues.CharacterName = CharacterName;
+	CreateCharacterUsingDefaultCharacterValues.DefaultSetName = DefaultSetName;
+	FString PostParameters = "";
+	if (FJsonObjectConverter::UStructToJsonObjectString(CreateCharacterUsingDefaultCharacterValues, PostParameters))
+	{
+		ProcessOWS2POSTRequest("PublicAPI", "api/Users/CreateCharacterUsingDefaultCharacterValues", PostParameters, 
+			&UOWSAPISubsystem::OnCreateCharacterUsingDefaultCharacterValuesResponseReceived);
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("CreateCharacterUsingDefaultCharacterValues Error serializing CreateCharacterUsingDefaultCharacterValues!"));
+	}
+}
+
+void UOWSAPISubsystem::OnCreateCharacterUsingDefaultCharacterValuesResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	FString ErrorMsg;
+	TSharedPtr<FJsonObject> JsonObject;
+	GetJsonObjectFromResponse(Request, Response, bWasSuccessful, "OnCreateCharacterUsingDefaultCharacterValuesResponseReceived", ErrorMsg, JsonObject);
+	if (!ErrorMsg.IsEmpty())
+	{
+		OnErrorCreateCharacterUsingDefaultCharacterValuesDelegate.ExecuteIfBound(ErrorMsg);
+		return;
+	}
+
+	TSharedPtr<FSuccessAndErrorMessage> SuccessAndErrorMessage = GetStructFromJsonObject<FSuccessAndErrorMessage>(JsonObject);
+
+	if (!SuccessAndErrorMessage->ErrorMessage.IsEmpty())
+	{
+		OnErrorCreateCharacterUsingDefaultCharacterValuesDelegate.ExecuteIfBound(*SuccessAndErrorMessage->ErrorMessage);
+		return;
+	}
+
+	OnNotifyCreateCharacterUsingDefaultCharacterValuesDelegate.ExecuteIfBound();
 }

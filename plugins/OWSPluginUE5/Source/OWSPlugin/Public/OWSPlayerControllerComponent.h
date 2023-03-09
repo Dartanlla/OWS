@@ -77,6 +77,10 @@ DECLARE_DELEGATE_OneParam(FErrorPlayerLogoutDelegate, const FString&)
 DECLARE_DELEGATE_OneParam(FNotifyCreateCharacterDelegate, const FCreateCharacter&)
 DECLARE_DELEGATE_OneParam(FErrorCreateCharacterDelegate, const FString&)
 
+//Create Character Using Default Character Values
+DECLARE_DELEGATE(FNotifyCreateCharacterUsingDefaultCharacterValuesDelegate)
+DECLARE_DELEGATE_OneParam(FErrorCreateCharacterUsingDefaultCharacterValuesDelegate, const FString&)
+
 //Remove Character
 DECLARE_DELEGATE(FNotifyRemoveCharacterDelegate)
 DECLARE_DELEGATE_OneParam(FErrorRemoveCharacterDelegate, const FString&)
@@ -273,6 +277,16 @@ public:
 	FNotifyCreateCharacterDelegate OnNotifyCreateCharacterDelegate;
 	FErrorCreateCharacterDelegate OnErrorCreateCharacterDelegate;
 
+	//Create Character Using Default Character Values
+	UFUNCTION(BlueprintCallable, Category = "Character")
+		void CreateCharacterUsingDefaultCharacterValues(FString UserSessionGUID, FString CharacterName, FString DefaultSetName);
+
+	void CreateCharacterUsingDefaultCharacterValuesSuccess();
+	void CreateCharacterUsingDefaultCharacterValuesError(const FString& ErrorMsg);
+
+	FNotifyCreateCharacterUsingDefaultCharacterValuesDelegate OnNotifyCreateCharacterUsingDefaultCharacterValuesDelegate;
+	FErrorCreateCharacterUsingDefaultCharacterValuesDelegate OnErrorCreateCharacterUsingDefaultCharacterValuesDelegate;
+
 	//Remove Character
 	UFUNCTION(BlueprintCallable, Category = "Character")
 		void RemoveCharacter(FString UserSessionGUID, FString CharacterName);
@@ -298,6 +312,9 @@ public:
 
 	FNotifyLaunchZoneInstanceDelegate OnNotifyLaunchZoneInstanceDelegate;
 	FErrorLaunchZoneInstanceDelegate OnErrorLaunchZoneInstanceDelegate;
+
+
+	void InitializeOWSAPISubsystemOnPlayerControllerComponent();
 
 protected:
 	// Called when the game starts

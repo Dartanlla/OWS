@@ -75,8 +75,126 @@ AOWSPlayerController::AOWSPlayerController()
 	OWSPlayerControllerComponent->OnErrorGetPlayerGroupsCharacterIsInDelegate.BindUObject(this, &AOWSPlayerController::ErrorGetPlayerGroupsCharacterIsIn);
 	OWSPlayerControllerComponent->OnNotifyLaunchZoneInstanceDelegate.BindUObject(this, &AOWSPlayerController::NotifyLaunchDungeon);
 	OWSPlayerControllerComponent->OnErrorLaunchZoneInstanceDelegate.BindUObject(this, &AOWSPlayerController::ErrorLaunchDungeon);
+	OWSPlayerControllerComponent->OnNotifyCreateCharacterUsingDefaultCharacterValuesDelegate.BindUObject(this, &AOWSPlayerController::NotifyCreateCharacterUsingDefaultCharacterValues);
+	OWSPlayerControllerComponent->OnErrorCreateCharacterUsingDefaultCharacterValuesDelegate.BindUObject(this, &AOWSPlayerController::ErrorCreateCharacterUsingDefaultCharacterValues);
 
 }
+
+void AOWSPlayerController::NotifyGetCharacterStats(TSharedPtr<FJsonObject> JsonObject)
+{
+	UE_LOG(OWS, VeryVerbose, TEXT("AOWSPlayerController - NotifyGetCharacterStats Started"));
+	AOWSCharacterWithAbilities* OWSCharacterWithAbilities = Cast<AOWSCharacterWithAbilities>(GetPawn());
+
+	if (OWSCharacterWithAbilities)
+	{
+		OWSCharacterWithAbilities->LoadCharacterStatsFromJSON(JsonObject);
+		OWSCharacterWithAbilities->LoadAttributesFromJSON(JsonObject);
+
+		if (OWSCharacterWithAbilities->bShouldAutoLoadCustomCharacterStats)
+		{
+			OWSCharacterWithAbilities->LoadCustomCharacterStats();
+		}
+		OWSCharacterWithAbilities->UpdateCharacterStatsAfterLoading();
+		OWSCharacterWithAbilities->OnOWSAttributeInitalizationComplete();
+	}
+	else
+	{
+		AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
+		OWSCharacter->LoadCharacterStatsFromJSON(JsonObject);
+	}
+}
+
+void AOWSPlayerController::NotifyUpdateCharacterStats()
+{
+	UE_LOG(OWS, VeryVerbose, TEXT("AOWSPlayerController - NotifyUpdateCharacterStats Started"));
+
+}
+
+void AOWSPlayerController::NotifyGetCustomCharacterData(TSharedPtr<FJsonObject> JsonObject)
+{
+	UE_LOG(OWS, VeryVerbose, TEXT("AOWSPlayerController - NotifyGetCustomCharacterData Started"));
+	AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
+
+	OWSCharacter->ProcessCustomCharacterData(JsonObject);
+}
+
+void AOWSPlayerController::ErrorCustomCharacterData(const FString& ErrorMsg)
+{
+	UE_LOG(OWS, VeryVerbose, TEXT("AOWSPlayerController - ErrorCustomCharacterData Started"));
+	AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
+
+	OWSCharacter->ErrorGetCustomCharacterData(ErrorMsg);
+}
+
+void AOWSPlayerController::NotifyGetCharacterAbilities(const TArray<FAbility>& Abilities)
+{
+	UE_LOG(OWS, VeryVerbose, TEXT("AOWSPlayerController - NotifyGetCharacterAbilitiesData Started"));
+	AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
+
+	OWSCharacter->GetCharacterAbilitiesComplete(Abilities);
+}
+
+void AOWSPlayerController::ErrorGetCharacterAbilities(const FString& ErrorMsg)
+{
+	UE_LOG(OWS, VeryVerbose, TEXT("AOWSPlayerController - ErrorGetCharacterAbilitiesData Started"));
+	AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
+
+	OWSCharacter->GetCharacterAbilitiesError(ErrorMsg);
+}
+
+void AOWSPlayerController::NotifyGetAbilityBars(const TArray<FAbilityBar>& AbilityBars)
+{
+	UE_LOG(OWS, VeryVerbose, TEXT("AOWSPlayerController - NotifyGetAbilityBars Started"));
+	AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
+
+	OWSCharacter->GetAbilityBarsComplete(AbilityBars);
+}
+
+void AOWSPlayerController::ErrorGetAbilityBars(const FString& ErrorMsg)
+{
+	UE_LOG(OWS, VeryVerbose, TEXT("AOWSPlayerController - ErrorGetAbilityBars Started"));
+	AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
+
+	OWSCharacter->GetAbilityBarsError(ErrorMsg);
+}
+
+void AOWSPlayerController::NotifyGetCharacterDataAndCustomData2(TSharedPtr<FJsonObject> JsonObject)
+{
+	TArray<FCustomCharacterDataStruct> CustomData;
+
+	if (JsonObject->HasField("CustomCharacterDataRows"))
+	{
+		TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField("CustomCharacterDataRows");
+
+		for (int RowNum = 0; RowNum != Rows.Num(); RowNum++) {
+			FCustomCharacterDataStruct tempCustomData;
+			TSharedPtr<FJsonObject> tempRow = Rows[RowNum]->AsObject();
+			tempCustomData.CustomFieldName = tempRow->GetStringField("CustomFieldName");
+			tempCustomData.FieldValue = tempRow->GetStringField("FieldValue");
+
+			CustomData.Add(tempCustomData);
+		}
+	}
+
+	NotifyGetCharacterDataAndCustomData(CustomData);
+
+}
+
+/*
+void AOWSPlayerController::NotifyCreateCharacterUsingDefaultCharacterValues()
+{
+	UE_LOG(OWS, VeryVerbose, TEXT("AOWSPlayerController - NotifyCreateCharacterUsingDefaultCharacterValues Started"));
+	NotifyCreateCharacterUsingDefaultCharacterValues();
+}
+
+void AOWSPlayerController::ErrorCreateCharacterUsingDefaultCharacterValues(const FString& ErrorMsg)
+{
+	UE_LOG(OWS, VeryVerbose, TEXT("AOWSPlayerController - ErrorCreateCharacterUsingDefaultCharacterValues Started"));
+	ErrorCreateCharacterUsingDefaultCharacterValues(ErrorMsg);
+}
+*/
+
+
 
 void AOWSPlayerController::TravelToMap(const FString& URL, const bool SeamlessTravel)
 {
@@ -124,112 +242,11 @@ void AOWSPlayerController::TravelToMap2(const FString& ServerAndPort, const floa
 	ClientTravel(URL, TRAVEL_Absolute, false, FGuid());
 }
 
-void AOWSPlayerController::NotifyGetCharacterStats(TSharedPtr<FJsonObject> JsonObject)
-{
-	UE_LOG(OWS, Verbose, TEXT("AOWSPlayerController - NotifyGetCharacterStats Started"));
-	AOWSCharacterWithAbilities* OWSCharacterWithAbilities = Cast<AOWSCharacterWithAbilities>(GetPawn());
-
-	if (OWSCharacterWithAbilities)
-	{
-		OWSCharacterWithAbilities->LoadCharacterStatsFromJSON(JsonObject);
-		OWSCharacterWithAbilities->LoadAttributesFromJSON(JsonObject);
-
-		if (OWSCharacterWithAbilities->bShouldAutoLoadCustomCharacterStats)
-		{
-			OWSCharacterWithAbilities->LoadCustomCharacterStats();
-		}
-		OWSCharacterWithAbilities->UpdateCharacterStatsAfterLoading();
-		OWSCharacterWithAbilities->OnOWSAttributeInitalizationComplete();
-	}
-	else
-	{
-		AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
-		OWSCharacter->LoadCharacterStatsFromJSON(JsonObject);
-	}
-}
-
-void AOWSPlayerController::NotifyUpdateCharacterStats()
-{
-	UE_LOG(OWS, Verbose, TEXT("AOWSPlayerController - NotifyUpdateCharacterStats Started"));
-
-}
-
-void AOWSPlayerController::NotifyGetCustomCharacterData(TSharedPtr<FJsonObject> JsonObject)
-{
-	UE_LOG(OWS, Verbose, TEXT("AOWSPlayerController - NotifyGetCustomCharacterData Started"));
-	AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
-
-	OWSCharacter->ProcessCustomCharacterData(JsonObject);
-}
-
-void AOWSPlayerController::ErrorCustomCharacterData(const FString& ErrorMsg)
-{
-	UE_LOG(OWS, Verbose, TEXT("AOWSPlayerController - ErrorCustomCharacterData Started"));
-	AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
-
-	OWSCharacter->ErrorGetCustomCharacterData(ErrorMsg);
-}
-
-void AOWSPlayerController::NotifyGetCharacterAbilities(const TArray<FAbility>& Abilities)
-{
-	UE_LOG(OWS, Verbose, TEXT("AOWSPlayerController - NotifyGetCharacterAbilitiesData Started"));
-	AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
-
-	OWSCharacter->GetCharacterAbilitiesComplete(Abilities);
-}
-
-void AOWSPlayerController::ErrorGetCharacterAbilities(const FString& ErrorMsg)
-{
-	UE_LOG(OWS, Verbose, TEXT("AOWSPlayerController - ErrorGetCharacterAbilitiesData Started"));
-	AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
-
-	OWSCharacter->GetCharacterAbilitiesError(ErrorMsg);
-}
-
-void AOWSPlayerController::NotifyGetAbilityBars(const TArray<FAbilityBar>& AbilityBars)
-{
-	UE_LOG(OWS, Verbose, TEXT("AOWSPlayerController - NotifyGetAbilityBars Started"));
-	AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
-
-	OWSCharacter->GetAbilityBarsComplete(AbilityBars);
-}
-
-void AOWSPlayerController::ErrorGetAbilityBars(const FString& ErrorMsg)
-{
-	UE_LOG(OWS, Verbose, TEXT("AOWSPlayerController - ErrorGetAbilityBars Started"));
-	AOWSCharacter* OWSCharacter = Cast<AOWSCharacter>(GetPawn());
-
-	OWSCharacter->GetAbilityBarsError(ErrorMsg);
-}
-
-void AOWSPlayerController::NotifyGetCharacterDataAndCustomData2(TSharedPtr<FJsonObject> JsonObject)
-{
-	TArray<FCustomCharacterDataStruct> CustomData;
-
-	if (JsonObject->HasField("CustomCharacterDataRows"))
-	{
-		TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField("CustomCharacterDataRows");
-
-		for (int RowNum = 0; RowNum != Rows.Num(); RowNum++) {
-			FCustomCharacterDataStruct tempCustomData;
-			TSharedPtr<FJsonObject> tempRow = Rows[RowNum]->AsObject();
-			tempCustomData.CustomFieldName = tempRow->GetStringField("CustomFieldName");
-			tempCustomData.FieldValue = tempRow->GetStringField("FieldValue");
-
-			CustomData.Add(tempCustomData);
-		}
-	}
-
-	NotifyGetCharacterDataAndCustomData(CustomData);
-	
-}
-
 void AOWSPlayerController::SetSelectedCharacterAndConnectToLastZone(FString UserSessionGUID, FString SelectedCharacterName)
 {
 	//Set character name and get user session
 	OWSPlayerControllerComponent->SetSelectedCharacterAndConnectToLastZone(UserSessionGUID, SelectedCharacterName);
 }
-
 
 void AOWSPlayerController::TravelToLastZoneServer(FString CharacterName)
 {
@@ -667,6 +684,11 @@ void AOWSPlayerController::GetAllCharacters(FString UserSessionGUID)
 void AOWSPlayerController::CreateCharacter(FString UserSessionGUID, FString CharacterName, FString ClassName)
 {
 	OWSPlayerControllerComponent->CreateCharacter(UserSessionGUID, CharacterName, ClassName);
+}
+
+void AOWSPlayerController::CreateCharacterUsingDefaultCharacterValues(FString UserSessionGUID, FString CharacterName, FString DefaultSetName)
+{
+	OWSPlayerControllerComponent->CreateCharacterUsingDefaultCharacterValues(UserSessionGUID, CharacterName, DefaultSetName);
 }
 
 
