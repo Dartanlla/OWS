@@ -164,7 +164,7 @@ void AOWSGameMode::StartPlay()
 		UE_LOG(OWS, Warning, TEXT("OWSGameMode::StartPlay - ZoneInstanceID: %d"), ZoneInstanceID)
 
 		//Lookup which Zone this server is running for and get the ZoneName into IAmZoneName var
-		GetServerInstanceFromZoneInstanceID();
+		GetZoneInstanceFromZoneInstanceID(ZoneInstanceID);
 
 		//Change Status of the Zone Instance to 2 (ready for players to connect)
 		UpdateNumberOfPlayers();
@@ -655,20 +655,20 @@ void AOWSGameMode::OnGetZoneInstancesForZoneResponseReceived(FHttpRequestPtr Req
 }
 
 
-void AOWSGameMode::GetServerInstanceFromZoneInstanceID()
+void AOWSGameMode::GetZoneInstanceFromZoneInstanceID(int32 LookupZoneInstanceID)
 {
-	int32 Port = GetWorld()->URL.Port;
+	//int32 Port = GetWorld()->URL.Port;
 
-	UE_LOG(OWS, Verbose, TEXT("GetServerInstanceFromPort - Checking Port: %d"), Port);
+	UE_LOG(OWS, Verbose, TEXT("GetZoneInstanceFromZoneInstanceID - Checking for ZoneInstanceID: %d"), LookupZoneInstanceID);
 
 	TArray<FStringFormatArg> FormatParams;
-	FormatParams.Add(Port);
-	FString PostParameters = FString::Format(TEXT("{ \"Port\": {0} }"), FormatParams);
+	FormatParams.Add(LookupZoneInstanceID);
+	FString PostParameters = FString::Format(TEXT("{ \"ZoneInstanceId\": {0} }"), FormatParams);
 
-	ProcessOWS2POSTRequest("InstanceManagementAPI", "api/Instance/GetServerInstanceFromPort", PostParameters, &AOWSGameMode::OnGetServerInstanceFromZoneInstanceIDResponseReceived);
+	ProcessOWS2POSTRequest("InstanceManagementAPI", "api/Instance/GetZoneInstance", PostParameters, &AOWSGameMode::OnGetZoneInstanceFromZoneInstanceIDResponseReceived);
 }
 
-void AOWSGameMode::OnGetServerInstanceFromZoneInstanceIDResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+void AOWSGameMode::OnGetZoneInstanceFromZoneInstanceIDResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
 	if (bWasSuccessful)
 	{
@@ -680,24 +680,24 @@ void AOWSGameMode::OnGetServerInstanceFromZoneInstanceIDResponseReceived(FHttpRe
 			{
 				IAmZoneName = ServerInstanceFromPort.ZoneName;
 				UE_LOG(OWS, Verbose, TEXT("I am ZoneName: %s"), *IAmZoneName);
-				NotifyGetServerInstanceFromZoneInstanceID(IAmZoneName);
+				NotifyGetZoneInstanceFromZoneInstanceID(IAmZoneName);
 			}
 			else
 			{
-				UE_LOG(OWS, Warning, TEXT("OnGetServerInstanceFromZoneInstanceIDResponseReceived No Rows!  Ignore this error if you are running from the editor in Play as Client mode!"));
-				ErrorGetServerInstanceFromZoneInstanceID(TEXT("OnGetServerInstanceFromZoneInstanceIDResponseReceived No Rows!  Ignore this error if you are running from the editor in Play as Client mode!"));
+				UE_LOG(OWS, Warning, TEXT("OnGetZoneInstanceFromZoneInstanceIDResponseReceived No Rows!  Ignore this error if you are running from the editor in Play as Client mode!"));
+				ErrorGetZoneInstanceFromZoneInstanceID(TEXT("OnGetZoneInstanceFromZoneInstanceIDResponseReceived No Rows!  Ignore this error if you are running from the editor in Play as Client mode!"));
 			}
 		}
 		else
 		{
-			UE_LOG(OWS, Error, TEXT("OnGetServerInstanceFromZoneInstanceIDResponseReceived Server returned no data!"));
-			ErrorGetServerInstanceFromZoneInstanceID(TEXT("OnGetServerInstanceFromZoneInstanceIDResponseReceived Server returned no data!"));
+			UE_LOG(OWS, Error, TEXT("OnGetZoneInstanceFromZoneInstanceIDResponseReceived Server returned no data!"));
+			ErrorGetZoneInstanceFromZoneInstanceID(TEXT("OnGetZoneInstanceFromZoneInstanceIDResponseReceived Server returned no data!"));
 		}
 	}
 	else
 	{
-		UE_LOG(OWS, Error, TEXT("OnGetServerInstanceFromZoneInstanceIDResponseReceived Error accessing server!"));
-		ErrorGetServerInstanceFromZoneInstanceID(TEXT("OnGetServerInstanceFromZoneInstanceIDResponseReceived Error accessing server!"));
+		UE_LOG(OWS, Error, TEXT("OnGetZoneInstanceFromZoneInstanceIDResponseReceived Error accessing server!"));
+		ErrorGetZoneInstanceFromZoneInstanceID(TEXT("OnGetZoneInstanceFromZoneInstanceIDResponseReceived Error accessing server!"));
 	}
 }
 

@@ -282,14 +282,14 @@ public:
 
 	//Lookup a zone instance from a given port
 	UFUNCTION(BlueprintCallable, Category = "Zones")
-		void GetServerInstanceFromZoneInstanceID();
+		void GetZoneInstanceFromZoneInstanceID(int32 LookupZoneInstanceID);
 
-	void OnGetServerInstanceFromZoneInstanceIDResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void OnGetZoneInstanceFromZoneInstanceIDResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Zones")
-		void NotifyGetServerInstanceFromZoneInstanceID(const FString &ZoneName);
+		void NotifyGetZoneInstanceFromZoneInstanceID(const FString &ZoneName);
 	UFUNCTION(BlueprintImplementableEvent, Category = "Zones")
-		void ErrorGetServerInstanceFromZoneInstanceID(const FString &ErrorMsg);
+		void ErrorGetZoneInstanceFromZoneInstanceID(const FString &ErrorMsg);
 
 	//Update Number of Players
 	UFUNCTION(BlueprintCallable, Category = "Zones")
