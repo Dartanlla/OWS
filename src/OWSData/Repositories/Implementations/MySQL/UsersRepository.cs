@@ -35,7 +35,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                 p.Add("@CustomerGUID", customerGUID);
                 p.Add("@UserSessionGUID", userSessionGUID);
 
-                outputObject = await Connection.QueryAsync<GetAllCharacters>("call GetAllCharacters(@CustomerGUID,@UserSessionGUID)",
+                outputObject = await Connection.QueryAsync<GetAllCharacters>(GenericQueries.GetAllCharacters,
                     p,
                     commandType: CommandType.Text);
             }
