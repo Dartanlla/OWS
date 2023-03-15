@@ -36,7 +36,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 p.Add("@CustomerGUID", customerGUID);
                 p.Add("@UserSessionGUID", userSessionGUID);
 
-                outputObject = await Connection.QueryAsync<GetAllCharacters>("select * from GetAllCharacters(@CustomerGUID,@UserSessionGUID)",
+                outputObject = await Connection.QueryAsync<GetAllCharacters>(GenericQueries.GetAllCharacters,
                     p,
                     commandType: CommandType.Text);
             }

@@ -52,6 +52,19 @@ namespace OWSData.SQL
 				WHERE DCR.CustomerGUID=@CustomerGUID
 					AND DCR.DefaultSetName=@DefaultSetName;";
 
+        public static readonly string GetAllCharacters = @"SELECT WC.*, 
+			CONVERT(varchar, WC.LastActivity, 100) as LastActivityString, 
+			CONVERT(varchar, WC.CreateDate, 100) as CreateDateString,
+			ISNULL(CL.ClassName,'') as ClassName FROM Characters WC
+			INNER JOIN Users U
+				ON U.UserGUID=WC.UserGUID
+			INNER JOIN UserSessions US
+				ON US.UserGUID=U.UserGUID
+			LEFT JOIN Class CL
+				ON CL.ClassID=WC.ClassID
+			WHERE WC.CustomerGUID=@CustomerGUID
+			AND US.UserSessionGUID=@UserSessionGUID";
+
         public static readonly string GetCharacterByName = @"SELECT *
 				FROM Characters
 				WHERE CustomerGUID = @CustomerGUID

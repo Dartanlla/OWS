@@ -43,9 +43,9 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 p.Add("CustomerGUID", customerGUID);
                 p.Add("UserSessionGUID", userSessionGUID);
 
-                outputObject = await Connection.QueryAsync<GetAllCharacters>("GetAllCharacters",
+                outputObject = await Connection.QueryAsync<GetAllCharacters>(GenericQueries.GetAllCharacters,
                 p,
-                commandType: CommandType.StoredProcedure);
+                commandType: CommandType.Text);
             }
 
             return outputObject;
