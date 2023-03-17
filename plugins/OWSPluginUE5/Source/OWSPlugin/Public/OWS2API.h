@@ -135,8 +135,6 @@ public:
 		PremiumCurrency = 0;
 		Score = 0;
 		XP = 0;
-		LastActivity = "";
-		CreateDate = "";
 	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
@@ -164,9 +162,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
 		int32 XP;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		FString LastActivity;
+		FDateTime LastActivity;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		FString CreateDate;
+		FDateTime CreateDate;
 
 };
 
