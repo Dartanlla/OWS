@@ -115,10 +115,9 @@ namespace OWSData.Models.StoredProcs
         public bool IsInternalNetworkTestUser { get; set; }
         public int ClassId { get; set; }
         public string BaseMesh { get; set; }
-        public string LastActivityString { get; set; }
 
         [JsonPropertyName("createDate")]
-        public string CreateDateString { get; set; }
+        public DateTime CreateDate { get; set; }
         public string ClassName { get; set; }
     }
 }
