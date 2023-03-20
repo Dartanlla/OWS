@@ -90,6 +90,22 @@ public:
 };
 
 USTRUCT()
+struct FGetCharacterDataAndCustomData {
+	GENERATED_BODY()
+
+public:
+	FGetCharacterDataAndCustomData() {
+		UserSessionGUID = "";
+		CharacterName = "";
+	}
+
+	UPROPERTY()
+		FString UserSessionGUID;
+	UPROPERTY()
+		FString CharacterName;
+};
+
+USTRUCT()
 struct FAddOrUpdateCustomCharacterDataJSONPost {
 	GENERATED_BODY()
 

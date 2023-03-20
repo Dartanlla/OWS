@@ -15,6 +15,7 @@ using OWSData.Models.StoredProcs;
 using OWSShared.Interfaces;
 using OWSPublicAPI.Requests.Characters;
 using OWSData.Repositories.Interfaces;
+using OWSPublicAPI.DTOs;
 
 namespace OWSPublicAPI.Controllers
 {
@@ -29,9 +30,11 @@ namespace OWSPublicAPI.Controllers
     public class CharactersController : Controller
     {
         private readonly Container _container;
+        private readonly IUsersRepository _usersRepository;
         private readonly ICharactersRepository _charactersRepository;
         private readonly IHeaderCustomerGUID _customerGuid;
         private readonly ICustomCharacterDataSelector _customCharacterDataSelector;
+        private readonly IGetReadOnlyPublicCharacterData _getReadOnlyPublicCharacterData;
 
         /// <summary>
         /// Constructor for Public Character related API calls.
@@ -39,12 +42,15 @@ namespace OWSPublicAPI.Controllers
         /// <remarks>
         /// All dependencies are injected.
         /// </remarks>
-        public CharactersController(Container container, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, ICustomCharacterDataSelector customCharacterDataSelector)
+        public CharactersController(Container container, IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, 
+            ICustomCharacterDataSelector customCharacterDataSelector, IGetReadOnlyPublicCharacterData getReadOnlyPublicCharacterData)
         {
             _container = container;
+            _usersRepository = usersRepository;
             _charactersRepository = charactersRepository;
             _customerGuid = customerGuid;
             _customCharacterDataSelector = customCharacterDataSelector;
+            _getReadOnlyPublicCharacterData = getReadOnlyPublicCharacterData;
         }
 
         /// <summary>
@@ -73,10 +79,10 @@ namespace OWSPublicAPI.Controllers
         /*[SwaggerOperation("ByName")]
         [SwaggerResponse(200)]
         [SwaggerResponse(404)]*/
-        public async Task<IActionResult> GetByName([FromBody] GetByNameRequest request)
+        public async Task<IActionResult> GetByName([FromBody] GetByNameDTO request)
         {
-            request.SetData(_charactersRepository, _customerGuid, _customCharacterDataSelector);
-            return await request.Handle();
+            GetByNameRequest getByNameRequest = new GetByNameRequest(request, _usersRepository, _charactersRepository, _customerGuid, _customCharacterDataSelector, _getReadOnlyPublicCharacterData);
+            return await getByNameRequest.Handle();
         }
 
     }

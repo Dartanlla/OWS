@@ -3,6 +3,7 @@
 #include "OWSPlayerController.h"
 #include "OWSPlugin.h"
 #include "Runtime/Online/HTTP/Public/Http.h"
+#include "Net/UnrealNetwork.h"
 #include "OWSCharacter.h"
 #include "OWSGameMode.h"
 #include "OWSGameInstance.h"
