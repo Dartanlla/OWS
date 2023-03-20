@@ -4,6 +4,7 @@
 #include "OWSTravelToMapActor.h"
 #include "OWSGameInstance.h"
 #include "OWSAPISubsystem.h"
+#include "OWS2API.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
 
@@ -514,10 +515,11 @@ void UOWSPlayerControllerComponent::OnGetCharacterStatsResponseReceived(FHttpReq
 //GetCharacterDataAndCustomData - This makes a call to the OWS Public API and is usable from the Character Selection screen.
 void UOWSPlayerControllerComponent::GetCharacterDataAndCustomData(FString UserSessionGUID, FString CharName)
 {
-	FGetCharacterStatsJSONPost GetCharacterStatsJSONPost;
-	GetCharacterStatsJSONPost.CharacterName = CharName;
+	FGetCharacterDataAndCustomData GetCharacterDataAndCustomDataJSONPost;
+	GetCharacterDataAndCustomDataJSONPost.UserSessionGUID = UserSessionGUID;
+	GetCharacterDataAndCustomDataJSONPost.CharacterName = CharName;
 	FString PostParameters = "";
-	if (FJsonObjectConverter::UStructToJsonObjectString(GetCharacterStatsJSONPost, PostParameters))
+	if (FJsonObjectConverter::UStructToJsonObjectString(GetCharacterDataAndCustomDataJSONPost, PostParameters))
 	{
 		ProcessOWS2POSTRequest("OWSPublicAPI", "api/Characters/ByName", PostParameters, &UOWSPlayerControllerComponent::OnGetCharacterDataAndCustomDataResponseReceived);
 	}

@@ -12,7 +12,7 @@
             Contains character related API calls that are all publicly accessible.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Controllers.CharactersController.#ctor(SimpleInjector.Container,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,OWSShared.Interfaces.ICustomCharacterDataSelector)">
+        <member name="M:OWSPublicAPI.Controllers.CharactersController.#ctor(SimpleInjector.Container,OWSData.Repositories.Interfaces.IUsersRepository,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,OWSShared.Interfaces.ICustomCharacterDataSelector,OWSShared.Interfaces.IGetReadOnlyPublicCharacterData)">
             <summary>
             Constructor for Public Character related API calls.
             </summary>
@@ -28,7 +28,7 @@
             Checks for an empty IHeaderCustomerGUID.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Controllers.CharactersController.GetByName(OWSPublicAPI.Requests.Characters.GetByNameRequest)">
+        <member name="M:OWSPublicAPI.Controllers.CharactersController.GetByName(OWSPublicAPI.DTOs.GetByNameDTO)">
             <summary>
             Get Characters Data by Character Name.
             </summary>
@@ -198,6 +198,30 @@
             Contains the Default Set Name from the request.  This sets the default values for the new Character.
             </remarks>
         </member>
+        <member name="T:OWSPublicAPI.DTOs.GetByNameDTO">
+            <summary>
+            GetByNameDTO data transfer object
+            </summary>
+            <remarks>
+            GetByNameDTO is data transfer object for GetByNameRequest
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.DTOs.GetByNameDTO.UserSessionGUID">
+            <summary>
+            UserSessionGUID Request Parameter
+            </summary>
+            <remarks>
+            Contains the User Session GUID from the request
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.DTOs.GetByNameDTO.CharacterName">
+            <summary>
+            CharacterName Request Paramater
+            </summary>
+            <remarks>
+            Contains the Character Name from the request
+            </remarks>
+        </member>
         <member name="T:OWSPublicAPI.Program">
             <summary>
             OWS Public API Program
@@ -230,17 +254,9 @@
             Handles api/Characters/GetByName requests.
             </remarks>
         </member>
-        <member name="P:OWSPublicAPI.Requests.Characters.GetByNameRequest.UserSessionGUID">
+        <member name="M:OWSPublicAPI.Requests.Characters.GetByNameRequest.#ctor(OWSPublicAPI.DTOs.GetByNameDTO,OWSData.Repositories.Interfaces.IUsersRepository,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,OWSShared.Interfaces.ICustomCharacterDataSelector,OWSShared.Interfaces.IGetReadOnlyPublicCharacterData)">
             <summary>
-            CharacterName Request Paramater.
-            </summary>
-            <remarks>
-            Contains the Character Name from the request
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Characters.GetByNameRequest.SetData(OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,OWSShared.Interfaces.ICustomCharacterDataSelector)">
-            <summary>
-            Set Dependencies for GetByNameRequest
+            Constructor for GetByNameRequest
             </summary>
             <remarks>
             Injects the dependencies for the GetByNameRequest.
