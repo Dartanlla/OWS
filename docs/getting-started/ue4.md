@@ -13,7 +13,7 @@ Follow these instructions if you want to setup the OWS Starter Project for Unrea
 
 Click on the button below to download the Open World Starter project.
 
-[Download OpenWorldStarterDocker.zip - 20220903 Release - UE 4.27.2](https://drive.google.com/file/d/1krbkAR8fohrK1MpsRVhRxnWPVhMGxujB/view?usp=sharing){: .btn .btn-blue .mr-4}
+UE4 is no longer supported by OWS 2
 
 ## Initial setup
 
