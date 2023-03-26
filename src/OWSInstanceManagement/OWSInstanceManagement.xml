@@ -4,6 +4,14 @@
         <name>OWSInstanceManagement</name>
     </assembly>
     <members>
+        <member name="M:OWSInstanceManagement.Controllers.InstanceController.GetZoneInstance(System.Int32)">
+            <summary>
+            GetZoneInstance
+            </summary>
+            <remarks>
+            Get information on the server instance that matches the ZoneInstanceId in the POST data
+            </remarks>
+        </member>
         <member name="T:OWSInstanceManagement.Controllers.SystemController">
             <summary>
             Public System API calls.
@@ -66,6 +74,22 @@
             </summary>
             <remarks>
             Get information on the server instance that matches the port and IP
+            </remarks>
+        </member>
+        <member name="T:OWSInstanceManagement.Requests.Instance.GetZoneInstanceRequest">
+            <summary>
+            GetZoneInstanceRequest
+            </summary>
+            <remarks>
+            Get information on the server instance that matches the ZoneInstanceId
+            </remarks>
+        </member>
+        <member name="M:OWSInstanceManagement.Requests.Instance.GetZoneInstanceRequest.#ctor(System.Int32,OWSData.Repositories.Interfaces.IInstanceManagementRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            GetZoneInstanceRequest Constructor
+            </summary>
+            <remarks>
+            This constructor is used to inject the dependencies into the GetZoneInstanceRequest
             </remarks>
         </member>
         <member name="T:OWSInstanceManagement.Requests.Instance.GetZoneInstancesForZoneRequest">

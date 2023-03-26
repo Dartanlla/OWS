@@ -156,6 +156,21 @@ namespace OWSInstanceManagement.Controllers
             return await request.Handle();
         }
 
+        /// <summary>
+        /// GetZoneInstance
+        /// </summary>
+        /// <remarks>
+        /// Get information on the server instance that matches the ZoneInstanceId in the POST data
+        /// </remarks>
+        [HttpPost]
+        [Route("GetZoneInstance")]
+        [Produces(typeof(GetServerInstanceFromPort))]
+        public async Task<GetServerInstanceFromPort> GetZoneInstance([FromBody] int ZoneInstanceId)
+        {
+            GetZoneInstanceRequest request = new GetZoneInstanceRequest(ZoneInstanceId, _instanceManagementRepository, _customerGuid);
+            return await request.Handle();
+        }
+
         [HttpPost]
         [Route("GetServerInstanceFromPort")]
         [Produces(typeof(GetServerInstanceFromPort))]

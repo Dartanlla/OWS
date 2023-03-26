@@ -2,6 +2,7 @@
 
 #include "OWSPlayerController.h"
 #include "OWSPlugin.h"
+#include "Net/UnrealNetwork.h"
 #include "Runtime/Online/HTTP/Public/Http.h"
 #include "Net/UnrealNetwork.h"
 #include "OWSCharacter.h"
