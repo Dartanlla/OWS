@@ -100,19 +100,25 @@ namespace OWSData.Repositories.Implementations.MySQL
                     commandType: CommandType.Text);
                 transaction.Commit();
             }
-            catch
+            catch (Exception ex)
             {
                 transaction.Rollback();
-                throw new Exception("Database Exception in CreateCharacterUsingDefaultCharacterValues!");
+                outputObject = new SuccessAndErrorMessage()
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
+
+                return outputObject;
             }
 
-            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+            outputObject = new SuccessAndErrorMessage()
             {
                 Success = true,
                 ErrorMessage = ""
             };
 
-            return output;
+            return outputObject;
         }
 
         //_PlayerGroupTypeID 0 returns all group types
