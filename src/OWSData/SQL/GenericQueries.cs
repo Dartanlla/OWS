@@ -366,5 +366,11 @@ namespace OWSData.SQL
 				  AND GlobalDataKey = @GlobalDataKey";
 
         #endregion
+
+        #region User Queries
+
+        public static readonly string Logout = @"DELETE FROM UserSessions WHERE CustomerGUID=@CustomerGuid AND UserSessionGUID=@UserSessionGUID";
+
+        #endregion
     }
 }

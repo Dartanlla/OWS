@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Serilog;
+using MongoDB.Driver.Linq;
 
 namespace OWSShared.Objects
 {
@@ -52,7 +53,11 @@ namespace OWSShared.Objects
 
             foreach (var zoneInstance in zoneInstances)
             {
+                if (zoneInstance.LastServerEmptyDate < DateTime.Now.AddMinutes(0 - zoneInstance.MinutesToShutdownAfterEmpty))
+                {
+                    //Shut down Zone Server Instance
 
+                }
             }
         }
 
