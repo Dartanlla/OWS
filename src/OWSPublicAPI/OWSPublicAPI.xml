@@ -137,6 +137,14 @@
             Login and create a User Session using an External Login Provider (such as Epic Game Store or Xsolla).
             </summary>
         </member>
+        <member name="M:OWSPublicAPI.Controllers.UsersController.Logout(OWSPublicAPI.DTOs.LogoutDTO)">
+            <summary>
+            Logout of a User Session
+            </summary>
+            <remarks>
+            Logout of a User Session based on a UserSessionGUID.  This method is for logout from the client side of a game before connecting to a UE server.
+            </remarks>
+        </member>
         <member name="M:OWSPublicAPI.Controllers.UsersController.UserSessionSetSelectedCharacter(OWSPublicAPI.Requests.Users.UserSessionSetSelectedCharacterRequest)">
             <summary>
             Set the Character that has been selected to play for a User Session (UserSessionGUID).

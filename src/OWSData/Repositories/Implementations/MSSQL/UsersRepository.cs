@@ -272,6 +272,35 @@ namespace OWSData.Repositories.Implementations.MSSQL
             return outputObject;
         }
 
+        public async Task<SuccessAndErrorMessage> Logout(Guid customerGuid, Guid userSessionGuid)
+        {
+            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGuid);
+                    p.Add("@UserSessionGUID", userSessionGuid);
+
+                    await Connection.ExecuteAsync(GenericQueries.Logout, p, commandType: CommandType.Text);
+                }
+
+                outputObject.Success = true;
+                outputObject.ErrorMessage = "";
+
+                return outputObject;
+            }
+            catch (Exception ex)
+            {
+                outputObject.Success = false;
+                outputObject.ErrorMessage = ex.Message;
+
+                return outputObject;
+            }
+        }
+
         public async Task<SuccessAndErrorMessage> UserSessionSetSelectedCharacter(Guid customerGUID, Guid userSessionGUID, string selectedCharacterName)
         {
             SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
