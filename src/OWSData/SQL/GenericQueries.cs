@@ -36,21 +36,14 @@ namespace OWSData.SQL
 	    public static readonly string AddCharacterCustomDataField = @"INSERT INTO CustomCharacterData (CustomerGUID, CharacterID, CustomFieldName, FieldValue)
 		VALUES (@CustomerGUID, @CharacterID, @CustomFieldName, @FieldValue)";
 
-        public static readonly string CreateCharacterUsingDefaultCharacterValuesSQL = @"DECLARE @NewCharacterID int;
-				INSERT INTO Characters ([CustomerGUID], [UserGUID], [Email], [CharName], [MapName], [X], [Y], [Z], [RX], [RY], [RZ], Perception, Acrobatics, Climb, Stealth, ClassID)
-				SELECT @CustomerGUID, @UserGUID, '', @CharacterName, DCR.StartingMapName, DCR.X, DCR.Y, DCR.Z, DCR.RX, DCR.RY, DCR.RZ, 0, 0, 0, 0, 0
-				FROM DefaultCharacterValues DCR 
-				WHERE DCR.CustomerGUID=@CustomerGUID 
-					AND DCR.DefaultSetName=@DefaultSetName;
-				SELECT @NewCharacterID = SCOPE_IDENTITY();
-				INSERT INTO CustomCharacterData ([CustomerGUID], [CharacterID], [CustomFieldName], [FieldValue])
-				SELECT DCR.CustomerGUID, @NewCharacterID, DCCD.CustomFieldName, DCCD.FieldValue 
+	    public static readonly string AddDefaultCustomCharacterData = @"INSERT INTO CustomCharacterData (CustomerGUID, CharacterID, CustomFieldName, FieldValue)
+				SELECT DCR.CustomerGUID, @CharacterID, DCCD.CustomFieldName, DCCD.FieldValue
 				FROM DefaultCustomCharacterData DCCD
 				INNER JOIN DefaultCharacterValues DCR
-					ON DCR.CustomerGUID=DCCD.CustomerGUID
-					AND DCR.DefaultCharacterValuesID=DCCD.DefaultCharacterValuesID
-				WHERE DCR.CustomerGUID=@CustomerGUID
-					AND DCR.DefaultSetName=@DefaultSetName;";
+					ON DCR.CustomerGUID = DCCD.CustomerGUID
+					AND DCR.DefaultCharacterValuesID = DCCD.DefaultCharacterValuesID
+				WHERE DCR.CustomerGUID = @CustomerGUID
+					AND DCR.DefaultSetName = @DefaultSetName";
 
         public static readonly string GetAllCharacters = @"SELECT WC.*,
 				COALESCE(CL.ClassName,'') as ClassName

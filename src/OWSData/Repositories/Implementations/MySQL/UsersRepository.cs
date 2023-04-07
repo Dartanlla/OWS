@@ -42,7 +42,7 @@ namespace OWSData.Repositories.Implementations.MySQL
 
             return outputObject;
         }
-        
+
         public async Task<CreateCharacter> CreateCharacter(Guid customerGUID, Guid userSessionGUID, string characterName, string className)
         {
             CreateCharacter outputObject = new CreateCharacter();
@@ -63,7 +63,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                 }
 
                 outputObject.Success = String.IsNullOrEmpty(outputObject.ErrorMessage);
-            
+
                 return outputObject;
             }
             catch (Exception ex)
@@ -79,35 +79,50 @@ namespace OWSData.Repositories.Implementations.MySQL
         {
             SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
 
+            IDbConnection conn = Connection;
+            conn.Open();
+            using IDbTransaction transaction = conn.BeginTransaction();
             try
             {
-                using (Connection)
-                {
-                    var p = new DynamicParameters();
-                    p.Add("CustomerGUID", customerGUID);
-                    p.Add("UserGUID", userGUID);
-                    p.Add("CharacterName", characterName);
-                    p.Add("DefaultSetName", defaultSetName);
+                var parameters = new DynamicParameters();
+                parameters.Add("CustomerGUID", customerGUID);
+                parameters.Add("UserGUID", userGUID);
+                parameters.Add("CharacterName", characterName);
+                parameters.Add("DefaultSetName", defaultSetName);
 
-                    await Connection.ExecuteAsync(GenericQueries.CreateCharacterUsingDefaultCharacterValuesSQL,
-                    p,
+                int outputCharacterId = await Connection.QuerySingleOrDefaultAsync<int>(MySQLQueries.AddCharacterUsingDefaultCharacterValues,
+                    parameters,
                     commandType: CommandType.Text);
-                }
 
-                outputObject.Success = true;
-                return outputObject;
+                parameters.Add("CharacterID", outputCharacterId);
+                await Connection.ExecuteAsync(GenericQueries.AddDefaultCustomCharacterData,
+                    parameters,
+                    commandType: CommandType.Text);
+                transaction.Commit();
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
+                transaction.Rollback();
+                outputObject = new SuccessAndErrorMessage()
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
 
                 return outputObject;
             }
+
+            outputObject = new SuccessAndErrorMessage()
+            {
+                Success = true,
+                ErrorMessage = ""
+            };
+
+            return outputObject;
         }
 
         //_PlayerGroupTypeID 0 returns all group types
-        public async Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid customerGUID, Guid userSessionGUID, string characterName, int playerGroupTypeID = 0) 
+        public async Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid customerGUID, Guid userSessionGUID, string characterName, int playerGroupTypeID = 0)
         {
             IEnumerable<GetPlayerGroupsCharacterIsIn> OutputObject;
 
