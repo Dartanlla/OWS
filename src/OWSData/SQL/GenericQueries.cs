@@ -45,17 +45,17 @@ namespace OWSData.SQL
 				WHERE DCR.CustomerGUID = @CustomerGUID
 					AND DCR.DefaultSetName = @DefaultSetName";
 
-	    public static readonly string GetAllCharacters = @"SELECT WC.*,
-				ISNULL(CL.ClassName,'') as ClassName 
+        public static readonly string GetAllCharacters = @"SELECT WC.*,
+				COALESCE(CL.ClassName,'') as ClassName
 			FROM Characters WC
 			INNER JOIN Users U
-				ON U.UserGUID=WC.UserGUID
+				ON U.UserGUID = WC.UserGUID
 			INNER JOIN UserSessions US
-				ON US.UserGUID=U.UserGUID
+				ON US.UserGUID = U.UserGUID
 			LEFT JOIN Class CL
-				ON CL.ClassID=WC.ClassID
-			WHERE WC.CustomerGUID=@CustomerGUID
-			AND US.UserSessionGUID=@UserSessionGUID";
+				ON CL.ClassID = WC.ClassID
+			WHERE WC.CustomerGUID = @CustomerGUID
+			AND US.UserSessionGUID = @UserSessionGUID";
 
         public static readonly string GetCharacterByName = @"SELECT *
 				FROM Characters
@@ -67,7 +67,7 @@ namespace OWSData.SQL
 				WHERE CustomerGUID = @CustomerGUID
 				  AND CharName = @CharName";
 
-	    public static readonly string GetCharByCharName = @"SELECT C.*, MI.Port, WS.ServerIP, CMI.MapInstanceID, ISNULL(CL.ClassName,'') AS ClassName
+	    public static readonly string GetCharByCharName = @"SELECT C.*, MI.Port, WS.ServerIP, CMI.MapInstanceID, COALESCE(CL.ClassName,'') AS ClassName
 				FROM Characters C
 				LEFT JOIN Class CL
 					ON CL.ClassID = C.ClassID
