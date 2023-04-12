@@ -79,6 +79,8 @@ AOWSPlayerController::AOWSPlayerController()
 	OWSPlayerControllerComponent->OnErrorLaunchZoneInstanceDelegate.BindUObject(this, &AOWSPlayerController::ErrorLaunchDungeon);
 	OWSPlayerControllerComponent->OnNotifyCreateCharacterUsingDefaultCharacterValuesDelegate.BindUObject(this, &AOWSPlayerController::NotifyCreateCharacterUsingDefaultCharacterValues);
 	OWSPlayerControllerComponent->OnErrorCreateCharacterUsingDefaultCharacterValuesDelegate.BindUObject(this, &AOWSPlayerController::ErrorCreateCharacterUsingDefaultCharacterValues);
+	OWSPlayerControllerComponent->OnNotifyLogoutDelegate.BindUObject(this, &AOWSPlayerController::NotifyLogout);
+	OWSPlayerControllerComponent->OnErrorLogoutDelegate.BindUObject(this, &AOWSPlayerController::ErrorLogout);
 
 }
 
@@ -181,21 +183,6 @@ void AOWSPlayerController::NotifyGetCharacterDataAndCustomData2(TSharedPtr<FJson
 	NotifyGetCharacterDataAndCustomData(CustomData);
 
 }
-
-/*
-void AOWSPlayerController::NotifyCreateCharacterUsingDefaultCharacterValues()
-{
-	UE_LOG(OWS, VeryVerbose, TEXT("AOWSPlayerController - NotifyCreateCharacterUsingDefaultCharacterValues Started"));
-	NotifyCreateCharacterUsingDefaultCharacterValues();
-}
-
-void AOWSPlayerController::ErrorCreateCharacterUsingDefaultCharacterValues(const FString& ErrorMsg)
-{
-	UE_LOG(OWS, VeryVerbose, TEXT("AOWSPlayerController - ErrorCreateCharacterUsingDefaultCharacterValues Started"));
-	ErrorCreateCharacterUsingDefaultCharacterValues(ErrorMsg);
-}
-*/
-
 
 
 void AOWSPlayerController::TravelToMap(const FString& URL, const bool SeamlessTravel)
@@ -691,6 +678,11 @@ void AOWSPlayerController::CreateCharacter(FString UserSessionGUID, FString Char
 void AOWSPlayerController::CreateCharacterUsingDefaultCharacterValues(FString UserSessionGUID, FString CharacterName, FString DefaultSetName)
 {
 	OWSPlayerControllerComponent->CreateCharacterUsingDefaultCharacterValues(UserSessionGUID, CharacterName, DefaultSetName);
+}
+
+void AOWSPlayerController::Logout(FString UserSessionGUID)
+{
+	OWSPlayerControllerComponent->Logout(UserSessionGUID);
 }
 
 

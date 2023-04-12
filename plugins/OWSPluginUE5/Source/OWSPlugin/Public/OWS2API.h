@@ -1042,6 +1042,20 @@ public:
 		FString DefaultSetName;
 };
 
+USTRUCT()
+struct FLogout
+{
+	GENERATED_BODY()
+
+public:
+	FLogout() {
+		UserSessionGUID = "";
+	}
+
+	UPROPERTY()
+		FString UserSessionGUID;
+};
+
 /**
  * 
  */
