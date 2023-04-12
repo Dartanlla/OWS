@@ -64,6 +64,8 @@ void UOWSPlayerControllerComponent::InitializeOWSAPISubsystemOnPlayerControllerC
 	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
 	GameInstance->GetSubsystem<UOWSAPISubsystem>()->OnNotifyCreateCharacterUsingDefaultCharacterValuesDelegate.BindUObject(this, &UOWSPlayerControllerComponent::CreateCharacterUsingDefaultCharacterValuesSuccess);
 	GameInstance->GetSubsystem<UOWSAPISubsystem>()->OnErrorCreateCharacterUsingDefaultCharacterValuesDelegate.BindUObject(this, &UOWSPlayerControllerComponent::CreateCharacterUsingDefaultCharacterValuesError);
+	GameInstance->GetSubsystem<UOWSAPISubsystem>()->OnNotifyLogoutDelegate.BindUObject(this, &UOWSPlayerControllerComponent::LogoutSuccess);
+	GameInstance->GetSubsystem<UOWSAPISubsystem>()->OnErrorLogoutDelegate.BindUObject(this, &UOWSPlayerControllerComponent::LogoutError);
 }
 
 void UOWSPlayerControllerComponent::CreateCharacterUsingDefaultCharacterValuesSuccess()
@@ -74,6 +76,16 @@ void UOWSPlayerControllerComponent::CreateCharacterUsingDefaultCharacterValuesSu
 void UOWSPlayerControllerComponent::CreateCharacterUsingDefaultCharacterValuesError(const FString& ErrorMsg)
 {
 	OnErrorCreateCharacterUsingDefaultCharacterValuesDelegate.ExecuteIfBound(ErrorMsg);
+}
+
+void UOWSPlayerControllerComponent::LogoutSuccess()
+{
+	OnNotifyLogoutDelegate.ExecuteIfBound();
+}
+
+void UOWSPlayerControllerComponent::LogoutError(const FString& ErrorMsg)
+{
+	OnErrorLogoutDelegate.ExecuteIfBound(ErrorMsg);
 }
 
 // Called when the game starts
@@ -1017,6 +1029,13 @@ void UOWSPlayerControllerComponent::CreateCharacterUsingDefaultCharacterValues(F
 {
 	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
 	GameInstance->GetSubsystem<UOWSAPISubsystem>()->CreateCharacterUsingDefaultCharacterValues(UserSessionGUID, CharacterName, DefaultSetName);
+}
+
+//Logout
+void UOWSPlayerControllerComponent::Logout(FString UserSessionGUID)
+{
+	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
+	GameInstance->GetSubsystem<UOWSAPISubsystem>()->Logout(UserSessionGUID);
 }
 
 //Remove Character

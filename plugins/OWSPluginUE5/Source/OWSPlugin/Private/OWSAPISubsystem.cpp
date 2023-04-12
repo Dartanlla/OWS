@@ -255,3 +255,42 @@ void UOWSAPISubsystem::OnCreateCharacterUsingDefaultCharacterValuesResponseRecei
 
 	OnNotifyCreateCharacterUsingDefaultCharacterValuesDelegate.ExecuteIfBound();
 }
+
+//Logout
+void UOWSAPISubsystem::Logout(FString UserSessionGUID)
+{
+	FLogout Logout;
+	Logout.UserSessionGUID = UserSessionGUID;
+	FString PostParameters = "";
+	if (FJsonObjectConverter::UStructToJsonObjectString(Logout, PostParameters))
+	{
+		ProcessOWS2POSTRequest("PublicAPI", "api/Users/Logout", PostParameters,
+			&UOWSAPISubsystem::OnLogoutResponseReceived);
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("Logout Error serializing OnLogoutResponseReceived!"));
+	}
+}
+
+void UOWSAPISubsystem::OnLogoutResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	FString ErrorMsg;
+	TSharedPtr<FJsonObject> JsonObject;
+	GetJsonObjectFromResponse(Request, Response, bWasSuccessful, "OnLogoutResponseReceived", ErrorMsg, JsonObject);
+	if (!ErrorMsg.IsEmpty())
+	{
+		OnErrorLogoutDelegate.ExecuteIfBound(ErrorMsg);
+		return;
+	}
+
+	TSharedPtr<FSuccessAndErrorMessage> SuccessAndErrorMessage = GetStructFromJsonObject<FSuccessAndErrorMessage>(JsonObject);
+
+	if (!SuccessAndErrorMessage->ErrorMessage.IsEmpty())
+	{
+		OnErrorLogoutDelegate.ExecuteIfBound(*SuccessAndErrorMessage->ErrorMessage);
+		return;
+	}
+
+	OnNotifyLogoutDelegate.ExecuteIfBound();
+}

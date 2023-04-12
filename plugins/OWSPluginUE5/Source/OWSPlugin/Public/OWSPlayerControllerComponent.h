@@ -93,6 +93,10 @@ DECLARE_DELEGATE_OneParam(FErrorGetPlayerGroupsCharacterIsInDelegate, const FStr
 DECLARE_DELEGATE_OneParam(FNotifyLaunchZoneInstanceDelegate, const FString&)
 DECLARE_DELEGATE_OneParam(FErrorLaunchZoneInstanceDelegate, const FString&)
 
+//Logout
+DECLARE_DELEGATE(FNotifyLogoutDelegate)
+DECLARE_DELEGATE_OneParam(FErrorLogoutDelegate, const FString&)
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class OWSPLUGIN_API UOWSPlayerControllerComponent : public UActorComponent
@@ -312,6 +316,15 @@ public:
 
 	FNotifyLaunchZoneInstanceDelegate OnNotifyLaunchZoneInstanceDelegate;
 	FErrorLaunchZoneInstanceDelegate OnErrorLaunchZoneInstanceDelegate;
+
+	//Lougout
+	void Logout(FString UserSessionGUID);
+
+	void LogoutSuccess();
+	void LogoutError(const FString& ErrorMsg);
+
+	FNotifyLogoutDelegate OnNotifyLogoutDelegate;
+	FErrorLogoutDelegate OnErrorLogoutDelegate;
 
 
 	void InitializeOWSAPISubsystemOnPlayerControllerComponent();

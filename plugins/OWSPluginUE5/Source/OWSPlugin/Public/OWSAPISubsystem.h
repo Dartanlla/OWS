@@ -21,6 +21,11 @@ DECLARE_DELEGATE_OneParam(FErrorAddOrUpdateGlobalDataItemDelegate, const FString
 DECLARE_DELEGATE(FNotifyCreateCharacterUsingDefaultCharacterValuesDelegate)
 DECLARE_DELEGATE_OneParam(FErrorCreateCharacterUsingDefaultCharacterValuesDelegate, const FString&)
 
+//Logout
+DECLARE_DELEGATE(FNotifyLogoutDelegate)
+DECLARE_DELEGATE_OneParam(FErrorLogoutDelegate, const FString&)
+
+
 /**
  * 
  */
@@ -82,6 +87,15 @@ public:
 
 	FNotifyCreateCharacterUsingDefaultCharacterValuesDelegate OnNotifyCreateCharacterUsingDefaultCharacterValuesDelegate;
 	FErrorCreateCharacterUsingDefaultCharacterValuesDelegate OnErrorCreateCharacterUsingDefaultCharacterValuesDelegate;
+
+	//Logout
+	UFUNCTION(BlueprintCallable, Category = "Users")
+		void Logout(FString UserSessionGUID);
+
+	void OnLogoutResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	FNotifyLogoutDelegate OnNotifyLogoutDelegate;
+	FErrorLogoutDelegate OnErrorLogoutDelegate;
 
 protected:
 	void ProcessOWS2POSTRequest(FString ApiModuleToCall, FString ApiToCall, FString PostParameters, void (UOWSAPISubsystem::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful));
