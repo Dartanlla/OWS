@@ -11,8 +11,6 @@
 
 
 
-struct FChatGroup;
-
 //Get Zone Server To Travel To
 DECLARE_DELEGATE_OneParam(FNotifyGetZoneServerToTravelToDelegate, const FString&)
 DECLARE_DELEGATE_OneParam(FErrorGetZoneServerToTravelToDelegate, const FString&)

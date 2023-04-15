@@ -15,21 +15,7 @@
 
 
 
-USTRUCT(BlueprintType, Blueprintable)
-struct FChatGroup
-{
-	GENERATED_USTRUCT_BODY()
 
-	FChatGroup() {
-		ChatGroupID = 0;
-		ChatGroupName = "";
-	}
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Chat")
-		int32 ChatGroupID;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Chat")
-		FString ChatGroupName;
-};
 
 
 
