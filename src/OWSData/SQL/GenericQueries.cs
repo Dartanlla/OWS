@@ -36,33 +36,26 @@ namespace OWSData.SQL
 	    public static readonly string AddCharacterCustomDataField = @"INSERT INTO CustomCharacterData (CustomerGUID, CharacterID, CustomFieldName, FieldValue)
 		VALUES (@CustomerGUID, @CharacterID, @CustomFieldName, @FieldValue)";
 
-        public static readonly string CreateCharacterUsingDefaultCharacterValuesSQL = @"DECLARE @NewCharacterID int;
-				INSERT INTO Characters ([CustomerGUID], [UserGUID], [Email], [CharName], [MapName], [X], [Y], [Z], [RX], [RY], [RZ], Perception, Acrobatics, Climb, Stealth, ClassID)
-				SELECT @CustomerGUID, @UserGUID, '', @CharacterName, DCR.StartingMapName, DCR.X, DCR.Y, DCR.Z, DCR.RX, DCR.RY, DCR.RZ, 0, 0, 0, 0, 0
-				FROM DefaultCharacterValues DCR 
-				WHERE DCR.CustomerGUID=@CustomerGUID 
-					AND DCR.DefaultSetName=@DefaultSetName;
-				SELECT @NewCharacterID = SCOPE_IDENTITY();
-				INSERT INTO CustomCharacterData ([CustomerGUID], [CharacterID], [CustomFieldName], [FieldValue])
-				SELECT DCR.CustomerGUID, @NewCharacterID, DCCD.CustomFieldName, DCCD.FieldValue 
+	    public static readonly string AddDefaultCustomCharacterData = @"INSERT INTO CustomCharacterData (CustomerGUID, CharacterID, CustomFieldName, FieldValue)
+				SELECT DCR.CustomerGUID, @CharacterID, DCCD.CustomFieldName, DCCD.FieldValue
 				FROM DefaultCustomCharacterData DCCD
 				INNER JOIN DefaultCharacterValues DCR
-					ON DCR.CustomerGUID=DCCD.CustomerGUID
-					AND DCR.DefaultCharacterValuesID=DCCD.DefaultCharacterValuesID
-				WHERE DCR.CustomerGUID=@CustomerGUID
-					AND DCR.DefaultSetName=@DefaultSetName;";
+					ON DCR.CustomerGUID = DCCD.CustomerGUID
+					AND DCR.DefaultCharacterValuesID = DCCD.DefaultCharacterValuesID
+				WHERE DCR.CustomerGUID = @CustomerGUID
+					AND DCR.DefaultSetName = @DefaultSetName";
 
         public static readonly string GetAllCharacters = @"SELECT WC.*,
-				ISNULL(CL.ClassName,'') as ClassName 
+				COALESCE(CL.ClassName,'') as ClassName
 			FROM Characters WC
 			INNER JOIN Users U
-				ON U.UserGUID=WC.UserGUID
+				ON U.UserGUID = WC.UserGUID
 			INNER JOIN UserSessions US
-				ON US.UserGUID=U.UserGUID
+				ON US.UserGUID = U.UserGUID
 			LEFT JOIN Class CL
-				ON CL.ClassID=WC.ClassID
-			WHERE WC.CustomerGUID=@CustomerGUID
-			AND US.UserSessionGUID=@UserSessionGUID";
+				ON CL.ClassID = WC.ClassID
+			WHERE WC.CustomerGUID = @CustomerGUID
+			AND US.UserSessionGUID = @UserSessionGUID";
 
         public static readonly string GetCharacterByName = @"SELECT *
 				FROM Characters
@@ -74,7 +67,7 @@ namespace OWSData.SQL
 				WHERE CustomerGUID = @CustomerGUID
 				  AND CharName = @CharName";
 
-	    public static readonly string GetCharByCharName = @"SELECT C.*, MI.Port, WS.ServerIP, CMI.MapInstanceID, ISNULL(CL.ClassName,'') AS ClassName
+	    public static readonly string GetCharByCharName = @"SELECT C.*, MI.Port, WS.ServerIP, CMI.MapInstanceID, COALESCE(CL.ClassName,'') AS ClassName
 				FROM Characters C
 				LEFT JOIN Class CL
 					ON CL.ClassID = C.ClassID
@@ -371,6 +364,12 @@ namespace OWSData.SQL
 				SET GlobalDataValue = @GlobalDataValue
 				WHERE CustomerGUID = @CustomerGUID
 				  AND GlobalDataKey = @GlobalDataKey";
+
+        #endregion
+
+        #region User Queries
+
+        public static readonly string Logout = @"DELETE FROM UserSessions WHERE CustomerGUID=@CustomerGuid AND UserSessionGUID=@UserSessionGUID";
 
         #endregion
     }

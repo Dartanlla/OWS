@@ -202,6 +202,21 @@ namespace OWSPublicAPI.Controllers
         }
 
         /// <summary>
+        /// Logout of a User Session
+        /// </summary>
+        /// <remarks>
+        /// Logout of a User Session based on a UserSessionGUID.  This method is for logout from the client side of a game before connecting to a UE server.
+        /// </remarks>
+        [HttpPost]
+        [Route("Logout")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<SuccessAndErrorMessage> Logout([FromBody] LogoutDTO request)
+        {
+            LogoutRequest logoutRequest = new LogoutRequest(request, _usersRepository, _customerGuid);
+            return await logoutRequest.Handle();
+        }
+
+        /// <summary>
         /// Set the Character that has been selected to play for a User Session (UserSessionGUID).
         /// </summary>
         /// <remarks>
