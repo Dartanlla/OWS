@@ -13,6 +13,7 @@ nav_order: 1
   * The ASP.NET and Web Development and Node.js Development workloads are required
 * Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop) for Windows/macOS/Linux
 * [.Net 6.0 SDK]([another-page](https://dotnet.microsoft.com/download/dotnet/6.0))
+* Enable "Virtualization Technology" in your BIOS
 <br />
 <br />
 
@@ -21,10 +22,11 @@ nav_order: 1
     Windows
   </summary>
 
-1. Download and install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop)
-2. Open OWS Project in Visual Studio 2022 Community. The [ASP.NET and Web Development workload](../troubleshooting/visual-studio#installing-workloads) is required.
-3. Select Docker Compose startup project and Launch Docker Compose. ![Launch Docker Compose](images/docker-compose-windows.png){: .mt-3}
-4. <span class="label" style="margin-left: -3px">Optional</span>  
+1. Make sure Windows Subsystem for Linux is installed. ![Launch Docker Compose](images/windows-subsystem-for-linux01.png){: .mt-3}  
+2. Download and install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop)
+3. Open OWS Project in Visual Studio 2022 Community. The [ASP.NET and Web Development workload](../troubleshooting/visual-studio#installing-workloads) is required.
+4. Select Docker Compose startup project and Launch Docker Compose. ![Launch Docker Compose](images/docker-compose-windows.png){: .mt-3}
+5. <span class="label" style="margin-left: -3px">Optional</span>  
    Running Docker Compose without Visual Studio Debugger, Enter the following Command Prompt from the OWS root directory.
 
    ```bash
