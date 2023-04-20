@@ -10,9 +10,9 @@ nav_order: 1
 ## Requirements  
 * Download or clone OWS
 * Download and install [Visual Studio 2022 Community](https://visualstudio.microsoft.com/downloads/)
-  * The ASP.NET and Web Development and Node.js Development workloads are required
+  * The ASP.NET and Web Development, Node.js Development, and Game development with C++ workloads are required
 * Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop) for Windows/macOS/Linux
-* [.Net 6.0 SDK]([another-page](https://dotnet.microsoft.com/download/dotnet/6.0))
+* [.Net 6.0 SDK]([another-page](https://dotnet.microsoft.com/download/dotnet/6.0))  (On Windows this is included in VS 2022 by default)
 * Enable "Virtualization Technology" in your BIOS
 <br />
 <br />
@@ -24,7 +24,7 @@ nav_order: 1
 
 1. Make sure Windows Subsystem for Linux is installed. ![Launch Docker Compose](images/windows-subsystem-for-linux01.png){: .mt-3}  
 2. Download and install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop)
-3. Open OWS Project in Visual Studio 2022 Community. The [ASP.NET and Web Development workload](../troubleshooting/visual-studio#installing-workloads) is required.
+3. Open OWS Project in Visual Studio 2022 Community. The [ASP.NET and Web Development workload](../troubleshooting/visual-studio#installing-workloads) is required. The "Node.js development" workload is also required for the Vue.js build process.  If you plan to use Unreal Engine, you will also need to install the "Game development with C++" workload.
 4. Select Docker Compose startup project and Launch Docker Compose. ![Launch Docker Compose](images/docker-compose-windows.png){: .mt-3}
 5. <span class="label" style="margin-left: -3px">Optional</span>  
    Running Docker Compose without Visual Studio Debugger, Enter the following Command Prompt from the OWS root directory.
