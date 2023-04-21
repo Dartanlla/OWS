@@ -8,7 +8,7 @@ nav_order: 1
 # Docker Setup
 
 ## Requirements  
-* Download or clone OWS
+* Download or clone [OWS](https://github.com/Dartanlla/OWS)
 * Download and install [Visual Studio 2022 Community](https://visualstudio.microsoft.com/downloads/)
   * The ASP.NET and Web Development, Node.js Development, and Game development with C++ workloads are required
 * Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop) for Windows/macOS/Linux
