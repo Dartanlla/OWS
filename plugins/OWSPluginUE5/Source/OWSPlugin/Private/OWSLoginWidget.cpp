@@ -159,20 +159,20 @@ void UOWSLoginWidget::OnRegisterResponseReceived(FHttpRequestPtr Request, FHttpR
 {
 	FString ErrorMsg;
 	TSharedPtr<FJsonObject> JsonObject;
-	GetJsonObjectFromResponse(Request, Response, bWasSuccessful, "OnRegisterResponseReceived", ErrorMsg, JsonObject);
+	GetJsonObjectFromResponse(Request, Response, bWasSuccessful, "OnLoginAndCreateSessionResponseReceived", ErrorMsg, JsonObject);
 	if (!ErrorMsg.IsEmpty())
 	{
-		ErrorRegister(ErrorMsg);
+		ErrorLoginAndCreateSession(ErrorMsg);
 		return;
 	}
 
-	TSharedPtr<FSuccessAndErrorMessage> SuccessAndErrorMessage = GetStructFromJsonObject<FSuccessAndErrorMessage>(JsonObject);
+	TSharedPtr<FLoginAndCreateSession> LoginAndCreateSession = GetStructFromJsonObject<FLoginAndCreateSession>(JsonObject);
 
-	if (!SuccessAndErrorMessage->ErrorMessage.IsEmpty())
+	if (!LoginAndCreateSession->ErrorMessage.IsEmpty())
 	{
-		ErrorRegister(*SuccessAndErrorMessage->ErrorMessage);
+		ErrorLoginAndCreateSession(*LoginAndCreateSession->ErrorMessage);
 		return;
 	}
 
-	NotifyRegister();
+	NotifyRegister(LoginAndCreateSession->UserSessionGUID);
 }

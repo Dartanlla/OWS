@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OWSData.Models.StoredProcs;
+using OWSPublicAPI.DTOs;
 
 namespace OWSPublicAPI.Requests.Users
 {
@@ -16,65 +18,65 @@ namespace OWSPublicAPI.Requests.Users
     /// <remarks>
     /// Register a user with the system.  You can control validation with a custom IIPublicAPIInputValidation implementation.  See DefaultPublicAPIInputValidation for an example.
     /// </remarks>
-    public class RegisterUserRequest : IRequestHandler<RegisterUserRequest, IActionResult>, IRequest
+    public class RegisterUserRequest
     {
-        /// <summary>
-        /// Email
-        /// </summary>
-        /// <remarks>
-        /// Email for the user.  This value is not meant to be displayed in game.
-        /// </remarks>
-        public string Email { get; set; }
-        /// <summary>
-        /// Password
-        /// </summary>
-        /// <remarks>
-        /// Password for the user.  Passwords are one way encrypted with SHA 256 and a 25 character Salt when using the MSSQL implementation of UsersRepository.
-        /// </remarks>
-        public string Password { get; set; }
-        /// <summary>
-        /// First Name
-        /// </summary>
-        /// <remarks>
-        /// First Name for the user.  This value is not meant to be displayed in game.
-        /// </remarks>
-        public string FirstName { get; set; }
-        /// <summary>
-        /// Last Name
-        /// </summary>
-        /// <remarks>
-        /// Last Name for the user.  This value is not meant to be displayed in game.
-        /// </remarks>
-        public string LastName { get; set; }
+        private readonly RegisterUserDTO _registerUserDTO;
+        private readonly Guid _customerGUID;
+        private readonly IUsersRepository _usersRepository;
+        private readonly IExternalLoginProviderFactory _externalLoginProviderFactory;
 
-        private SuccessAndErrorMessage _output;
-        private Guid _customerGUID;
-        private IUsersRepository _usersRepository;
-        private IExternalLoginProviderFactory _externalLoginProviderFactory;
-
-        public void SetData(IUsersRepository usersRepository, IExternalLoginProviderFactory externalLoginProviderFactory, IHeaderCustomerGUID customerGuid)
+        /// <summary>
+        /// RegisterUserRequest Constructor
+        /// </summary>
+        /// <remarks>
+        /// Initialize the RegisterUserRequest object with dependencies
+        /// </remarks>
+        public RegisterUserRequest(RegisterUserDTO registerUserDTO, IUsersRepository usersRepository, IExternalLoginProviderFactory externalLoginProviderFactory, IHeaderCustomerGUID customerGuid)
         {
+            _registerUserDTO = registerUserDTO;
             _customerGUID = customerGuid.CustomerGUID;
             _usersRepository = usersRepository;
             _externalLoginProviderFactory = externalLoginProviderFactory;
         }
 
-        public async Task<IActionResult> Handle()
+        /// <summary>
+        /// RegisterUserRequest Request Handler
+        /// </summary>
+        /// <remarks>
+        /// Handle the RegisterUserRequest request
+        /// </remarks>
+        public async Task<PlayerLoginAndCreateSession> Handle()
         {
             //Check for duplicate account before creating a new one:
-            var foundUser = await _usersRepository.GetUserFromEmail(_customerGUID, Email);
+            var foundUser = await _usersRepository.GetUserFromEmail(_customerGUID, _registerUserDTO.Email);
 
             //This user already exists
             if (foundUser != null)
             {
-                _output = new SuccessAndErrorMessage();
-                _output.Success = false;
-                _output.ErrorMessage = "Duplicate Account!";
+                PlayerLoginAndCreateSession errorOutput = new PlayerLoginAndCreateSession()
+                {
+                    ErrorMessage = "Duplicate Account!"
+                };
 
-                return new OkObjectResult(_output);
+                return errorOutput;
             }
 
-            _output = await _usersRepository.RegisterUser(_customerGUID, Email, Password, FirstName, LastName);
+            //Register the new account
+            SuccessAndErrorMessage registerOutput = await _usersRepository.RegisterUser(_customerGUID, _registerUserDTO.Email, _registerUserDTO.Password, _registerUserDTO.FirstName, _registerUserDTO.LastName);
+
+            //There was an error registering the new account
+            if (!registerOutput.Success)
+            {
+                PlayerLoginAndCreateSession errorOutput = new PlayerLoginAndCreateSession()
+                {
+                    ErrorMessage = registerOutput.ErrorMessage
+                };
+
+                return errorOutput;
+            }
+
+            //Login to the new account to get a UserSession
+            PlayerLoginAndCreateSession playerLoginAndCreateSession = await _usersRepository.LoginAndCreateSession(_customerGUID, _registerUserDTO.Email, _registerUserDTO.Password);
 
             /*
             if (externalLoginProviderFactory != null)
@@ -84,7 +86,7 @@ namespace OWSPublicAPI.Requests.Users
             }
             */
 
-            return new OkObjectResult(_output);
+            return playerLoginAndCreateSession;
         }
     }
 }
