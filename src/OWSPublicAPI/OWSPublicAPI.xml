@@ -158,12 +158,12 @@
             Set the Character that has been selected to play for a User Session (UserSessionGUID) and get the complete User Session object all in one API call.
             </summary>
         </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.RegisterUser(OWSPublicAPI.Requests.Users.RegisterUserRequest)">
+        <member name="M:OWSPublicAPI.Controllers.UsersController.RegisterUser(OWSPublicAPI.DTOs.RegisterUserDTO)">
             <summary>
             Register a new User account by sending FirstName, LastName, Email, and Password.
             </summary>
             <remarks>
-            Implement your own IPublicAPIInputValidation to specify your specific validation rules for FirstName, LastName, Email, and Password.  You can wire up the dependency injection for your custom IPublicAPIInputValidation in Startup.cs.
+            Register a new User and then Logs the User in and Creates a User Session.  Implement your own IPublicAPIInputValidation to specify your specific validation rules for FirstName, LastName, Email, and Password.  You can wire up the dependency injection for your custom IPublicAPIInputValidation in Startup.cs.
             </remarks>
         </member>
         <member name="M:OWSPublicAPI.Controllers.UsersController.RemoveCharacter(OWSPublicAPI.Requests.Users.RemoveCharacterRequest)">
@@ -228,6 +228,46 @@
             </summary>
             <remarks>
             Contains the Character Name from the request
+            </remarks>
+        </member>
+        <member name="T:OWSPublicAPI.DTOs.RegisterUserDTO">
+            <summary>
+            RegisterUser Data Transfer Object
+            </summary>
+            <remarks>
+            This object is for collecting POST request parameters
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.DTOs.RegisterUserDTO.Email">
+            <summary>
+            Email
+            </summary>
+            <remarks>
+            Email for the user.  This value is not meant to be displayed in game.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.DTOs.RegisterUserDTO.Password">
+            <summary>
+            Password
+            </summary>
+            <remarks>
+            Password for the user.  Passwords are one way encrypted with SHA 256 and a 25 character Salt when using the MSSQL implementation of UsersRepository.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.DTOs.RegisterUserDTO.FirstName">
+            <summary>
+            First Name
+            </summary>
+            <remarks>
+            First Name for the user.  This value is not meant to be displayed in game.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.DTOs.RegisterUserDTO.LastName">
+            <summary>
+            Last Name
+            </summary>
+            <remarks>
+            Last Name for the user.  This value is not meant to be displayed in game.
             </remarks>
         </member>
         <member name="T:OWSPublicAPI.Program">
@@ -470,36 +510,20 @@
             Register a user with the system.  You can control validation with a custom IIPublicAPIInputValidation implementation.  See DefaultPublicAPIInputValidation for an example.
             </remarks>
         </member>
-        <member name="P:OWSPublicAPI.Requests.Users.RegisterUserRequest.Email">
+        <member name="M:OWSPublicAPI.Requests.Users.RegisterUserRequest.#ctor(OWSPublicAPI.DTOs.RegisterUserDTO,OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSShared.Interfaces.IHeaderCustomerGUID)">
             <summary>
-            Email
+            RegisterUserRequest Constructor
             </summary>
             <remarks>
-            Email for the user.  This value is not meant to be displayed in game.
+            Initialize the RegisterUserRequest object with dependencies
             </remarks>
         </member>
-        <member name="P:OWSPublicAPI.Requests.Users.RegisterUserRequest.Password">
+        <member name="M:OWSPublicAPI.Requests.Users.RegisterUserRequest.Handle">
             <summary>
-            Password
+            RegisterUserRequest Request Handler
             </summary>
             <remarks>
-            Password for the user.  Passwords are one way encrypted with SHA 256 and a 25 character Salt when using the MSSQL implementation of UsersRepository.
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.RegisterUserRequest.FirstName">
-            <summary>
-            First Name
-            </summary>
-            <remarks>
-            First Name for the user.  This value is not meant to be displayed in game.
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.RegisterUserRequest.LastName">
-            <summary>
-            Last Name
-            </summary>
-            <remarks>
-            Last Name for the user.  This value is not meant to be displayed in game.
+            Handle the RegisterUserRequest request
             </remarks>
         </member>
         <member name="T:OWSPublicAPI.Requests.Users.RemoveCharacterRequest">

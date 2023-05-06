@@ -64,7 +64,7 @@ public:
 	void OnRegisterResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Login")
-		void NotifyRegister();
+		void NotifyRegister(const FString& UserSessionGUID);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Login")
 		void ErrorRegister(const FString &ErrorMsg);
