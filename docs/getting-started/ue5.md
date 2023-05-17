@@ -13,7 +13,7 @@ Follow these instructions if you want to setup the OWS Starter Project for Unrea
 
 Click on the button below to download the Open World Starter project.
 
-[Download OpenWorldStarterDockerUE5.zip - 20230516 Release - UE 5.2(https://drive.google.com/file/d/14MIQHJtFVqdJs27KQG7MqJTkgbQ5U0H5/view?usp=share_link){: .btn .btn-blue .mr-4}
+[Download OpenWorldStarterDockerUE5.zip - 20230516 Release - UE 5.2](https://drive.google.com/file/d/14MIQHJtFVqdJs27KQG7MqJTkgbQ5U0H5/view?usp=share_link){: .btn .btn-blue .mr-4}
 
 ## Initial setup
 
