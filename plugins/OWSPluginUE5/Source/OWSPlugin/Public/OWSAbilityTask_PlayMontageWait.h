@@ -8,7 +8,7 @@
 #include "Abilities/Tasks/AbilityTask.h"
 #include "OWSAbilityTask_PlayMontageWait.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMontageWaitSimpleDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMontageWaitSimpleDelegate2);
 
 /**
  * 
@@ -19,19 +19,19 @@ class OWSPLUGIN_API UOWSAbilityTask_PlayMontageWait : public UAbilityTask
 	GENERATED_UCLASS_BODY()
 
 	UPROPERTY(BlueprintAssignable)
-		FMontageWaitSimpleDelegate	OnCompleted;
+		FMontageWaitSimpleDelegate2	OnCompleted;
 
 	UPROPERTY(BlueprintAssignable)
-		FMontageWaitSimpleDelegate	OnBlendOut;
+		FMontageWaitSimpleDelegate2	OnBlendOut;
 
 	UPROPERTY(BlueprintAssignable)
-		FMontageWaitSimpleDelegate	OnInterrupted;
+		FMontageWaitSimpleDelegate2	OnInterrupted;
 
 	UPROPERTY(BlueprintAssignable)
-		FMontageWaitSimpleDelegate	OnCancelled;
+		FMontageWaitSimpleDelegate2	OnCancelled;
 
 	UPROPERTY(BlueprintAssignable)
-		FMontageWaitSimpleDelegate	OnAnimNotify;
+		FMontageWaitSimpleDelegate2	OnAnimNotify;
 
 	UFUNCTION()
 		void OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);

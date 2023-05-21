@@ -7,8 +7,8 @@
 #include "Abilities/Tasks/AbilityTask.h"
 #include "OWSAbilityTask_WaitCastTime.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitDelayDelegate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitCancelDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitDelayDelegate2);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitCancelDelegate2);
 /**
  * 
  */
@@ -18,13 +18,13 @@ class OWSPLUGIN_API UOWSAbilityTask_WaitCastTime : public UAbilityTask
 	GENERATED_UCLASS_BODY()
 
 	UPROPERTY(BlueprintAssignable)
-		FWaitDelayDelegate	OnFinish;
+		FWaitDelayDelegate2	OnFinish;
 
 	UPROPERTY(BlueprintAssignable)
-		FWaitDelayDelegate	OnClientFinish;
+		FWaitDelayDelegate2	OnClientFinish;
 
 	UPROPERTY(BlueprintAssignable)
-		FWaitCancelDelegate	Cancelled;
+		FWaitCancelDelegate2 Cancelled;
 
 	UFUNCTION()
 		void OnCancelCallback();

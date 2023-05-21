@@ -10,7 +10,7 @@
 #include "OWSAbilityTask_WaitTargetData.generated.h"
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWaitTargetDataDelegate, const FGameplayAbilityTargetDataHandle&, Data);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWaitTargetDataDelegate2, const FGameplayAbilityTargetDataHandle&, Data);
 
 /** Wait for targeting actor (spawned from parameter) to provide data. Can be set not to end upon outputting data. Can be ended by task name. */
 UCLASS(notplaceable)
@@ -19,10 +19,10 @@ class OWSPLUGIN_API UOWSAbilityTask_WaitTargetData : public UAbilityTask
 	GENERATED_UCLASS_BODY()
 
 		UPROPERTY(BlueprintAssignable)
-		FWaitTargetDataDelegate	ValidData;
+		FWaitTargetDataDelegate2 ValidData;
 
 	UPROPERTY(BlueprintAssignable)
-		FWaitTargetDataDelegate	Cancelled;
+		FWaitTargetDataDelegate2 Cancelled;
 
 	UFUNCTION()
 		void OnTargetDataReplicatedCallback(const FGameplayAbilityTargetDataHandle& Data, FGameplayTag ActivationTag);
