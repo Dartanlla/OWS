@@ -237,6 +237,24 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     parameters,
                     commandType: CommandType.Text);
 
+                if (outputMap == null)
+                {
+                    //Error finding Zone: zoneName
+                    return new JoinMapByCharName() { 
+                        Success = false,
+                        ErrorMessage = $"Error finding Zone: {zoneName}",
+                        ServerIP = serverIp,
+                        Port = port,
+                        WorldServerID = -1,
+                        WorldServerIP = worldServerIp,
+                        WorldServerPort = worldServerPort,
+                        MapInstanceID = mapInstanceID,
+                        MapNameToStart = mapNameToStart,
+                        MapInstanceStatus = -1,
+                        NeedToStartupMap = false
+                    };
+                }
+
                 //Lookup the Character row by characterName
                 parameters.Add("@CharName", characterName);
                 Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName,
@@ -252,7 +270,10 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 //We could not find a valid character for characterName in this customerGUID
                 if (outputCharacter == null)
                 {
-                    outputObject = new JoinMapByCharName() {
+                    return new JoinMapByCharName()
+                    {
+                        Success = false,
+                        ErrorMessage = $"Error finding Character: {characterName}",
                         ServerIP = serverIp,
                         Port = port,
                         WorldServerID = -1,
@@ -262,9 +283,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                         MapNameToStart = mapNameToStart,
                         MapInstanceStatus = -1,
                         NeedToStartupMap = false
-                    };
-
-                    return outputObject;
+                    }; ;
                 }
 
                 //If there is a playerGroupType, then look up the player group by type.  This assumes that for this playerGroupType, the player can only be in at most one Player Group
