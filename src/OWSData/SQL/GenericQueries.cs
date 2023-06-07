@@ -67,6 +67,12 @@ namespace OWSData.SQL
 				WHERE CustomerGUID = @CustomerGUID
 				  AND CharName = @CharName";
 
+	    public static readonly string GetCharacterIDByNameAndUser = @"SELECT CharacterID
+				FROM Characters
+				WHERE CustomerGUID = @CustomerGUID
+				  AND CharName = @CharName
+				  AND UserGUID = @UserGUID";
+
 	    public static readonly string GetCharByCharName = @"SELECT C.*, MI.Port, WS.ServerIP, CMI.MapInstanceID, COALESCE(CL.ClassName,'') AS ClassName
 				FROM Characters C
 				LEFT JOIN Class CL
@@ -155,6 +161,40 @@ namespace OWSData.SQL
 				  AND CharacterID = @CharacterID";
 
 	    public static readonly string RemoveCharacterFromInstances = @"DELETE FROM CharOnMapInstance WHERE CustomerGUID = @CustomerGUID AND MapInstanceID IN @MapInstances";
+
+	    public static readonly string RemoveCharacterAbilities = @"DELETE
+				FROM CharAbilityBarAbilities
+				WHERE CustomerGUID = @CustomerGUID
+				AND CharAbilityBarID
+					IN (SELECT CharAbilityBarID
+						FROM CharAbilityBars
+						WHERE CustomerGUID = @CustomerGUID
+						AND CharacterID = @CharacterID);";
+
+	    public static readonly string RemoveCharacterAbilityBars = @"DELETE FROM CharAbilityBars WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID;";
+
+	    public static readonly string RemoveCharacterHasAbilities = @"DELETE FROM CharHasAbilities WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID;";
+
+	    public static readonly string RemoveCharacterHasItems = @"DELETE FROM CharHasItems WHERE CharacterID = @CharacterID;";
+
+	    public static readonly string RemoveCharacterInventoryItems = @"DELETE
+				FROM CharInventoryItems
+				WHERE CustomerGUID = @CustomerGUID
+				AND CharInventoryID
+					IN (SELECT CharInventoryID
+						FROM CharInventory
+						WHERE CustomerGUID = @CustomerGUID
+						AND CharacterID = @CharacterID);";
+
+	    public static readonly string RemoveCharacterInventory = @"DELETE FROM CharInventory WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID;";
+
+	    public static readonly string RemoveCharacterGroupUsers = @"DELETE FROM ChatGroupUsers WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID;";
+
+	    public static readonly string RemoveCharacterCharacterData = @"DELETE FROM CustomCharacterData WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID;";
+
+	    public static readonly string RemoveCharacterFromPlayerGroupCharacters = @"DELETE FROM PlayerGroupCharacters WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID;";
+
+	    public static readonly string RemoveCharacter = @"DELETE FROM Characters WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID;";
 
 	    public static readonly string UpdateCharacterCustomDataField = @"UPDATE CustomCharacterData
 				SET FieldValue = @FieldValue
@@ -280,10 +320,18 @@ namespace OWSData.SQL
 
         #region World Queries
 
+        public static readonly string AddWorldServer = @"INSERT INTO WorldServers (CustomerGUID, ServerIP, MaxNumberOfInstances, Port, ServerStatus, InternalServerIP, StartingMapInstancePort, ZoneServerGUID)
+		VALUES (@CustomerGUID, @ServerIP, @MaxNumberOfInstances, 8081, 0, @InternalServerIP, @StartingMapInstancePort, @ZoneServerGUID)";
+
         public static readonly string GetWorldByID = @"SELECT *
 				FROM WorldServers
 				WHERE CustomerGUID = @CustomerGUID
 				  AND WorldServerID = @WorldServerID";
+
+        public static readonly string GetWorldByZoneGUID = @"SELECT *
+				FROM WorldServers
+				WHERE CustomerGUID = @CustomerGUID
+				  AND ZoneServerGUID = @ZoneServerGUID";
 
         public static readonly string GetActiveWorldServersByLoad = @"SELECT WS.WorldServerID, WS.ServerIP, WS.InternalServerIP, WS.Port, WS.MaxNumberOfInstances, WS.StartingMapInstancePort
 				FROM WorldServers WS
@@ -299,6 +347,15 @@ namespace OWSData.SQL
 				WHERE CustomerGUID = @CustomerGUID
 				  AND WorldServerID = @WorldServerID
 				ORDER BY Port";
+
+        public static readonly string UpdateWorldServer = @"UPDATE WorldServers
+			        SET MaxNumberOfInstances = @MaxNumberOfInstances,
+			            Port = 8081,
+			            ServerStatus = 0,
+			            InternalServerIP = @InternalServerIP,
+			            StartingMapInstancePort = @StartingMapInstancePort
+			        WHERE CustomerGUID = @CustomerGUID
+			          AND ZoneServerGUID = @ZoneServerGUID;";
 
         public static readonly string UpdateWorldServerStatus = @"UPDATE WorldServers
 					SET ActiveStartTime = NULL
@@ -372,6 +429,8 @@ namespace OWSData.SQL
         public static readonly string DeleteUserSessionsForUser = @"DELETE FROM UserSessions WHERE CustomerGUID = @CustomerGuid AND UserGUID = @UserGUID";
 
         public static readonly string GetUserByEmail = @"SELECT * FROM Users WHERE CustomerGUID = @CustomerGuid AND Email = @Email AND Role = @Role";
+
+        public static readonly string GetUserBySession = @"SELECT * FROM UserSessions WHERE CustomerGUID = @CustomerGuid AND UserSessionGUID = @UserSessionGUID";
 
         public static readonly string Logout = @"DELETE FROM UserSessions WHERE CustomerGUID=@CustomerGuid AND UserSessionGUID=@UserSessionGUID";
 

@@ -387,7 +387,7 @@ namespace OWSData.Repositories.Implementations.Postgres
             return outputObject;
         }
 
-        public async Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGUID, Guid userSessionGUID, string characterName)
+public async Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGUID, Guid userSessionGUID, string characterName)
         {
             SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
 
@@ -395,14 +395,33 @@ namespace OWSData.Repositories.Implementations.Postgres
             {
                 using (Connection)
                 {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@UserSessionGUID", userSessionGUID);
-                    p.Add("@CharacterName", characterName);
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@CustomerGUID", customerGUID);
+                    parameters.Add("@UserSessionGUID", userSessionGUID);
+                    parameters.Add("@CharName", characterName);
 
-                    await Connection.ExecuteAsync("call RemoveCharacter(@CustomerGUID,@UserSessionGUID,@CharacterName)",
-                        p,
+                    UserSessions outputUserSession = await Connection.QueryFirstOrDefaultAsync<UserSessions>(GenericQueries.GetUserBySession, parameters);
+
+                    parameters.Add("@UserGUID", outputUserSession.UserGuid);
+
+                    Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByNameAndUser,
+                        parameters,
                         commandType: CommandType.Text);
+
+                    parameters.Add("@CharacterID", outputCharacter.CharacterId);
+
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances, parameters, commandType: CommandType.Text);
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterAbilities, parameters, commandType: CommandType.Text);
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterAbilityBars, parameters, commandType: CommandType.Text);
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterHasAbilities, parameters, commandType: CommandType.Text);
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterHasItems, parameters, commandType: CommandType.Text);
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterInventoryItems, parameters, commandType: CommandType.Text);
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterInventory, parameters, commandType: CommandType.Text);
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterGroupUsers, parameters, commandType: CommandType.Text);
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterCharacterData, parameters, commandType: CommandType.Text);
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromPlayerGroupCharacters, parameters, commandType: CommandType.Text);
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacter, parameters, commandType: CommandType.Text);
+
                 }
 
                 outputObject.Success = true;
