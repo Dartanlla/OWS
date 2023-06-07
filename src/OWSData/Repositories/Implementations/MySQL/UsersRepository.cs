@@ -11,6 +11,7 @@ using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
 using OWSData.Models.Tables;
+using CryptSharp.Core;
 
 namespace OWSData.Repositories.Implementations.MySQL
 {
@@ -24,6 +25,18 @@ namespace OWSData.Repositories.Implementations.MySQL
         }
 
         private IDbConnection Connection => new MySqlConnection(_storageOptions.Value.OWSDBConnectionString);
+
+        static string Base64Encode(string plainText)
+        {
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            return System.Convert.ToBase64String(plainTextBytes);
+        }
+
+        static string Base64Decode(string base64EncodedData)
+        {
+            var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
+            return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+        }
 
         public async Task<IEnumerable<GetAllCharacters>> GetAllCharacters(Guid customerGUID, Guid userSessionGUID)
         {
@@ -231,19 +244,30 @@ namespace OWSData.Repositories.Implementations.MySQL
 
         public async Task<PlayerLoginAndCreateSession> LoginAndCreateSession(Guid customerGUID, string email, string password, bool dontCheckPassword = false)
         {
-            PlayerLoginAndCreateSession outputObject;
+            PlayerLoginAndCreateSession outputObject = new PlayerLoginAndCreateSession();
+            User outputUser;
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@Email", email);
-                p.Add("@Password", password);
-                p.Add("@DontCheckPassword", dontCheckPassword);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@Email", email);
+                parameters.Add("@Role", "Player");
 
-                outputObject = await Connection.QuerySingleOrDefaultAsync<PlayerLoginAndCreateSession>($"call PlayerLoginAndCreateSession(@CustomerGUID,@Email,@Password,@DontCheckPassword)",
-                    p,
-                    commandType: CommandType.Text);
+                outputUser = await Connection.QueryFirstOrDefaultAsync<User>(GenericQueries.GetUserByEmail, parameters);
+
+                parameters.Add("@UserGUID", outputUser.UserGuid);
+
+                outputObject.Authenticated = Crypter.CheckPassword(password,
+                    Base64Decode(outputUser.PasswordHash));
+
+                if (outputObject.Authenticated || dontCheckPassword)
+                {
+                    await Connection.ExecuteAsync(GenericQueries.DeleteUserSessionsForUser, parameters, commandType: CommandType.Text);
+                    outputObject.UserSessionGuid = Guid.NewGuid();
+                    parameters.Add("@UserSessionGUID", outputObject.UserSessionGuid);
+                    await Connection.QuerySingleOrDefaultAsync<Guid>(MySQLQueries.AddUserSession, parameters, commandType: CommandType.Text);
+                }
             }
 
             return outputObject;
@@ -311,22 +335,27 @@ namespace OWSData.Repositories.Implementations.MySQL
 
         public async Task<SuccessAndErrorMessage> RegisterUser(Guid customerGUID, string email, string password, string firstName, string lastName)
         {
+            string salt = Crypter.Blowfish.GenerateSalt();
+            string cryptedPassword = Crypter.Blowfish.Crypt(password, salt);
+
             SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
 
             try
             {
                 using (Connection)
                 {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@Email", email);
-                    p.Add("@Password", password);
-                    p.Add("@FirstName", firstName);
-                    p.Add("@LastName", lastName);
-                    p.Add("@Role", "Player");
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@CustomerGUID", customerGUID);
+                    parameters.Add("@Email", email);
+                    parameters.Add("@Salt", Base64Encode(salt));
+                    parameters.Add("@PasswordHash", Base64Encode(cryptedPassword));
+                    parameters.Add("@FirstName", firstName);
+                    parameters.Add("@LastName", lastName);
+                    parameters.Add("@Role", "Player");
+                    parameters.Add("@UserGUID", Guid.NewGuid());
 
-                    await Connection.ExecuteAsync("select AddUser(@CustomerGUID, @FirstName, @LastName, @Email, @Password, @Role)",
-                        p,
+                    await Connection.ExecuteAsync(MySQLQueries.AddUser,
+                        parameters,
                         commandType: CommandType.Text);
                 }
 

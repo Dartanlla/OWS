@@ -369,6 +369,10 @@ namespace OWSData.SQL
 
         #region User Queries
 
+        public static readonly string DeleteUserSessionsForUser = @"DELETE FROM UserSessions WHERE CustomerGUID = @CustomerGuid AND UserGUID = @UserGUID";
+
+        public static readonly string GetUserByEmail = @"SELECT * FROM Users WHERE CustomerGUID = @CustomerGuid AND Email = @Email AND Role = @Role";
+
         public static readonly string Logout = @"DELETE FROM UserSessions WHERE CustomerGUID=@CustomerGuid AND UserSessionGUID=@UserSessionGUID";
 
         #endregion

@@ -117,10 +117,15 @@ namespace OWSData.SQL
 
 		#region User Queries
 
+		public static readonly string AddUser = @"INSERT INTO Users (CustomerGUID, UserGUID, FirstName, LastName, Email, PasswordHash, Salt, CreateDate, LastAccess, Role)
+		VALUES (@CustomerGUID, @UserGUID, @FirstName, @LastName, @Email, @PasswordHash, @Salt, NOW(), NOW(), @Role)";
+
+		public static readonly string AddUserSession = @"INSERT INTO UserSessions (CustomerGUID, UserSessionGUID, UserGUID, LoginDate)
+		VALUES (@CustomerGUID, @UserSessionGUID, @UserGUID, NOW())";
+
 		public static readonly string UpdateUserLastAccess = @"UPDATE Users
 				SET LastAccess = NOW()
                 WHERE CustomerGUID = @CustomerGUID
-                AND UserGUID IN (
                     SELECT C.UserGUID
                       FROM Characters C
                       WHERE C.CustomerGUID = @CustomerGUID AND C.CharName = @CharName)";
