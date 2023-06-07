@@ -218,40 +218,30 @@ namespace OWSData.Repositories.Implementations.MySQL
             JoinMapByCharName outputObject = new JoinMapByCharName();
 
             string serverIp = "";
-            int? worldServerId = 0;
             string worldServerIp = "";
             int worldServerPort = 0;
             int port = 0;
             int mapInstanceID = 0;
             string mapNameToStart = "";
-            int? mapInstanceStatus = 0;
-            bool needToStartupMap = false;
-            bool enableAutoLoopback = false;
-            bool noPortForwarding = false;
 
             using (Connection)
             {
+                //Used and reused by multiple queries
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
-                parameters.Add("@CharName", characterName);
-                parameters.Add("@ZoneName", zoneName);
-                parameters.Add("@PlayerGroupType", playerGroupType);
 
+                //Lookup the Zone row by zoneName
+                parameters.Add("@ZoneName", zoneName);
                 Maps outputMap = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetMapByZoneName,
                     parameters,
                     commandType: CommandType.Text);
 
-                Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName,
-                    parameters,
-                    commandType: CommandType.Text);
-
-                Customers outputCustomer = await Connection.QuerySingleOrDefaultAsync<Customers>(GenericQueries.GetCustomer,
-                    parameters,
-                    commandType: CommandType.Text);
-
-                if (outputCharacter == null)
+                if (outputMap == null)
                 {
-                    outputObject = new JoinMapByCharName() {
+                    //Error finding Zone: zoneName
+                    return new JoinMapByCharName() {
+                        Success = false,
+                        ErrorMessage = $"Error finding Zone: {zoneName}",
                         ServerIP = serverIp,
                         Port = port,
                         WorldServerID = -1,
@@ -260,18 +250,46 @@ namespace OWSData.Repositories.Implementations.MySQL
                         MapInstanceID = mapInstanceID,
                         MapNameToStart = mapNameToStart,
                         MapInstanceStatus = -1,
-                        NeedToStartupMap = false,
-                        EnableAutoLoopback = enableAutoLoopback,
-                        NoPortForwarding = noPortForwarding
+                        NeedToStartupMap = false
                     };
-
-                    return outputObject;
                 }
 
-                PlayerGroup outputPlayerGroup = new PlayerGroup();
+                //Lookup the Character row by characterName
+                parameters.Add("@CharName", characterName);
+                Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName,
+                    parameters,
+                    commandType: CommandType.Text);
 
+                /*
+                Customers outputCustomer = await Connection.QuerySingleOrDefaultAsync<Customers>(GenericQueries.GetCustomer,
+                    parameters,
+                    commandType: CommandType.Text);
+                */
+
+                //We could not find a valid character for characterName in this customerGUID
+                if (outputCharacter == null)
+                {
+                    return new JoinMapByCharName()
+                    {
+                        Success = false,
+                        ErrorMessage = $"Error finding Character: {characterName}",
+                        ServerIP = serverIp,
+                        Port = port,
+                        WorldServerID = -1,
+                        WorldServerIP = worldServerIp,
+                        WorldServerPort = worldServerPort,
+                        MapInstanceID = mapInstanceID,
+                        MapNameToStart = mapNameToStart,
+                        MapInstanceStatus = -1,
+                        NeedToStartupMap = false
+                    }; ;
+                }
+
+                //If there is a playerGroupType, then look up the player group by type.  This assumes that for this playerGroupType, the player can only be in at most one Player Group
+                PlayerGroup outputPlayerGroup = new PlayerGroup();
                 if (playerGroupType > 0)
                 {
+                    parameters.Add("@PlayerGroupType", playerGroupType);
                     outputPlayerGroup = await Connection.QuerySingleOrDefaultAsync<PlayerGroup>(GenericQueries.GetPlayerGroupIDByType,
                         parameters,
                         commandType: CommandType.Text);
@@ -281,21 +299,25 @@ namespace OWSData.Repositories.Implementations.MySQL
                     outputPlayerGroup.PlayerGroupId = 0;
                 }
 
+                //This query has the conditions required to find a Zone Instance to connect the player to
                 parameters.Add("@IsInternalNetworkTestUser", outputCharacter.IsInternalNetworkTestUser);
                 parameters.Add("@SoftPlayerCap", outputMap.SoftPlayerCap);
                 parameters.Add("@PlayerGroupID", outputPlayerGroup.PlayerGroupId);
                 parameters.Add("@MapID", outputMap.MapId);
-
                 JoinMapByCharName outputJoinMapByCharName = await Connection.QuerySingleOrDefaultAsync<JoinMapByCharName>(MySQLQueries.GetZoneInstancesByZoneAndGroup,
                     parameters,
                     commandType: CommandType.Text);
 
+                //We found a Zone Instance to connect the player to
                 if (outputJoinMapByCharName != null)
                 {
-                    outputObject.NeedToStartupMap = false;
+                    outputObject.NeedToStartupMap = false; //false means that the OWS Instance Launcher will NOT be called to spin up a new Zone Instance
                     outputObject.WorldServerID = outputJoinMapByCharName.WorldServerID;
                     outputObject.ServerIP = outputJoinMapByCharName.ServerIP;
-                    if (outputCharacter.IsInternalNetworkTestUser)
+
+                    //If the login username has @localhost in it or if Users.IsInternalNetworkTestUser is set to true, then redirect the client IP to the InternalServerIP (usually 127.0.0.1 on a development PC)
+                    //This is useful if you want to play a game client on the same device (development PC) as the game server while still allowing players from outside the network to connect with an external IP.
+                    if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
                     {
                         outputObject.ServerIP = outputJoinMapByCharName.WorldServerIP;
                     }
@@ -307,18 +329,22 @@ namespace OWSData.Repositories.Implementations.MySQL
                 }
                 else
                 {
+                    //We don't have a Zone Instance for the player to connect to, so spin up a new one
                     MapInstances outputMapInstance = await SpinUpInstance(customerGUID, zoneName, outputPlayerGroup.PlayerGroupId);
 
+                    //Get the World Server row by WorldServerID
                     parameters.Add("@WorldServerId", outputMapInstance.WorldServerId);
-
                     WorldServers outputWorldServers =  await Connection.QuerySingleOrDefaultAsync<WorldServers>(GenericQueries.GetWorldByID,
                         parameters,
                         commandType: CommandType.Text);
 
-                    outputObject.NeedToStartupMap = true;
+                    outputObject.NeedToStartupMap = true; //true means that the OWS Instance Launcher will be called to spin up a new Zone Instance
                     outputObject.WorldServerID = outputMapInstance.WorldServerId;
                     outputObject.ServerIP = outputWorldServers.ServerIp;
-                    if (outputCharacter.IsInternalNetworkTestUser)
+
+                    //If the login username has @localhost in it or if Users.IsInternalNetworkTestUser is set to true, then redirect the client IP to the InternalServerIP (usually 127.0.0.1 on a development PC)
+                    //This is useful if you want to play a game client on the same device (development PC) as the game server while still allowing players from outside the network to connect with an external IP.
+                    if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
                     {
                         outputObject.ServerIP = outputWorldServers.InternalServerIp;
                     }
@@ -328,12 +354,6 @@ namespace OWSData.Repositories.Implementations.MySQL
                     outputObject.MapInstanceID = outputMapInstance.MapInstanceId;
                     outputObject.MapNameToStart = outputMap.MapName;
                 }
-
-                if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
-                {
-                    outputObject.ServerIP = "127.0.0.1";
-                }
-
             }
 
             return outputObject;
