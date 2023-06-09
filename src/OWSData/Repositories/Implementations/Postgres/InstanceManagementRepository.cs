@@ -261,19 +261,19 @@ namespace OWSData.Repositories.Implementations.Postgres
                     parameters.Add("@InternalServerIP", internalServerIp);
                     parameters.Add("@StartingMapInstancePort", startingInstancePort);
 
-                    var outputWorldServer = await Connection.QuerySingleOrDefaultAsync<WorldServers>(GenericQueries.GetWorldByZoneGUID,
+                    var outputWorldServer = await Connection.QuerySingleOrDefaultAsync<WorldServers>(GenericQueries.GetWorldByZoneGUID.Replace("@CustomerGUID", "@CustomerGUID::uuid").Replace("@ZoneServerGUID", "@ZoneServerGUID::uuid"), // NOTE Postgres text=>uuid, // NOTE Postgres text=>uuid,
                         parameters,
                         commandType: CommandType.Text);
 
                     if (outputWorldServer != null)
                     {
-                        await Connection.ExecuteAsync(GenericQueries.UpdateWorldServer,
+                        await Connection.ExecuteAsync(GenericQueries.UpdateWorldServer.Replace("@CustomerGUID", "@CustomerGUID::uuid").Replace("@ZoneServerGUID", "@ZoneServerGUID::uuid"),
                             parameters,
                             commandType: CommandType.Text);
                     }
                     else
                     {
-                        await Connection.ExecuteAsync(GenericQueries.AddWorldServer,
+                        await Connection.ExecuteAsync(GenericQueries.AddWorldServer.Replace("@CustomerGUID", "@CustomerGUID::uuid").Replace("@ZoneServerGUID", "@ZoneServerGUID::uuid"),
                             parameters,
                             commandType: CommandType.Text);
                     }

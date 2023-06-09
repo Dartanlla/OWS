@@ -36,6 +36,15 @@ namespace OWSData.SQL
 	    public static readonly string AddCharacterCustomDataField = @"INSERT INTO CustomCharacterData (CustomerGUID, CharacterID, CustomFieldName, FieldValue)
 		VALUES (@CustomerGUID, @CharacterID, @CustomFieldName, @FieldValue)";
 
+	    public static readonly string AddCharacterInventoryFromClass = @"INSERT INTO CharInventory (CustomerGUID, CharacterID, InventoryName, InventorySize, InventoryWidth, InventoryHeight)
+					SELECT @CustomerGUID, @CharacterID, CI.InventoryName, CI.InventorySize, CI.InventoryWidth, CI.InventoryHeight
+					FROM ClassInventory CI
+					WHERE CI.CustomerGUID = @CustomerGUID
+					AND CI.ClassID = @ClassID";
+
+	    public static readonly string AddDefaultCharacterInventory = @"INSERT INTO CharInventory (CustomerGUID, CharacterID, InventoryName, InventorySize, InventoryWidth, InventoryHeight)
+					VALUES (@CustomerGUID, @CharacterID, 'Bag', 16, 4, 4)";
+
 	    public static readonly string AddDefaultCustomCharacterData = @"INSERT INTO CustomCharacterData (CustomerGUID, CharacterID, CustomFieldName, FieldValue)
 				SELECT DCR.CustomerGUID, @CharacterID, DCCD.CustomFieldName, DCCD.FieldValue
 				FROM DefaultCustomCharacterData DCCD
@@ -128,6 +137,23 @@ namespace OWSData.SQL
 				INNER JOIN Characters C ON C.CharacterID = CCD.CharacterID
 				WHERE CCD.CustomerGUID = @CustomerGUID
 				  AND C.CharName = @CharName";
+
+	    public static readonly string GetClassIdByName = @"SELECT ClassID
+				FROM Class
+				WHERE CustomerGUID = @CustomerGUID
+				  AND ClassName = ClassName";
+
+	    public static readonly string GetClassInventoryCount = @"SELECT COUNT(*)
+				FROM ClassInventory
+				WHERE CustomerGUID = @CustomerGUID
+				  AND ClassID = @ClassID";
+
+	    public static readonly string GetCreateCharacterByID = @"SELECT 'true', '', CharName AS CharacterName, CL.ClassName, C.CharacterLevel, C.MapName AS StartingMapName, C.X, C.Y, C.Z, C.RX, C.RY, C.RZ, C.TeamNumber, C.Gold, C.Silver, C.Copper,
+       			C.FreeCurrency, C.PremiumCurrency, C.Fame, C.Alignment, C.Score, C.Gender, C.XP, C.Size, C.Weight
+				FROM Characters C
+				JOIN Class CL ON C.ClassID = CL.ClassID
+				WHERE C.CustomerGUID = @CustomerGUID
+				  AND C.CharacterID = @CharacterID";
 
 	    public static readonly string GetPlayerGroupIDByType = @"SELECT COALESCE(PG.PlayerGroupID, 0)
 				FROM PlayerGroupCharacters PGC

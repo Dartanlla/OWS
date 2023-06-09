@@ -60,34 +60,90 @@ namespace OWSData.Repositories.Implementations.MySQL
         {
             CreateCharacter outputObject = new CreateCharacter();
 
+            IDbConnection conn = Connection;
+            conn.Open();
+            using IDbTransaction transaction = conn.BeginTransaction();
             try
             {
-                using (Connection)
-                {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@UserSessionGUID", userSessionGUID);
-                    p.Add("@CharacterName", characterName);
-                    p.Add("@ClassName", className);
+                var parameters = new DynamicParameters();
+                parameters.Add("CustomerGUID", customerGUID);
+                parameters.Add("UserSessionGUID", userSessionGUID);
+                parameters.Add("CharName", characterName);
+                parameters.Add("ClassName", className);
 
-                    outputObject = await Connection.QuerySingleAsync<CreateCharacter>("call AddCharacter(@CustomerGUID,@UserSessionGUID,@CharacterName,@ClassName)",
-                        p,
+                UserSessions outputUserSession = await Connection.QueryFirstOrDefaultAsync<UserSessions>(GenericQueries.GetUserBySession, parameters);
+
+                parameters.Add("@UserGUID", outputUserSession.UserGuid);
+
+                // Ensure a valid User Session
+                if (outputUserSession.UserGuid == Guid.Empty)
+                {
+                    outputObject.ErrorMessage = "Invalid Session.";
+                    outputObject.Success = false;
+                    return outputObject;
+                }
+
+                Characters outputCharacter = await Connection.QueryFirstOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName, parameters);
+
+                // Prevent Duplicate Character Names
+                if (outputCharacter != null)
+                {
+                    outputObject.ErrorMessage = "Character Name already in use.";
+                    outputObject.Success = false;
+                    return outputObject;
+                }
+
+                int outputClassId = await Connection.QuerySingleOrDefaultAsync<int>(GenericQueries.GetClassIdByName,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                parameters.Add("ClassID", outputClassId);
+
+                int outputCharacterId = await Connection.QuerySingleOrDefaultAsync<int>(MySQLQueries.AddCharacterUsingClassID,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                parameters.Add("CharacterID", outputCharacterId);
+
+                int outputClassInventorySize = await Connection.QuerySingleOrDefaultAsync<int>(GenericQueries.GetClassInventoryCount,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                if (outputClassInventorySize > 0)
+                {
+                    await Connection.ExecuteAsync(GenericQueries.AddCharacterInventoryFromClass,
+                        parameters,
+                        commandType: CommandType.Text);
+                }
+                else
+                {
+                    await Connection.ExecuteAsync(GenericQueries.AddDefaultCharacterInventory,
+                        parameters,
                         commandType: CommandType.Text);
                 }
 
-                outputObject.Success = String.IsNullOrEmpty(outputObject.ErrorMessage);
-
-                return outputObject;
+                outputObject = await Connection.QuerySingleOrDefaultAsync<CreateCharacter>(GenericQueries.GetCreateCharacterByID,
+                                parameters,
+                                commandType: CommandType.Text);
+                transaction.Commit();
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
+                transaction.Rollback();
+                outputObject = new CreateCharacter()
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
 
                 return outputObject;
             }
-        }
 
+            outputObject.Success = true;
+            outputObject.ErrorMessage = "";
+
+            return outputObject;
+        }
         public async Task<SuccessAndErrorMessage> CreateCharacterUsingDefaultCharacterValues(Guid customerGUID, Guid userGUID, string characterName, string defaultSetName)
         {
             SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
