@@ -25,7 +25,7 @@ heartbeat.monitors:
 - type: http
   schedule: '@every 30s'
   name: OWSGlobalData
-  hosts: ["http://host.docker.internal:44326/api/system/status"]
+  hosts: ["http://host.docker.internal:44325/api/system/status"]
   timeout: 60s
 
 - type: tcp
