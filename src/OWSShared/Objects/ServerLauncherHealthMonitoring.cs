@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using OWSData.Models;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
@@ -11,10 +10,12 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Serilog;
 using MongoDB.Driver.Linq;
+using MongoDB.Bson;
 
 namespace OWSShared.Objects
 {
@@ -80,7 +81,7 @@ namespace OWSShared.Objects
                 }
             };
 
-            var shutDownInstanceLauncherRequest = new StringContent(JsonConvert.SerializeObject(worldServerIDRequestPayload), Encoding.UTF8, "application/json");
+            var shutDownInstanceLauncherRequest = new StringContent(JsonSerializer.Serialize(worldServerIDRequestPayload), Encoding.UTF8, "application/json");
 
             var responseMessageTask = instanceManagementHttpClient.PostAsync("api/Instance/GetZoneInstancesForWorldServer", shutDownInstanceLauncherRequest);
             var responseMessage = responseMessageTask.Result;
@@ -89,7 +90,7 @@ namespace OWSShared.Objects
             {
                 var responseContentAsync = responseMessage.Content.ReadAsStringAsync();
                 string responseContentString = responseContentAsync.Result;
-                output = JsonConvert.DeserializeObject<List<GetZoneInstancesForWorldServer>>(responseContentString);
+                output = JsonSerializer.Deserialize<List<GetZoneInstancesForWorldServer>>(responseContentString);
             } 
             else 
             {

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using OWSData.Models;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
@@ -14,6 +13,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Serilog;
@@ -350,7 +350,7 @@ namespace OWSShared.Objects
                     }
                 };
 
-                var RegisterLauncherPayloadRequest = new StringContent(JsonConvert.SerializeObject(RegisterLauncherPayload), Encoding.UTF8, "application/json");
+                var RegisterLauncherPayloadRequest = new StringContent(JsonSerializer.Serialize(RegisterLauncherPayload), Encoding.UTF8, "application/json");
 
                 var responseMessageAsync = instanceManagementHttpClient.PostAsync("api/Instance/RegisterLauncher", RegisterLauncherPayloadRequest);
                 var responseMessage = responseMessageAsync.Result;
@@ -431,7 +431,7 @@ namespace OWSShared.Objects
                 }
             };
 
-            var shutDownInstanceLauncherRequest = new StringContent(JsonConvert.SerializeObject(worldServerIDRequestPayload), Encoding.UTF8, "application/json");
+            var shutDownInstanceLauncherRequest = new StringContent(JsonSerializer.Serialize(worldServerIDRequestPayload), Encoding.UTF8, "application/json");
 
             var request = new HttpRequestMessage()
             {
@@ -459,7 +459,7 @@ namespace OWSShared.Objects
                 }
             };
 
-            var setZoneInstanceStatusRequest = new StringContent(JsonConvert.SerializeObject(setZoneInstanceStatusRequestPayload), Encoding.UTF8, "application/json");
+            var setZoneInstanceStatusRequest = new StringContent(JsonSerializer.Serialize(setZoneInstanceStatusRequestPayload), Encoding.UTF8, "application/json");
 
             var responseMessage = await instanceManagementHttpClient.PostAsync("api/Instance/SetZoneInstanceStatus", setZoneInstanceStatusRequest);
 
