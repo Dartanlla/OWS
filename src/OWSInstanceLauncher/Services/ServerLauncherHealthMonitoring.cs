@@ -4,20 +4,16 @@ using OWSData.Models;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
-using OWSShared.Messages;
 using OWSShared.RequestPayloads;
+using OWSShared.Options;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Serilog;
-using MongoDB.Driver.Linq;
-using MongoDB.Bson;
 
-namespace OWSShared.Objects
+namespace OWSInstanceLauncher.Services
 {
     public class ServerLauncherHealthMonitoring : IServerHealthMonitoringJob
     {
@@ -26,7 +22,7 @@ namespace OWSShared.Objects
         private readonly IZoneServerProcessesRepository _zoneServerProcessesRepository;
         private readonly IOWSInstanceLauncherDataRepository _owsInstanceLauncherDataRepository;
 
-        public ServerLauncherHealthMonitoring(IOptions<OWSInstanceLauncherOptions> OWSInstanceLauncherOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository, 
+        public ServerLauncherHealthMonitoring(IOptions<OWSInstanceLauncherOptions> OWSInstanceLauncherOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository,
             IOWSInstanceLauncherDataRepository owsInstanceLauncherDataRepository)
         {
             _OWSInstanceLauncherOptions = OWSInstanceLauncherOptions;
@@ -91,8 +87,8 @@ namespace OWSShared.Objects
                 var responseContentAsync = responseMessage.Content.ReadAsStringAsync();
                 string responseContentString = responseContentAsync.Result;
                 output = JsonSerializer.Deserialize<List<GetZoneInstancesForWorldServer>>(responseContentString);
-            } 
-            else 
+            }
+            else
             {
                 output = new List<GetZoneInstancesForWorldServer>();
             }

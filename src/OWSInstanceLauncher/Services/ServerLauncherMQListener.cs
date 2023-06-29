@@ -9,16 +9,13 @@ using OWSShared.RequestPayloads;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Serilog;
 
-namespace OWSShared.Objects
+namespace OWSInstanceLauncher.Services
 {
     public class ServerLauncherMQListener : IInstanceLauncherJob //BackgroundService
     {
@@ -254,10 +251,10 @@ namespace OWSShared.Objects
             //string PathToDedicatedServer = "E:\\Program Files\\Epic Games\\UE_4.25\\Engine\\Binaries\\Win64\\UE4Editor.exe";
             //string ServerArguments = "\"C:\\OWS\\OpenWorldStarterPlugin\\OpenWorldStarter.uproject\" {0}?listen -server -log -nosteam -messaging -port={1}";
 
-            string serverArguments = (_owsInstanceLauncherOptions.Value.IsServerEditor ? "\"" + _owsInstanceLauncherOptions.Value.PathToUProject + "\" ": "") 
+            string serverArguments = (_owsInstanceLauncherOptions.Value.IsServerEditor ? "\"" + _owsInstanceLauncherOptions.Value.PathToUProject + "\" " : "")
                 + "{0}?listen -server "
-                + (_owsInstanceLauncherOptions.Value.UseServerLog ? "-log " : "") 
-                + (_owsInstanceLauncherOptions.Value.UseNoSteam ? "-nosteam " : "") 
+                + (_owsInstanceLauncherOptions.Value.UseServerLog ? "-log " : "")
+                + (_owsInstanceLauncherOptions.Value.UseNoSteam ? "-nosteam " : "")
                 + "-port={1} "
                 + "-zoneinstanceid={2}";
 
@@ -276,7 +273,8 @@ namespace OWSShared.Objects
             proc.Start();
             //proc.WaitForInputIdle();
 
-            _zoneServerProcessesRepository.AddZoneServerProcess(new ZoneServerProcess {
+            _zoneServerProcessesRepository.AddZoneServerProcess(new ZoneServerProcess
+            {
                 ZoneInstanceId = zoneInstanceID,
                 MapName = mapName,
                 Port = port,
@@ -450,8 +448,8 @@ namespace OWSShared.Objects
         {
             var instanceManagementHttpClient = _httpClientFactory.CreateClient("OWSInstanceManagement");
 
-            var setZoneInstanceStatusRequestPayload = new 
-            { 
+            var setZoneInstanceStatusRequestPayload = new
+            {
                 request = new SetZoneInstanceStatusRequestPayload
                 {
                     ZoneInstanceID = zoneInstanceID,

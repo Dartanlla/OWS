@@ -1,18 +1,13 @@
 ﻿using Microsoft.Extensions.Hosting;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using SimpleInjector;
 using SimpleInjector.Lifestyles;
 
-namespace OWSShared.Objects
+
+namespace OWSInstanceLauncher.Services
 {
-    public class TimedHostedService<TService> : IHostedService, IDisposable
-        where TService : class
+    public class TimedHostedService<TService> : IHostedService, IDisposable where TService : class
     {
         private readonly SimpleInjector.Container container;
         private readonly Settings settings;
