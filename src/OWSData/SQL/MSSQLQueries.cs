@@ -114,12 +114,35 @@ namespace OWSData.SQL
                      INNER JOIN Users U ON U.CustomerGUID = C.CustomerGUID AND U.UserGUID = C.UserGUID
                      WHERE U.LastAccess < DATEADD(minute, @CharacterMinutes, GETDATE()) AND C.CustomerGUID = @CustomerGUID)";
 
-		public static readonly string UpdateAbilityOnCharacter = @"UPDATE CharHasAbilities
-				SET AbilityLevel = @AbilityLevel,
-				CharHasAbilitiesCustomJSON = @CharHasAbilitiesCustomJSON
-				WHERE CustomerGUID = @CustomerGUID
-					AND CharacterID = (SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName = @CharacterName ORDER BY C.CharacterID)
-					AND AbilityID = (SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName = @AbilityName ORDER BY A.AbilityID)";
+		public static readonly string UpdateAbilityOnCharacter = @"
+				IF EXISTS(
+					SELECT * FROM Characters C INNER JOIN CharAbilities CA
+					ON C.CharName = @CharName
+					AND C.CustomerGUID = @CustomerGUID	
+					Where CA.AbilityIDTag = @AbilityIDTag
+					AND CA.CharacterID = C.CharacterID
+					AND CA.CustomerGUID = @CustomerGUID
+					)
+					UPDATE CharAbilities
+					SET CurrentAbilityLevel = @CurrentAbilityLevel,
+					ActualAbilityLevel = @ActualAbilityLevel,
+					CustomData = @CustomData
+					WHERE CustomerGUID = @CustomerGUID
+						AND CharacterID = (SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName = @CharName ORDER BY C.CharacterID)
+						AND AbilityIDTag = @AbilityIDTag
+					ELSE
+						INSERT INTO CharAbilities
+						(
+						CustomerGUID,
+						CharacterID,
+						AbilityIDTag,
+						CurrentAbilityLevel,
+						ActualAbilityLevel,
+						CustomData
+						)
+						SELECT @CustomerGUID, CharacterID, @AbilityIDTag, @CurrentAbilityLevel, @ActualAbilityLevel, @CustomData FROM Characters C
+						WHERE C.CharName = @CharName
+						AND C.CustomerGUID = @CustomerGUID";
 
 		#endregion
 

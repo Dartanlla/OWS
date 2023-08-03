@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -156,5 +155,6 @@ namespace OWSCharacterPersistence
             var provider = services.BuildServiceProvider();
             container.RegisterInstance<IServiceProvider>(provider);
         }
+
     }
 }

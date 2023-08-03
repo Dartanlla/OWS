@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>OWSChat</name>
+    </assembly>
+    <members>
+        <member name="T:ChatServiceApp.Protos.ChatReflection">
+            <summary>Holder for reflection information generated from Protos/chat.proto</summary>
+        </member>
+        <member name="P:ChatServiceApp.Protos.ChatReflection.Descriptor">
+            <summary>File descriptor for Protos/chat.proto</summary>
+        </member>
+        <member name="F:ChatServiceApp.Protos.LoggingMessage.UserIdFieldNumber">
+            <summary>Field number for the "user_id" field.</summary>
+        </member>
+        <member name="F:ChatServiceApp.Protos.LoggingMessage.UserNameFieldNumber">
+            <summary>Field number for the "user_name" field.</summary>
+        </member>
+        <member name="F:ChatServiceApp.Protos.ClientMessageChat.TextFieldNumber">
+            <summary>Field number for the "text" field.</summary>
+        </member>
+        <member name="F:ChatServiceApp.Protos.ClientMessageChat.RecipientNameFieldNumber">
+            <summary>Field number for the "recipient_name" field.</summary>
+        </member>
+        <member name="T:ChatServiceApp.Protos.ClientMessage">
+             <summary>
+            Client Messages:
+             </summary>
+        </member>
+        <member name="F:ChatServiceApp.Protos.ClientMessage.MesssageTypeFieldNumber">
+            <summary>Field number for the "messsage_type" field.</summary>
+        </member>
+        <member name="F:ChatServiceApp.Protos.ClientMessage.PlayerIdFieldNumber">
+            <summary>Field number for the "player_id" field.</summary>
+        </member>
+        <member name="F:ChatServiceApp.Protos.ClientMessage.PlayerNameFieldNumber">
+            <summary>Field number for the "player_name" field.</summary>
+        </member>
+        <member name="F:ChatServiceApp.Protos.ClientMessage.ChatFieldNumber">
+            <summary>Field number for the "chat" field.</summary>
+        </member>
+        <member name="F:ChatServiceApp.Protos.ServerMessageChat.NowFieldNumber">
+            <summary>Field number for the "now" field.</summary>
+        </member>
+        <member name="F:ChatServiceApp.Protos.ServerMessageChat.TextFieldNumber">
+            <summary>Field number for the "text" field.</summary>
+        </member>
+        <member name="F:ChatServiceApp.Protos.ServerMessage.MessageTypeFieldNumber">
+            <summary>Field number for the "message_type" field.</summary>
+        </member>
+        <member name="F:ChatServiceApp.Protos.ServerMessage.PlayerNameFieldNumber">
+            <summary>Field number for the "player_name" field.</summary>
+        </member>
+        <member name="F:ChatServiceApp.Protos.ServerMessage.ChatFieldNumber">
+            <summary>Field number for the "chat" field.</summary>
+        </member>
+        <member name="P:ChatServiceApp.Protos.ChatApp.Descriptor">
+            <summary>Service descriptor</summary>
+        </member>
+        <member name="T:ChatServiceApp.Protos.ChatApp.ChatAppBase">
+            <summary>Base class for server-side implementations of ChatApp</summary>
+        </member>
+        <member name="M:ChatServiceApp.Protos.ChatApp.BindService(ChatServiceApp.Protos.ChatApp.ChatAppBase)">
+            <summary>Creates service definition that can be registered with a server</summary>
+            <param name="serviceImpl">An object implementing the server-side handling logic.</param>
+        </member>
+        <member name="M:ChatServiceApp.Protos.ChatApp.BindService(Grpc.Core.ServiceBinderBase,ChatServiceApp.Protos.ChatApp.ChatAppBase)">
+            <summary>Register service method with a service binder with or without implementation. Useful when customizing the  service binding logic.
+            Note: this method is part of an experimental API that can change or be removed without any prior notice.</summary>
+            <param name="serviceBinder">Service methods will be bound by calling <c>AddMethod</c> on this object.</param>
+            <param name="serviceImpl">An object implementing the server-side handling logic.</param>
+        </member>
+        <member name="T:Greeter.GreeterReflection">
+            <summary>Holder for reflection information generated from Protos/greeter.proto</summary>
+        </member>
+        <member name="P:Greeter.GreeterReflection.Descriptor">
+            <summary>File descriptor for Protos/greeter.proto</summary>
+        </member>
+        <member name="F:Greeter.HelloRequest.NameFieldNumber">
+            <summary>Field number for the "name" field.</summary>
+        </member>
+        <member name="F:Greeter.HelloResponse.ReplyMessageFieldNumber">
+            <summary>Field number for the "reply_message" field.</summary>
+        </member>
+        <member name="P:Greeter.GreeterService.Descriptor">
+            <summary>Service descriptor</summary>
+        </member>
+        <member name="T:Greeter.GreeterService.GreeterServiceBase">
+            <summary>Base class for server-side implementations of GreeterService</summary>
+        </member>
+        <member name="M:Greeter.GreeterService.BindService(Greeter.GreeterService.GreeterServiceBase)">
+            <summary>Creates service definition that can be registered with a server</summary>
+            <param name="serviceImpl">An object implementing the server-side handling logic.</param>
+        </member>
+        <member name="M:Greeter.GreeterService.BindService(Grpc.Core.ServiceBinderBase,Greeter.GreeterService.GreeterServiceBase)">
+            <summary>Register service method with a service binder with or without implementation. Useful when customizing the  service binding logic.
+            Note: this method is part of an experimental API that can change or be removed without any prior notice.</summary>
+            <param name="serviceBinder">Service methods will be bound by calling <c>AddMethod</c> on this object.</param>
+            <param name="serviceImpl">An object implementing the server-side handling logic.</param>
+        </member>
+    </members>
+</doc>

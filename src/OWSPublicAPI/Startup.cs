@@ -66,22 +66,18 @@ namespace OWSPublicAPI
 
             services.AddHttpContextAccessor();
 
-            services.AddMvcCore(config => {
+            services.AddMvcCore(config =>
+            {
                 config.EnableEndpointRouting = false;
-                //IHttpRequestStreamReaderFactory readerFactory = services.BuildServiceProvider().GetRequiredService<IHttpRequestStreamReaderFactory>();
-                //config.ModelBinderProviders.Insert(0, new Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider(config.InputFormatters, readerFactory));
-                //config.ModelBinderProviders.Insert(0, new QueryModelBinderProvider(container));
             })
             .AddViews()
-            .AddApiExplorer()
-            .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            .AddApiExplorer();
+           
 
             services.AddSimpleInjector(container, options => {
                 options.AddAspNetCore()
                     .AddControllerActivation()
                     .AddViewComponentActivation();
-                    //.AddPageModelActivation()
-                    //.AddTagHelperActivation();
             });
 
             services.AddSwaggerGen(c => {

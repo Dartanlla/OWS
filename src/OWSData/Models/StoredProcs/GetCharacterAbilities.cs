@@ -6,19 +6,9 @@ namespace OWSData.Models.StoredProcs
 {
     public class GetCharacterAbilities
     {
-        public int AbilityID { get; set; } 
-        public string AbilityCustomJSON { get; set; } 
-        public string AbilityName { get; set; }
-        public int AbilityTypeID { get; set; }
-        public string Class { get; set; }
-        public Guid CustomerGUID { get; set; }
-        public string Race { get; set; }
-        public string TextureToUseForIcon { get; set; }
-        public string GameplayAbilityClassName { get; set; }
-        public int CharHasAbilitiesID { get; set; }
-        public int AbilityLevel { get; set; }
-        public string CharHasAbilitiesCustomJSON { get; set; }
-        public int CharacterID { get; set; }
-        public string CharName { get; set; }
+        public string AbilityIDTag { get; set; }
+        public int CurrentAbilityLevel { get; set; }
+        public int ActualAbilityLevel { get; set; }
+        public string CustomData { get; set; } 
     }
 }
