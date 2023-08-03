@@ -12,7 +12,9 @@ namespace OWSCharacterPersistence.Requests.Characters
 {
     public class UpdateCharacterStatsRequest
     {
-        public UpdateCharacterStats updateCharacterStats { get; set; }
+        public string CharacterName { get; set; }
+       
+        public IEnumerable<UpdateCharacterStats> CharacterStats { get; set; }
 
         private Guid customerGUID;
         private ICharactersRepository charactersRepository;
@@ -30,7 +32,7 @@ namespace OWSCharacterPersistence.Requests.Characters
 
             try
             {
-                await charactersRepository.UpdateCharacterStats(updateCharacterStats);
+                await charactersRepository.UpdateCharacterStats(customerGUID, CharacterName, CharacterStats);
             }
             catch (Exception ex)
             {

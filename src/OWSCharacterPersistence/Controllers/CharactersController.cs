@@ -37,6 +37,24 @@ namespace OWSCharacterPersistence.Controllers
         }
 
         [HttpPost]
+        [Route("GetStatsByName")]
+        [Produces(typeof(GetCharStatsByCharName))]
+        public async Task<IActionResult> GetStatsByName([FromBody] GetStatsByNameRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
+        [HttpPost]
+        [Route("GetInventoryByName")]
+        [Produces(typeof(GetCharInventoryByCharName))]
+        public async Task<IActionResult> GetInventoryByName([FromBody] GetInventoryByNameRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
+        [HttpPost]
         [Route("GetByName")]
         [Produces(typeof(GetCharByCharName))]
         public async Task<IActionResult> GetByName([FromBody] GetByNameRequest request)
@@ -67,6 +85,15 @@ namespace OWSCharacterPersistence.Controllers
         [Route("UpdateCharacterStats")]
         [Produces(typeof(SuccessAndErrorMessage))]
         public async Task<SuccessAndErrorMessage> UpdateCharacterStats([FromBody] UpdateCharacterStatsRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
+        [HttpPost]
+        [Route("UpdateCharacterInventory")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<SuccessAndErrorMessage> UpdateCharacterInventory([FromBody] UpdateCharacterInventoryRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();

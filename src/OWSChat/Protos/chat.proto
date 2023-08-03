@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package Chat;
+option csharp_namespace = "ChatServiceApp.Protos";
+
+	
+enum ChatType 
+{
+  MESSAGE_TYPE_GENERAL = 0;
+  MESSAGE_TYPE_TRADE = 1;
+  MESSAGE_TYPE_GUILD = 2;
+  MESSAGE_TYPE_PARTY = 3;
+  MESSAGE_TYPE_WHISPER = 4;
+}
+
+message LoggingMessage
+{
+	string user_id = 1;
+	string user_name = 2;
+}
+
+
+message ClientMessageChat 
+{
+	string text = 1;
+	string recipient_name = 2;
+}
+
+//Client Messages:
+message ClientMessage 
+{
+
+	ChatType messsage_type = 1;
+	string player_id = 2;
+	string player_name = 3;
+	ClientMessageChat chat = 4;
+}
+
+message ServerMessageChat 
+{
+  string now = 1;
+  string text = 2;
+}
+
+message ServerMessage
+{
+	ChatType message_type = 1;
+	string player_name = 2;
+	ServerMessageChat chat = 3;
+}
+
+message EmptyMsg
+{
+
+}
+
+service ChatApp
+{
+	rpc RegisterMsg(LoggingMessage) returns (stream ServerMessage);
+	rpc SendMsg (ClientMessage) returns (EmptyMsg);
+}
+
+

@@ -76,9 +76,6 @@ namespace OWSPublicAPI.Controllers
         [HttpPost]
         [Route("ByName")]
         [Produces(typeof(GetCharByCharName))]
-        /*[SwaggerOperation("ByName")]
-        [SwaggerResponse(200)]
-        [SwaggerResponse(404)]*/
         public async Task<IActionResult> GetByName([FromBody] GetByNameDTO request)
         {
             GetByNameRequest getByNameRequest = new GetByNameRequest(request, _usersRepository, _charactersRepository, _customerGuid, _customCharacterDataSelector, _getReadOnlyPublicCharacterData);

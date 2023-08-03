@@ -174,6 +174,42 @@ namespace OWSData.Repositories.Implementations.MySQL
             }
         }
 
+        public async Task<IEnumerable<GetCharStatsByCharName>> GetCharStatsByCharName(Guid customerGUID, string characterName)
+        {
+            IEnumerable<GetCharStatsByCharName> outputCharacter;
+
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+
+                outputCharacter = await Connection.QueryAsync<GetCharStatsByCharName>(GenericQueries.GetCharByCharName,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return outputCharacter;
+        }
+
+        public async Task<IEnumerable<GetCharInventoryByCharName>> GetCharInventoryByCharName(Guid customerGUID, string characterName)
+        {
+            IEnumerable<GetCharInventoryByCharName> outputCharacter;
+
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+
+                outputCharacter = await Connection.QueryAsync<GetCharInventoryByCharName>(GenericQueries.GetCharByCharName,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return outputCharacter;
+        }
+
         public async Task<GetCharByCharName> GetCharByCharName(Guid customerGUID, string characterName)
         {
             IEnumerable<GetCharByCharName> outputCharacter;
@@ -339,7 +375,7 @@ namespace OWSData.Repositories.Implementations.MySQL
             return outputObject;
         }
 
-                 public async Task<MapInstances> SpinUpInstance(Guid customerGUID, string zoneName, int playerGroupId = 0)
+        public async Task<MapInstances> SpinUpInstance(Guid customerGUID, string zoneName, int playerGroupId = 0)
         {
             using (Connection)
             {
@@ -395,12 +431,22 @@ namespace OWSData.Repositories.Implementations.MySQL
             return new MapInstances { MapInstanceId = -1 };
         }
 
-        public async Task UpdateCharacterStats(UpdateCharacterStats updateCharacterStats)
+        public async Task UpdateCharacterStats(Guid CustomerGUID, String CharacterName, IEnumerable<UpdateCharacterStats> updateCharacterStats)
         {
             using (Connection)
             {
                 await Connection.ExecuteAsync(GenericQueries.UpdateCharacterStats.Replace("Range = ", "`Range` = "), // TODO Remove post Table cleanup
                     updateCharacterStats,
+                    commandType: CommandType.Text);
+            }
+        }
+
+        public async Task UpdateCharacterInventory(Guid customerGUID, string characterName, IEnumerable<UpdateCharacterInventory> updateCharacterInventory)
+        {
+            using (Connection)
+            {
+                await Connection.ExecuteAsync(GenericQueries.UpdateCharacterStats.Replace("Range = ", "`Range` = "), // TODO Remove post Table cleanup
+                    updateCharacterInventory,
                     commandType: CommandType.Text);
             }
         }
@@ -584,17 +630,13 @@ namespace OWSData.Repositories.Implementations.MySQL
             }
         }
 
-        public async Task UpdateAbilityOnCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
+        public async Task UpdateCharacterAbilities(Guid customerGUID, string characterName, IEnumerable<UpdateCharacterAbilities> CharacterAbilities)
         {
             using (Connection)
             {
                 var parameters = new
                 {
                     CustomerGUID = customerGUID,
-                    AbilityName = abilityName,
-                    CharacterName = characterName,
-                    AbilityLevel = abilityLevel,
-                    CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
                 };
 
                 await Connection.ExecuteAsync(MySQLQueries.UpdateAbilityOnCharacter, parameters);

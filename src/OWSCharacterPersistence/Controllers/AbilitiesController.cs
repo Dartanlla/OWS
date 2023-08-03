@@ -186,9 +186,9 @@ namespace OWSCharacterPersistence.Controllers
         /// <b>CharHasAbilitiesCustomJSON</b> - This field is used to store Custom JSON for the specific instance of this Ability.  If you have a system where each ability on a character has some kind of custom variation, then this is where to store that variation data.  In a system where an ability operates the same on every player, this field would not be used.  Don't store Ability Level in this field, as there is already a field for that.  If you need to store Custom JSON for ALL instances of an ability, use the Custom JSON on the Ability itself.
         /// </param>
         [HttpPost]
-        [Route("UpdateAbilityOnCharacter")]
+        [Route("UpdateCharacterAbilities")]
         [Produces(typeof(SuccessAndErrorMessage))]
-        public async Task<SuccessAndErrorMessage> UpdateAbilityOnCharacter([FromBody] UpdateAbilityOnCharacterRequest request)
+        public async Task<SuccessAndErrorMessage> UpdateCharacterAbilities([FromBody] UpdateCharacterAbilitiesRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();

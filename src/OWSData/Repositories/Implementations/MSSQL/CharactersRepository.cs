@@ -175,6 +175,53 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
+        public async Task<IEnumerable<GetCharStatsByCharName>> GetCharStatsByCharName(Guid customerGUID, string characterName)
+        {
+            IEnumerable<GetCharStatsByCharName> outputCharacter = new List<GetCharStatsByCharName>();
+
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+
+                outputCharacter = await Connection.QueryAsync<GetCharStatsByCharName>(GenericQueries.GetCharStatsByCharName,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return outputCharacter;
+        }
+
+        public async Task<IEnumerable<GetCharInventoryByCharName>> GetCharInventoryByCharName(Guid customerGUID, string characterName)
+        {
+            IEnumerable<GetCharInventoryByCharName> outputCharacter = new List<GetCharInventoryByCharName>();
+
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+
+                IEnumerable<int> InventoryIDs = await Connection.QueryAsync<int>(GenericQueries.GetCharInventoryIDByCharName,
+                parameters,
+                commandType: CommandType.Text);
+
+                if(!InventoryIDs.Any())
+                {
+                    return outputCharacter;
+                }
+
+                parameters.Add("@CharInventoryID", InventoryIDs.First());
+
+                outputCharacter = await Connection.QueryAsync<GetCharInventoryByCharName>(GenericQueries.GetCharInventoryByCharName,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return outputCharacter;
+        }
+
         public async Task<GetCharByCharName> GetCharByCharName(Guid customerGUID, string characterName)
         {
             IEnumerable<GetCharByCharName> outputCharacter;
@@ -318,7 +365,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
                     //If the login username has @localhost in it or if Users.IsInternalNetworkTestUser is set to true, then redirect the client IP to the InternalServerIP (usually 127.0.0.1 on a development PC)
                     //This is useful if you want to play a game client on the same device (development PC) as the game server while still allowing players from outside the network to connect with an external IP.
-                    if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
+                    if (outputCharacter.IsInternalNetworkTestUser)
                     {
                         outputObject.ServerIP = outputJoinMapByCharName.WorldServerIP;
                     }
@@ -345,7 +392,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
                     //If the login username has @localhost in it or if Users.IsInternalNetworkTestUser is set to true, then redirect the client IP to the InternalServerIP (usually 127.0.0.1 on a development PC)
                     //This is useful if you want to play a game client on the same device (development PC) as the game server while still allowing players from outside the network to connect with an external IP.
-                    if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
+                    if (outputCharacter.IsInternalNetworkTestUser)
                     {
                         outputObject.ServerIP = outputWorldServers.InternalServerIp;
                     }
@@ -442,13 +489,76 @@ namespace OWSData.Repositories.Implementations.MSSQL
             return new MapInstances { MapInstanceId = -1 };
         }
 
-        public async Task UpdateCharacterStats(UpdateCharacterStats updateCharacterStats)
+        public async Task UpdateCharacterStats(Guid customerGUID, string characterName, IEnumerable<UpdateCharacterStats> updateCharacterStats)
         {
             using (Connection)
             {
-                await Connection.ExecuteAsync(GenericQueries.UpdateCharacterStats,
-                    updateCharacterStats,
-                    commandType: CommandType.Text);
+                foreach (UpdateCharacterStats stat in updateCharacterStats)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@CharName", characterName);
+                    p.Add("@StatIdentifier", stat.StatIdentifier);
+                    p.Add("@Value", stat.Value);
+
+                    await Connection.ExecuteAsync(GenericQueries.UpdateCharacterStats,
+                        p,
+                        commandType: CommandType.Text);
+                }
+            }
+        }
+
+        public async Task UpdateCharacterAbilities(Guid customerGUID, string characterName, IEnumerable<UpdateCharacterAbilities> CharacterAbilities)
+        {
+            using (Connection)
+            {
+                foreach (UpdateCharacterAbilities Ability in CharacterAbilities)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@CharName", characterName);
+                    p.Add("@AbilityIDTag", Ability.AbilityIDTag);
+                    p.Add("@CurrentAbilityLevel", Ability.CurrentAbilityLevel);
+                    p.Add("@ActualAbilityLevel", Ability.ActualAbilityLevel);
+                    p.Add("@CustomData", Ability.CustomData);
+
+                    await Connection.ExecuteAsync(MSSQLQueries.UpdateAbilityOnCharacter, p);
+                }
+            }
+        }
+
+        public async Task UpdateCharacterInventory(Guid customerGUID, string characterName, IEnumerable<UpdateCharacterInventory> updateCharacterInventory)
+        {
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+
+                IEnumerable<int> InventoryIDs = await Connection.QueryAsync<int>(GenericQueries.GetCharInventoryIDByCharName,
+                parameters,
+                commandType: CommandType.Text);
+
+                if (!InventoryIDs.Any())
+                {
+                    return;
+                }
+                
+                parameters.Add("@CharInventoryID", InventoryIDs.First());
+                await Connection.ExecuteAsync(GenericQueries.DeleteCharacterInventoryItems,
+                parameters,
+                commandType: CommandType.Text);
+
+                foreach (UpdateCharacterInventory inventoryItem in updateCharacterInventory)
+                {
+                    parameters.Add("@ItemIDTag", inventoryItem.ItemIDTag);
+                    parameters.Add("@Quantity", inventoryItem.Quantity);
+                    parameters.Add("@InSlotNumber", inventoryItem.InSlotNumber);
+                    parameters.Add("@CustomData", inventoryItem.CustomData);
+                    await Connection.ExecuteAsync(GenericQueries.UpdateCharacterInventory,
+                        parameters,
+                        commandType: CommandType.Text);
+                }
             }
         }
 
@@ -631,21 +741,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
-        public async Task UpdateAbilityOnCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
-        {
-            using (Connection)
-            {
-                var parameters = new
-                {
-                    CustomerGUID = customerGUID,
-                    AbilityName = abilityName,
-                    CharacterName = characterName,
-                    AbilityLevel = abilityLevel,
-                    CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
-                };
-
-                await Connection.ExecuteAsync(MSSQLQueries.UpdateAbilityOnCharacter, parameters);
-            }
-        }
+        
     }
 }
