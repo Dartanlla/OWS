@@ -70,33 +70,5 @@
             <param name="serviceBinder">Service methods will be bound by calling <c>AddMethod</c> on this object.</param>
             <param name="serviceImpl">An object implementing the server-side handling logic.</param>
         </member>
-        <member name="T:Greeter.GreeterReflection">
-            <summary>Holder for reflection information generated from Protos/greeter.proto</summary>
-        </member>
-        <member name="P:Greeter.GreeterReflection.Descriptor">
-            <summary>File descriptor for Protos/greeter.proto</summary>
-        </member>
-        <member name="F:Greeter.HelloRequest.NameFieldNumber">
-            <summary>Field number for the "name" field.</summary>
-        </member>
-        <member name="F:Greeter.HelloResponse.ReplyMessageFieldNumber">
-            <summary>Field number for the "reply_message" field.</summary>
-        </member>
-        <member name="P:Greeter.GreeterService.Descriptor">
-            <summary>Service descriptor</summary>
-        </member>
-        <member name="T:Greeter.GreeterService.GreeterServiceBase">
-            <summary>Base class for server-side implementations of GreeterService</summary>
-        </member>
-        <member name="M:Greeter.GreeterService.BindService(Greeter.GreeterService.GreeterServiceBase)">
-            <summary>Creates service definition that can be registered with a server</summary>
-            <param name="serviceImpl">An object implementing the server-side handling logic.</param>
-        </member>
-        <member name="M:Greeter.GreeterService.BindService(Grpc.Core.ServiceBinderBase,Greeter.GreeterService.GreeterServiceBase)">
-            <summary>Register service method with a service binder with or without implementation. Useful when customizing the  service binding logic.
-            Note: this method is part of an experimental API that can change or be removed without any prior notice.</summary>
-            <param name="serviceBinder">Service methods will be bound by calling <c>AddMethod</c> on this object.</param>
-            <param name="serviceImpl">An object implementing the server-side handling logic.</param>
-        </member>
     </members>
 </doc>

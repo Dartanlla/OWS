@@ -31,10 +31,8 @@ namespace OWSChat.Service
                 UserName = userName,
                 serverStreamWriter = responseStream
             });
-            while (!context.CancellationToken.IsCancellationRequested)
-            {
-
-            }
+            Func<bool> isCancelled = () => context.CancellationToken.IsCancellationRequested;
+            SpinWait.SpinUntil(isCancelled);
             _clients.RemoveAll(x => x.Id == id);
             return Task.CompletedTask;
         }

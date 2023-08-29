@@ -13,6 +13,7 @@ using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.Models.Tables;
 using OWSData.SQL;
+using PartyServiceApp.Protos;
 
 namespace OWSData.Repositories.Implementations.MySQL
 {
@@ -192,6 +193,24 @@ namespace OWSData.Repositories.Implementations.MySQL
             return outputCharacter;
         }
 
+        public async Task<IEnumerable<GetCharQuestsByCharName>> GetCharQuetsByCharName(Guid customerGUID, string characterName)
+        {
+            IEnumerable<GetCharQuestsByCharName> outputCharacter;
+
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+
+                outputCharacter = await Connection.QueryAsync<GetCharQuestsByCharName>(GenericQueries.GetCharByCharName,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return outputCharacter;
+        }
+
         public async Task<IEnumerable<GetCharInventoryByCharName>> GetCharInventoryByCharName(Guid customerGUID, string characterName)
         {
             IEnumerable<GetCharInventoryByCharName> outputCharacter;
@@ -287,7 +306,8 @@ namespace OWSData.Repositories.Implementations.MySQL
 
                 if (outputCharacter == null)
                 {
-                    outputObject = new JoinMapByCharName() {
+                    outputObject = new JoinMapByCharName()
+                    {
                         ServerIP = serverIp,
                         Port = port,
                         WorldServerID = -1,
@@ -347,7 +367,7 @@ namespace OWSData.Repositories.Implementations.MySQL
 
                     parameters.Add("@WorldServerId", outputMapInstance.WorldServerId);
 
-                    WorldServers outputWorldServers =  await Connection.QuerySingleOrDefaultAsync<WorldServers>(GenericQueries.GetWorldByID,
+                    WorldServers outputWorldServers = await Connection.QuerySingleOrDefaultAsync<WorldServers>(GenericQueries.GetWorldByID,
                         parameters,
                         commandType: CommandType.Text);
 
@@ -437,6 +457,16 @@ namespace OWSData.Repositories.Implementations.MySQL
             {
                 await Connection.ExecuteAsync(GenericQueries.UpdateCharacterStats.Replace("Range = ", "`Range` = "), // TODO Remove post Table cleanup
                     updateCharacterStats,
+                    commandType: CommandType.Text);
+            }
+        }
+
+        public async Task UpdateCharacterQuests(Guid customerGUID, string characterName, IEnumerable<UpdateCharacterQuest> updateCharacterQuests)
+        {
+            using (Connection)
+            {
+                await Connection.ExecuteAsync(GenericQueries.UpdateCharacterStats.Replace("Range = ", "`Range` = "), // TODO Remove post Table cleanup
+                    updateCharacterQuests,
                     commandType: CommandType.Text);
             }
         }
@@ -642,5 +672,38 @@ namespace OWSData.Repositories.Implementations.MySQL
                 await Connection.ExecuteAsync(MySQLQueries.UpdateAbilityOnCharacter, parameters);
             }
         }
+
+        public async Task AddQuestListToDatabase(Guid customerGUID, IEnumerable<AddQuestListToDabase> addQuestListToDabase)
+        {
+
+        }
+
+        public async Task<IEnumerable<GetQuestsFromDb>> GetQuestsFromDatabase(Guid customerGUID)
+        {
+            IEnumerable<GetQuestsFromDb> Output = null;
+            return Output;
+        }
+        
+        public async Task<PartyToSend> CreatePartyOrAddMember(Guid customerGUID, PartyToSend partyRequest)
+        {
+            return partyRequest;
+        }
+
+        public async Task<PartyToSend> GetInitialPartySettings(Guid customerGUID, string charName)
+        {
+            PartyToSend partyRequest = null;
+            return partyRequest;
+        }
+
+        public async Task<PartyToSend> LeaveParty(Guid customerGUID, PartyToSend partyRequest)
+        {
+            return partyRequest;
+        }
+
+        public async Task<PartyToSend> ChangePartyLeader(Guid customerGUID, PartyToSend partyRequest)
+        {
+            return partyRequest;
+        }
+
     }
 }

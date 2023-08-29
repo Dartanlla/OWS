@@ -16,6 +16,8 @@ using OWSShared.Interfaces;
 using OWSPublicAPI.Requests.Characters;
 using OWSData.Repositories.Interfaces;
 using OWSPublicAPI.DTOs;
+using OWSData.Models.Composites;
+using OWSPublicAPI.Requests.Users;
 
 namespace OWSPublicAPI.Controllers
 {

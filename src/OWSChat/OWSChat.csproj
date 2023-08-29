@@ -12,15 +12,20 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Views\**" />
+	  <Content Remove="Views\**" />
+	  <EmbeddedResource Remove="Views\**" />
+	  <None Remove="Views\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Folder Include="Controllers\" />
-		<Folder Include="Requests\Chat\" />
-		<Folder Include="Views\" />
+		<Folder Include="Requests\" />
 		<Folder Include="wwwroot\" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Dapper" Version="2.0.138" />
-		<PackageReference Include="Google.Protobuf" Version="3.23.4" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
 		<PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
 		<PackageReference Include="Serilog.Enrichers.ClientInfo" Version="1.3.0" />
@@ -39,6 +44,7 @@
 		<PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.5.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.5.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.5.0" />
+		<PackageReference Include="Google.Protobuf" Version="3.23.4" />
 		<PackageReference Include="Grpc.AspNetCore" Version="2.32.0" />
 		<PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.0.152" />
 	</ItemGroup>
@@ -56,7 +62,6 @@
 
 	<ItemGroup>
 		<Protobuf Include="Protos\chat.proto" GrpcServices="Server" />
-		<Protobuf Include="Protos\greeter.proto" GrpcServices="Server" />
 	</ItemGroup>
 
 	<Target Name="DockerComposeOverrideWindows" BeforeTargets="PreBuildEvent" Condition="$([MSBuild]::IsOSPlatform('Windows'))">

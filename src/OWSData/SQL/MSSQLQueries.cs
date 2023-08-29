@@ -144,11 +144,28 @@ namespace OWSData.SQL
 						WHERE C.CharName = @CharName
 						AND C.CustomerGUID = @CustomerGUID";
 
-		#endregion
+        public static readonly string AddQuestToDatabase = @"
+				IF NOT EXISTS(
+					SELECT * FROM Quest
+					Where Quest.QuestIDTag = @QuestIDTag
+					AND Quest.CustomerGUID = @CustomerGUID
+					)
+					INSERT INTO Quest
+						(
+						CustomerGUID,
+						QuestIDTag,
+						QuestOverview,
+						QuestTasks,
+						QuestClassName,
+						CustomData
+						)
+						SELECT @CustomerGUID, @QuestIDTag, @QuestOverview, @QuestTasks, @QuestClassName, @CustomData";
 
-		#region User Queries
+        #endregion
 
-		public static readonly string UpdateUserLastAccess = @"UPDATE Users
+        #region User Queries
+
+        public static readonly string UpdateUserLastAccess = @"UPDATE Users
 				SET LastAccess = GETDATE()
                 WHERE CustomerGUID = @CustomerGUID
                 AND UserGUID IN (

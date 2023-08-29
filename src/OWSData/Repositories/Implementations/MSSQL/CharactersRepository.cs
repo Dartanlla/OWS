@@ -14,6 +14,7 @@ using OWSData.Models;
 using OWSData.Models.Composites;
 using OWSData.Models.Tables;
 using OWSData.SQL;
+using PartyServiceApp.Protos;
 
 namespace OWSData.Repositories.Implementations.MSSQL
 {
@@ -193,7 +194,25 @@ namespace OWSData.Repositories.Implementations.MSSQL
             return outputCharacter;
         }
 
-        public async Task<IEnumerable<GetCharInventoryByCharName>> GetCharInventoryByCharName(Guid customerGUID, string characterName)
+        public async Task<IEnumerable<GetCharQuestsByCharName>> GetCharQuetsByCharName(Guid customerGUID, string characterName)
+        {
+            IEnumerable<GetCharQuestsByCharName> outputCharacter = new List<GetCharQuestsByCharName>();
+
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+
+                outputCharacter = await Connection.QueryAsync<GetCharQuestsByCharName>(GenericQueries.GetCharQuestsByCharName,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return outputCharacter;
+        }
+
+            public async Task<IEnumerable<GetCharInventoryByCharName>> GetCharInventoryByCharName(Guid customerGUID, string characterName)
         {
             IEnumerable<GetCharInventoryByCharName> outputCharacter = new List<GetCharInventoryByCharName>();
 
@@ -527,6 +546,25 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
+        public async Task UpdateCharacterQuests(Guid customerGUID, string characterName, IEnumerable<UpdateCharacterQuest> updateCharacterQuests)
+        {
+            using (Connection)
+            {
+                foreach (UpdateCharacterQuest Quest in updateCharacterQuests)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@CharName", characterName);
+                    p.Add("@QuestIDTag", Quest.QuestIDTag);
+                    p.Add("@QuestJournalTagContainer", Quest.QuestJournalTagContainer);
+                    p.Add("@CustomData", Quest.CustomData);
+
+
+                    await Connection.ExecuteAsync(GenericQueries.UpdateCharacterQuest, p);
+                }
+            }
+        }
+
         public async Task UpdateCharacterInventory(Guid customerGUID, string characterName, IEnumerable<UpdateCharacterInventory> updateCharacterInventory)
         {
             using (Connection)
@@ -741,6 +779,174 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
-        
+        public async Task AddQuestListToDatabase(Guid customerGUID, IEnumerable<AddQuestListToDabase> addQuestListToDabase)
+        {
+            using (Connection)
+            {
+                foreach (AddQuestListToDabase QuestToAdd in addQuestListToDabase)
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@CustomerGUID", customerGUID);
+                    parameters.Add("@QuestIDTag", QuestToAdd.QuestIDTag);
+                    parameters.Add("@QuestOverview", QuestToAdd.QuestOverview);
+                    parameters.Add("@QuestTasks", QuestToAdd.QuestTasks);
+                    parameters.Add("@QuestClassName", QuestToAdd.QuestClassName);
+                    parameters.Add("@CustomData", QuestToAdd.CustomData);
+
+                    await Connection.ExecuteAsync(MSSQLQueries.AddQuestToDatabase, parameters);
+                }
+            }
+        }
+
+        public async Task<IEnumerable<GetQuestsFromDb>> GetQuestsFromDatabase(Guid customerGUID)
+        {
+            IEnumerable<GetQuestsFromDb> QuestsFromDb;
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+
+                QuestsFromDb = await Connection.QueryAsync<GetQuestsFromDb>(GenericQueries.GetAllQuests,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return QuestsFromDb;
+        }
+
+        public async Task<PartyToSend> CreatePartyOrAddMember(Guid customerGUID, PartyToSend partyRequest)
+        {
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+
+                    if (partyRequest.PartyAction == PartyAction.MessageTypeCreate)
+                    {
+                        partyRequest.PartyInfo = await Connection.QuerySingleAsync<PartyInfo>("AddNewParty",
+                        p,
+                        commandType: CommandType.StoredProcedure);
+                    }
+                   
+                    p.Add("@PartyGuid", new Guid(partyRequest.PartyInfo.PartyGuid));
+                        
+                    IEnumerable<PartyMemberInfo> PartyMembersToAdd = partyRequest.PartyMembers.Clone();
+
+                    foreach (PartyMemberInfo Party in PartyMembersToAdd)
+                    {
+                        p.Add("@CharacterName", Party.CharName);
+                        p.Add("@CharacterGUID", new Guid(Party.CharGuid));
+                        p.Add("@PartyLeader", Party.PartyLeader);
+
+                        partyRequest.PartyMembers.Clear();
+                        partyRequest.PartyMembers.Add( await Connection.QueryAsync<PartyMemberInfo>("AddNewPartyMember",
+                        p,
+                        commandType: CommandType.StoredProcedure));
+                    }
+
+                }
+                
+            }
+            catch (Exception ex)
+            {
+            }
+            return partyRequest;
+        }
+
+        public async Task<PartyToSend> GetInitialPartySettings(Guid customerGUID, string charName)
+        {
+            PartyToSend partyRequest = new PartyToSend();
+            partyRequest.PartyAction = PartyAction.MessageTypeCreate;
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@CharName", charName);
+
+                    int partyId = await Connection.QuerySingleAsync<int>(GenericQueries.GetPartyId,
+                    p,
+                    commandType: CommandType.Text);
+
+                    p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@PartyID", partyId);
+
+                    partyRequest.PartyMembers.Add(await Connection.QueryAsync<PartyMemberInfo>("GetInitialPartyMembers",
+                                                p,
+                                                commandType: CommandType.StoredProcedure));
+
+                    partyRequest.PartyInfo = await Connection.QuerySingleAsync<PartyInfo>("GetInitialPartySettings",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+            return partyRequest;
+        }
+
+        public async Task<PartyToSend> LeaveParty(Guid customerGUID, PartyToSend partyRequest)
+        {
+            PartyToSend party = partyRequest.Clone();
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@PartyGuid", new Guid(partyRequest.PartyInfo.PartyGuid));
+                    foreach (PartyMemberInfo partyMember in partyRequest.PartyMembers)
+                    {
+                        p.Add("@CharName", partyMember.CharName);
+                        p.Add("@PartyLeader", partyMember.PartyLeader);
+
+                        party.PartyMembers.Clear();
+                        party.PartyMembers.Add(await Connection.QueryAsync<PartyMemberInfo>("LeaveParty",
+                                                    p,
+                                                    commandType: CommandType.StoredProcedure));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+            return party;
+        }
+
+        public async Task<PartyToSend> ChangePartyLeader(Guid customerGUID, PartyToSend partyRequest)
+        {
+            PartyToSend party = partyRequest.Clone();
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@PartyGuid", new Guid(partyRequest.PartyInfo.PartyGuid));
+                    PartyMemberInfo partyMember = partyRequest.PartyMembers.ElementAt(0);
+                    if(partyMember != null && partyMember != default) 
+                    {
+                        p.Add("@CharName", partyMember.CharName);
+                        
+                        party.PartyMembers.Clear();
+                        party.PartyMembers.Add(await Connection.QueryAsync<PartyMemberInfo>("ChangePartyLeader",
+                                                    p,
+                                                    commandType: CommandType.StoredProcedure));
+                    }
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+            return party;
+        }
+
+
     }
 }

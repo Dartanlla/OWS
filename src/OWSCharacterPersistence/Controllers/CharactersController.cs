@@ -46,6 +46,15 @@ namespace OWSCharacterPersistence.Controllers
         }
 
         [HttpPost]
+        [Route("GetQuestsByName")]
+        [Produces(typeof(GetCharQuestsByCharName))]
+        public async Task<IActionResult> GetQuestsByName([FromBody] GetQuestsByNameRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
+        [HttpPost]
         [Route("GetInventoryByName")]
         [Produces(typeof(GetCharInventoryByCharName))]
         public async Task<IActionResult> GetInventoryByName([FromBody] GetInventoryByNameRequest request)
@@ -91,6 +100,15 @@ namespace OWSCharacterPersistence.Controllers
         }
 
         [HttpPost]
+        [Route("UpdateCharacterQuests")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<SuccessAndErrorMessage> UpdateCharacterQuests([FromBody] UpdateCharacterQuestsRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
+        [HttpPost]
         [Route("UpdateCharacterInventory")]
         [Produces(typeof(SuccessAndErrorMessage))]
         public async Task<SuccessAndErrorMessage> UpdateCharacterInventory([FromBody] UpdateCharacterInventoryRequest request)
@@ -103,6 +121,24 @@ namespace OWSCharacterPersistence.Controllers
         [Route("PlayerLogout")]
         [Produces(typeof(SuccessAndErrorMessage))]
         public async Task<SuccessAndErrorMessage> PlayerLogout([FromBody] PlayerLogoutRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
+        [HttpPost]
+        [Route("AddQuestListToDatabase")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<SuccessAndErrorMessage> AddQuestListToDatabase([FromBody] AddQuestListToDatabaseRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
+        [HttpPost]
+        [Route("GetQuestsFromDatabase")]
+        [Produces(typeof(GetQuestsFromDb))]
+        public async Task<IActionResult> GetQuestsFromDatabase(GetQuestsFromDatabaseRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();
