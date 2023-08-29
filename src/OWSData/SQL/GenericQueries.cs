@@ -77,7 +77,16 @@ namespace OWSData.SQL
 				  AND C.CustomerGUID = @CustomerGUID
 				WHERE CS.CharacterID = C.CharacterID";
 
-		public static readonly string GetCharInventoryIDByCharName = @"SELECT CI.CharInventoryID
+        public static readonly string GetCharQuestsByCharName = @"SELECT CQ.* , Q.QuestClassName
+				FROM Characters C INNER JOIN CharQuests CQ
+				ON C.CharName = @CharName
+				AND C.CustomerGUID = @CustomerGUID
+				INNER JOIN Quest Q
+				ON Q.CustomerGUID = @CustomerGUID
+				AND Q.QuestIDTag = CQ.QuestIDTag
+				WHERE CQ.CharacterID = C.CharacterID";
+
+        public static readonly string GetCharInventoryIDByCharName = @"SELECT CI.CharInventoryID
 				FROM Characters C INNER JOIN CharInventory CI
 				ON C.CharName = @CharName
 				AND C.CustomerGUID = @CustomerGUID
@@ -103,9 +112,10 @@ namespace OWSData.SQL
 				  AND C.CustomerGUID = @CustomerGUID
 				ORDER BY MI.MapInstanceID DESC";
 
-	    public static readonly string GetCharacterAbilities = @"SELECT CA.AbilityIDTag, CA.CurrentAbilityLevel, CA.ActualAbilityLevel, CA.CustomData 
+	    public static readonly string GetCharacterAbilities = @"SELECT CA.AbilityIDTag, CA.CurrentAbilityLevel, CA.ActualAbilityLevel, CA.CustomData, A.AbilityClassName
 				FROM CharAbilities CA
 				INNER JOIN Characters C	ON C.CharacterID = CA.CharacterID AND C.CustomerGUID = CA.CustomerGUID
+				INNER JOIN Abilities A On A.AbilityIDTag = CA.AbilityIDTag AND A.CustomerGUID = CA.CustomerGUID
 				WHERE C.CustomerGUID = @CustomerGUID
 				  AND C.CharName = @CharName";
 
@@ -232,7 +242,38 @@ namespace OWSData.SQL
 				WHERE C.CharName = @CharName
 				AND C.CustomerGUID = @CustomerGUID";
 
-		public static readonly string UpdateCharacterInventory =
+        public static readonly string UpdateCharacterQuest =
+            @"IF EXISTS(
+				SELECT * FROM Characters C INNER JOIN CharQuests CQ 
+				ON C.CharName = @CharName
+				AND C.CustomerGUID = @CustomerGUID	
+				Where CQ.QuestIDTag = @QuestIDTag
+				AND CQ.CharacterID = C.CharacterID
+				AND CQ.CustomerGUID = @CustomerGUID
+				)
+				UPDATE CQ 
+				SET	QuestJournalTagContainer = @QuestJournalTagContainer,
+				CustomData = @CustomData
+				FROM Characters C INNER JOIN CharQuests CQ 
+				ON C.CharName = @CharName
+				AND C.CustomerGUID = @CustomerGUID
+				Where CQ.QuestIDTag = @QuestIDTag
+				AND CQ.CharacterID = C.CharacterID
+				AND CQ.CustomerGUID = @CustomerGUID
+			ELSE
+				INSERT INTO CharQuests
+				(
+				CustomerGUID,
+				CharacterID,
+				QuestIDTag,
+				QuestJournalTagContainer,
+				CustomData
+				)
+				SELECT @CustomerGUID, CharacterID, @QuestIDTag, @QuestJournalTagContainer, @CustomData FROM Characters C
+				WHERE C.CharName = @CharName
+				AND C.CustomerGUID = @CustomerGUID";
+
+        public static readonly string UpdateCharacterInventory =
             @"INSERT INTO CharInventoryItems
 				(
 				CustomerGUID,
@@ -256,6 +297,10 @@ namespace OWSData.SQL
 				SET	MapName = @ZoneName
 				WHERE CharacterID = @CharacterID
 				  AND CustomerGUID = @CustomerGUID";
+
+        public static readonly string GetAllQuests = @"SELECT QuestIDTag, QuestOverview, QuestTasks, QuestClassName
+				FROM Quest
+				WHERE CustomerGUID = @CustomerGUID";
 
         #endregion
 
@@ -331,9 +376,18 @@ namespace OWSData.SQL
 
         #endregion
 
-		#region Global Data Queries
+        #region Party Queries
 
-		public static readonly string AddGlobalData = @"INSERT INTO GlobalData (CustomerGUID, GlobalDataKey, GlobalDataValue)
+        public static readonly string GetPartyId = @"SELECT PM.PartyID FROM PartyMember PM
+				INNER JOIN Characters C ON C.CharacterID = PM.CharacterID 
+				AND C.CharName = @CharName
+				WHERE PM.CustomerGUID = @CustomerGUID";
+
+        #endregion
+
+        #region Global Data Queries
+
+        public static readonly string AddGlobalData = @"INSERT INTO GlobalData (CustomerGUID, GlobalDataKey, GlobalDataValue)
 		VALUES (@CustomerGUID, @GlobalDataKey, @GlobalDataValue)";
 
         public static readonly string GetGlobalDataByGlobalDataKey = @"SELECT CustomerGUID, GlobalDataKey, GlobalDataValue

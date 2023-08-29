@@ -57,8 +57,6 @@ namespace OWSCharacterPersistence
                 options.AddAspNetCore()
                     .AddControllerActivation()
                     .AddViewComponentActivation();
-                //.AddPageModelActivation()
-                //.AddTagHelperActivation();
             });
 
             services.AddSwaggerGen(c => {

@@ -1,0 +1,70 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<UserSecretsId>5f287243-b8be-4d52-a0d5-8c329ba8d870</UserSecretsId>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DocumentationFile>OWSParty.xml</DocumentationFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="Views\**" />
+		<Content Remove="Views\**" />
+		<EmbeddedResource Remove="Views\**" />
+		<None Remove="Views\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Controllers\" />
+		<Folder Include="Protos\" />
+		<Folder Include="wwwroot\" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SimpleInjector" Version="5.4.1" />
+    <PackageReference Include="SimpleInjector.Integration.AspNetCore.Mvc" Version="5.4.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+	<PackageReference Include="Google.Protobuf" Version="3.23.4" />
+	<PackageReference Include="Grpc.AspNetCore" Version="2.32.0" />
+	<PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.0.152" />
+  </ItemGroup>
+
+    <ItemGroup>
+    	<ProjectReference Include="..\OWSData\OWSData.csproj" />
+    	<ProjectReference Include="..\OWSShared\OWSShared.csproj" />
+
+    </ItemGroup>
+
+	<ItemGroup>
+		<Protobuf Include="..\OWSData\Protos\Party.proto"  ProtoCompile="False" GrpcServices="Service" Link="Protos\Party.proto" />
+	</ItemGroup>
+
+	<Target Name="DockerComposeOverrideWindows" BeforeTargets="PreBuildEvent" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+		<ItemGroup>
+			<DockerComposeOverrideFile Include="$(SolutionDir)\docker-compose.override.windows.yml" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(DockerComposeOverrideFile)" DestinationFiles="$(SolutionDir)\docker-compose.override.yml" SkipUnchangedFiles="true" />
+	</Target>
+
+	<Target Name="DockerComposeOverrideOSX" BeforeTargets="PreBuildEvent" Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+		<ItemGroup>
+			<DockerComposeOverrideFile Include="$(SolutionDir)\docker-compose.override.osx.yml" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(DockerComposeOverrideFile)" DestinationFiles="$(SolutionDir)\docker-compose.override.yml" SkipUnchangedFiles="true" />
+	</Target>
+
+	<Target Name="DockerComposeOverrideLinux" BeforeTargets="PreBuildEvent" Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+		<ItemGroup>
+			<DockerComposeOverrideFile Include="$(SolutionDir)\docker-compose.override.linux.yml" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(DockerComposeOverrideFile)" DestinationFiles="$(SolutionDir)\docker-compose.override.yml" SkipUnchangedFiles="true" />
+	</Target>
+
+</Project>

@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package Party;
+option csharp_namespace = "PartyServiceApp.Protos";
+
+import "google/protobuf/empty.proto";
+	
+enum PartyAction 
+{
+  MESSAGE_TYPE_ASK = 0;
+  MESSAGE_TYPE_CREATE = 1;
+  MESSAGE_TYPE_ADD = 2;
+  MESSAGE_TYPE_MAKE_LEAD = 3;
+  MESSAGE_TYPE_KICK = 4;
+  MESSAGE_TYPE_LEAVE = 5;
+  MESSAGE_TYPE_RAID = 6;
+  MESSAGE_TYPE_LOOT = 7;
+  MESSAGE_TYPE_DISMISS = 8;
+}
+
+message PartyRegister
+{
+	string customer_guid = 1;
+	string user_id = 2;
+	string user_name = 3;
+}
+
+message PartyInfo
+{
+	string party_guid = 1;
+	bool raiding_party = 2;
+}
+
+message PartyMemberInfo
+{
+	string char_guid = 1;
+	string char_name = 2;
+	bool party_leader = 3;
+}
+
+
+//Client Messages:
+message PartyToSend
+{
+	string customer_guid = 1;
+	PartyAction party_action = 2;
+	PartyInfo party_info = 3;
+	repeated PartyMemberInfo party_members = 4;
+}
+
+service PartyApp
+{
+	rpc RegisterParty(PartyRegister) returns (stream PartyToSend);
+	rpc SendPartyMsg (PartyToSend) returns (google.protobuf.Empty);
+}
+
+

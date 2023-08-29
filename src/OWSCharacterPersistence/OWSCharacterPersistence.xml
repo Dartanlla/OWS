@@ -270,6 +270,30 @@
             This is the name of the character to get Custom Data fields for.
             </remarks>
         </member>
+        <member name="T:OWSCharacterPersistence.Requests.Characters.GetQuestsFromDatabaseRequest">
+            <summary>
+            GetByNameRequest Handler
+            </summary>
+            <remarks>
+            Handles api/Characters/GetByName requests.
+            </remarks>
+        </member>
+        <member name="M:OWSCharacterPersistence.Requests.Characters.GetQuestsFromDatabaseRequest.SetData(OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            Constructor for GetByNameRequest
+            </summary>
+            <remarks>
+            Injects the dependencies for the GetByNameRequest.
+            </remarks>
+        </member>
+        <member name="M:OWSCharacterPersistence.Requests.Characters.GetQuestsFromDatabaseRequest.Handle">
+            <summary>
+            Handles the GetByNameRequest
+            </summary>
+            <remarks>
+            Overrides IRequestHandler Handle().
+            </remarks>
+        </member>
         <member name="T:OWSCharacterPersistence.Requests.Statuses.GetCharacterStatusesRequest">
             <summary>
             GetCharacterStatusesRequest
