@@ -7,7 +7,6 @@
 //#include "OWSAPIStructs.h"
 #include "OWSCharacterWithAbilities.h"
 #include "OWSPlayerState.h"
-#include "OWSReplicationGraph.h"
 #include "OWSPlayerControllerComponent.h"
 #include "OWSPlayerController.generated.h"
 
@@ -88,9 +87,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Player State")
 		AOWSPlayerState* GetOWSPlayerState() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Replication")
-		UOWSReplicationGraph* GetReplicationGraph() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Travel")
 		void TravelToMap(const FString& URL, const bool SeamlessTravel);

@@ -384,11 +384,6 @@ AOWSPlayerState* AOWSPlayerController::GetOWSPlayerState() const
 	return GetPlayerState<AOWSPlayerState>();
 }
 
-UOWSReplicationGraph* AOWSPlayerController::GetReplicationGraph() const
-{
-	return CastChecked<UOWSReplicationGraph>(GetNetDriver()->GetReplicationDriver());
-}
-
 bool AOWSPlayerController::InputAxis(FKey Key, float Delta, float DeltaTime, int32 NumSamples, bool bGamepad)
 {
 	bool bResult = false;
