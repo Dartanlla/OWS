@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "OWSPlugin.h"
 #include "GameFramework/Actor.h"
 #include "Runtime/Engine/Classes/Components/SphereComponent.h"
 #include "OWSProjectileMovementComponent.h"
