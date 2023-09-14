@@ -5,22 +5,12 @@
 #include "GameFramework/PlayerController.h"
 #include "Runtime/Online/HTTP/Public/Http.h"
 //#include "OWSAPIStructs.h"
-#include "OWSCharacterWithAbilities.h"
+//#include "OWSCharacterWithAbilities.h"
 #include "OWSPlayerState.h"
 #include "OWSPlayerControllerComponent.h"
 #include "OWSPlayerController.generated.h"
 
-
-
-
-
-
-
-
-
-
-
-
+class AOWSCharacterWithAbilities;
 
 /**
  * 

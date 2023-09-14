@@ -2,6 +2,7 @@
 
 #include "OWSCharacterWithAbilities.h"
 #include "OWSPlugin.h"
+#include "OWSAdvancedProjectile.h"
 #include "EngineUtils.h"
 #include "Net/UnrealNetwork.h"
 #include "Runtime/Online/HTTP/Public/Http.h"
@@ -14,8 +15,6 @@
 #include "OWSAttributeSet.h"
 //#include "OWSGameplayAbility.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerState.h"
-
-class AOWSAdvancedProjectile;
 
 #define CONSTRUCT_CLASS(Class, Name) Class* Name = NewObject<Class>(GetTransientPackage(), FName(TEXT(#Name)))
 
