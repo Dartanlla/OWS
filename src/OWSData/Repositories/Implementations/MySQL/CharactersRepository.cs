@@ -51,7 +51,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                 if (outputCharacter.CharacterId > 0)
                 {
                     parameters.Add("@CharacterID", outputCharacter.CharacterId);
-                    parameters.Add("@ZoneName", outputZone.ZoneName);
+                    parameters.Add("@ZoneNameTag", outputZone.ZoneNameTag);
 
                     await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
                         parameters,
@@ -175,6 +175,11 @@ namespace OWSData.Repositories.Implementations.MySQL
             }
         }
 
+        public async Task<CharacterSaveData> GetSaveDataByCharName(Guid customerGUID, string characterName)
+        {
+            return new CharacterSaveData();
+        }
+
         public async Task<IEnumerable<GetCharStatsByCharName>> GetCharStatsByCharName(Guid customerGUID, string characterName)
         {
             IEnumerable<GetCharStatsByCharName> outputCharacter;
@@ -289,7 +294,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@CharName", characterName);
-                parameters.Add("@ZoneName", zoneName);
+                parameters.Add("@ZoneNameTag", zoneName);
                 parameters.Add("@PlayerGroupType", playerGroupType);
 
                 Maps outputMap = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetMapByZoneName,
@@ -401,7 +406,7 @@ namespace OWSData.Repositories.Implementations.MySQL
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
-                parameters.Add("@ZoneName", zoneName);
+                parameters.Add("@ZoneNameTag", zoneName);
                 parameters.Add("@PlayerGroupId", playerGroupId);
 
                 List<WorldServers> outputWorldServers = (List<WorldServers>)await Connection.QueryAsync<WorldServers>(GenericQueries.GetActiveWorldServersByLoad,

@@ -27,13 +27,12 @@ namespace OWSCharacterPersistence.Controllers
         }
 
         [HttpPost]
-        [Route("AddOrUpdateCustomData")]
-        public async Task AddOrUpdateCustomData([FromBody] AddOrUpdateCustomDataRequest request)
+        [Route("GetSaveDataByName")]
+        [Produces(typeof(CharacterSaveData))]
+        public async Task<IActionResult> GetSaveDataByName([FromBody] GetSaveDataByNameRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
-            await request.Handle();
-
-            return;
+            return await request.Handle();
         }
 
         [HttpPost]
@@ -73,18 +72,18 @@ namespace OWSCharacterPersistence.Controllers
         }
 
         [HttpPost]
-        [Route("GetCustomData")]
-        [Produces(typeof(CustomCharacterDataRows))]
-        public async Task<CustomCharacterDataRows> GetCustomData([FromBody] GetCustomDataRequest request)
+        [Route("UpdateAllPlayerPositions")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<SuccessAndErrorMessage> UpdateAllPlayerPositions([FromBody] UpdateAllPlayerPositionsRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();
         }
 
         [HttpPost]
-        [Route("UpdateAllPlayerPositions")]
+        [Route("UpdateCharacterData")]
         [Produces(typeof(SuccessAndErrorMessage))]
-        public async Task<SuccessAndErrorMessage> UpdateAllPlayerPositions([FromBody] UpdateAllPlayerPositionsRequest request)
+        public async Task<SuccessAndErrorMessage> UpdateCharacterData([FromBody] UpdateCharacterDataRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();

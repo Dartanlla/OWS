@@ -30,6 +30,7 @@ namespace OWSData.Models.StoredProcs
         public int CharacterID { get; set; }
         public string CharName { get; set; }
         public string ZoneName { get; set; }
+        public string ZoneNameTag { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }

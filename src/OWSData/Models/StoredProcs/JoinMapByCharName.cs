@@ -25,6 +25,7 @@ namespace OWSData.Models.StoredProcs
         public bool NeedToStartupMap { get; set; }
         public bool EnableAutoLoopback { get; set; }
         public bool NoPortForwarding { get; set; }
+        public string ZoneNameTag { get; set; }
         public bool Success { get; set; }
         public string ErrorMessage { get; set; }
     }

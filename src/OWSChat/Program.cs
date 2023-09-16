@@ -1,13 +1,21 @@
+using Grpc.AspNetCore.Server;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using OWSChat;
 using OWSChat.Service;
 using OWSShared.Implementations;
+using OWSShared.Interfaces;
+using OWSShared.Middleware;
 using ProtoBuf.Grpc.Server;
+using SimpleInjector;
+using System;
 using System.IO;
+
+SimpleInjector.Container container = new SimpleInjector.Container();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +25,7 @@ builder.Configuration
     .Build();
 
 builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo("./temp/DataProtection-Keys"));
+
 builder.Services.AddMemoryCache();
 
 builder.Services.AddHttpContextAccessor();
@@ -33,6 +42,16 @@ builder.Services.AddMvcCore(config =>
 
 // Add services to the container.
 builder.Services.AddCodeFirstGrpc();
+builder.Services.AddSingleton(typeof(IGrpcServiceActivator<>),
+            typeof(GrpcSimpleInjectorActivator<>));
+
+builder.Services.AddSimpleInjector(container, options =>
+{
+    options.AddAspNetCore()
+        .AddControllerActivation()
+        .AddViewComponentActivation();
+
+});
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -53,7 +72,17 @@ builder.Services.AddSwaggerGen(c =>
     c.IncludeXmlComments(filePath);
 });
 
+container.Register<ChatService>();
+
+container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
+
 var app = builder.Build();
+
+container.RegisterInstance<IServiceProvider>(app.Services);
+
+app.Services.UseSimpleInjector(container);
+
+app.UseMiddleware<StoreCustomerGUIDMiddleware>(container);
 
 if (app.Environment.IsDevelopment())
 {
@@ -82,5 +111,7 @@ app.UseSwaggerUI(c =>
 // Configure the HTTP request pipeline.
 app.MapGrpcService<ChatService>();
 app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+
+container.Verify();
 
 app.Run();

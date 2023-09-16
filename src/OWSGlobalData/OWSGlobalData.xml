@@ -4,22 +4,6 @@
         <name>OWSGlobalData</name>
     </assembly>
     <members>
-        <member name="M:OWSGlobalData.Controllers.GlobalDataController.AddOrUpdateGlobalDataItem(OWSGlobalData.DTOs.AddOrUpdateGlobalDataItemDTO)">
-            <summary>
-            Add an item to Global Data
-            </summary>
-            <remarks>
-            Adds or updates a key/value pair to the Global Data system.
-            </remarks>
-        </member>
-        <member name="M:OWSGlobalData.Controllers.GlobalDataController.GetGlobalDataItem(System.String)">
-            <summary>
-            Gets an item from Global Data
-            </summary>
-            <remarks>
-            Gets an item from the Global Data system by looking it up based on globalDataKey
-            </remarks>
-        </member>
         <member name="T:OWSGlobalData.Controllers.SystemController">
             <summary>
             Public System API calls.

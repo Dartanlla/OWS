@@ -218,9 +218,9 @@ namespace OWSData.Repositories.Implementations.MySQL
             {
                 var p = new DynamicParameters();
                 p.Add("@CustomerGUID", customerGUID);
-                p.Add("@ZoneName", ZoneName);
+                p.Add("@ZoneNameTag", ZoneName);
 
-                output = await Connection.QueryAsync<GetZoneInstancesForZone>("call GetZoneInstancesOfZone(@CustomerGUID,@ZoneName)",
+                output = await Connection.QueryAsync<GetZoneInstancesForZone>("call GetZoneInstancesOfZone(@CustomerGUID,@ZoneNameTag)",
                     p,
                     commandType: CommandType.Text);
             }
@@ -296,14 +296,14 @@ namespace OWSData.Repositories.Implementations.MySQL
                     p.Add("@MapID", 0);
                     p.Add("@MapName", mapName);
                     p.Add("@MapData", new byte[1]);
-                    p.Add("@ZoneName", zoneName);
+                    p.Add("@ZoneNameTag", zoneName);
                     p.Add("@WorldCompContainsFilter", worldCompContainsFilter);
                     p.Add("@WorldCompListFilter", worldCompListFilter);
                     p.Add("@SoftPlayerCap", softPlayerCap);
                     p.Add("@HardPlayerCap", hardPlayerCap);
                     p.Add("@MapMode", mapMode);
 
-                    await Connection.ExecuteAsync("call AddOrUpdateMapZone(@CustomerGUID,@MapID,@MapName,@MapData,@ZoneName,@WorldCompContainsFilter,@WorldCompListFilter,@SoftPlayerCap,@HardPlayerCap,@MapMode)",
+                    await Connection.ExecuteAsync("call AddOrUpdateMapZone(@CustomerGUID,@MapID,@MapName,@MapData,@ZoneNameTag,@WorldCompContainsFilter,@WorldCompListFilter,@SoftPlayerCap,@HardPlayerCap,@MapMode)",
                         p,
                         commandType: CommandType.Text);
                 }
@@ -339,14 +339,14 @@ namespace OWSData.Repositories.Implementations.MySQL
                     p.Add("@MapID", mapId);
                     p.Add("@MapName", mapName);
                     p.Add("@MapData", new byte[1]);
-                    p.Add("@ZoneName", zoneName);
+                    p.Add("@ZoneNameTag", zoneName);
                     p.Add("@WorldCompContainsFilter", worldCompContainsFilter);
                     p.Add("@WorldCompListFilter", worldCompListFilter);
                     p.Add("@SoftPlayerCap", softPlayerCap);
                     p.Add("@HardPlayerCap", hardPlayerCap);
                     p.Add("@MapMode", mapMode);
 
-                    await Connection.ExecuteAsync("call AddOrUpdateMapZone(@CustomerGUID,@MapID,@MapName,@MapData,@ZoneName,@WorldCompContainsFilter,@WorldCompListFilter,@SoftPlayerCap,@HardPlayerCap,@MapMode)",
+                    await Connection.ExecuteAsync("call AddOrUpdateMapZone(@CustomerGUID,@MapID,@MapName,@MapData,@ZoneNameTag,@WorldCompContainsFilter,@WorldCompListFilter,@SoftPlayerCap,@HardPlayerCap,@MapMode)",
                         p,
                         commandType: CommandType.Text);
                 }

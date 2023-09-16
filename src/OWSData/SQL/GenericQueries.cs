@@ -95,7 +95,9 @@ namespace OWSData.SQL
 				
         public static readonly string GetCharInventoryByCharName = @"SELECT ItemIDTag, Quantity, InSlotNumber, CustomData
 				FROM CharInventoryItems CII
-				WHERE CII.CharInventoryID = @CharInventoryID
+				INNER JOIN Characters C ON C.CharName = @CharName
+				INNER JOIN CharInventory CI ON CI.CharacterID = C.CharacterID
+				WHERE CII.CharInventoryID = CI.CharInventoryID
 				AND CII.CUstomerGUID = @CustomerGUID";
 
         public static readonly string GetCharByCharName = @"SELECT C.*, MI.Port, WS.ServerIP, CMI.MapInstanceID, COALESCE(CL.ClassName,'') AS ClassName
@@ -294,7 +296,7 @@ namespace OWSData.SQL
 				)";
 
         public static readonly string UpdateCharacterZone = @"UPDATE Characters
-				SET	MapName = @ZoneName
+				SET	MapName = @ZoneNameTag
 				WHERE CharacterID = @CharacterID
 				  AND CustomerGUID = @CustomerGUID";
 
@@ -358,9 +360,9 @@ namespace OWSData.SQL
         public static readonly string GetMapByZoneName = @"SELECT *
 				FROM Maps
 				WHERE CustomerGUID = @CustomerGUID
-				  AND ZoneName = @ZoneName";
+				  AND ZoneNameTag = @ZoneNameTag";
 
-		 public static readonly string GetZoneName = @"SELECT M.ZoneName
+		 public static readonly string GetZoneName = @"SELECT M.ZoneNameTag
 				FROM Maps M
 				INNER JOIN MapInstances MI ON MI.CustomerGUID = M.CustomerGUID
 				                          AND MI.MapID = M.MapID
