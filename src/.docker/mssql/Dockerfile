@@ -1,6 +1,9 @@
-FROM mcr.microsoft.com/mssql/server:2017-CU24-ubuntu-16.04
+FROM mcr.microsoft.com/mssql/server:2022-preview-ubuntu-22.04
+
+USER root
 
 RUN mkdir -p /user/config
+RUN mkdir -p /var/opt/mssql/data
 WORKDIR /user/config
 
 COPY . /user/config
@@ -8,6 +11,13 @@ COPY . /user/config
 RUN chmod +x /user/config/entrypoint.sh
 RUN chmod +x /user/config/initialization.sh
 
-EXPOSE 1433
+RUN groupadd --gid 1001 mssql \
+    && useradd --uid 1001 --gid 1001 -m mssqlapp
 
+RUN chown -R mssqlapp:mssql /user/config
+RUN chown -R mssqlapp:mssql /var/opt/mssql
+RUN chown -R mssqlapp:mssql /var/opt/mssql/data
+
+USER mssqlapp
+EXPOSE 1433
 ENTRYPOINT ["./entrypoint.sh"]
