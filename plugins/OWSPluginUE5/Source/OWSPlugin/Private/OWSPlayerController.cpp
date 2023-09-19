@@ -5,6 +5,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Runtime/Online/HTTP/Public/Http.h"
 #include "Net/UnrealNetwork.h"
+#include "OWSCharacterWithAbilities.h"
 #include "OWSCharacter.h"
 #include "OWSGameMode.h"
 #include "OWSGameInstance.h"

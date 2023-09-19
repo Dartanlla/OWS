@@ -2,6 +2,7 @@
 
 #include "OWSAdvancedProjectile.h"
 #include "OWSPlugin.h"
+#include "OWSCharacterWithAbilities.h"
 #include "Net/UnrealNetwork.h"
 #include "Runtime/Engine/Classes/GameFramework/Volume.h"
 #include "Runtime/Engine/Classes/Components/MeshComponent.h"
@@ -12,7 +13,6 @@
 #include "Abilities/GameplayAbilityTargetTypes.h"
 #include "AbilitySystemBlueprintLibrary.h"
 
-class AOWSCharacterWithAbilities;
 class UAbilitySystemComponent;
 class UGameplayTagsManager;
 class IAbilitySystemInterface;
