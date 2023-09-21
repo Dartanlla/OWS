@@ -12,12 +12,12 @@ RUN chmod +x /user/config/entrypoint.sh
 RUN chmod +x /user/config/initialization.sh
 
 RUN groupadd --gid 1001 mssql \
-    && useradd --uid 1001 --gid 1001 -m mssqlapp
+    && useradd --uid 1001 --gid 1001 -m mssqluser
 
-RUN chown -R mssqlapp:mssql /user/config
-RUN chown -R mssqlapp:mssql /var/opt/mssql
-RUN chown -R mssqlapp:mssql /var/opt/mssql/data
+RUN chown -R mssqluser:mssql /user/config
+RUN chown -R mssqluser:mssql /var/opt/mssql
+RUN chown -R mssqluser:mssql /var/opt/mssql/data
 
-USER mssqlapp
+USER mssqluser
 EXPOSE 1433
 ENTRYPOINT ["./entrypoint.sh"]

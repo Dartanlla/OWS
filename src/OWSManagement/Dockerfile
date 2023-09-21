@@ -1,15 +1,11 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-# FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS base
-RUN addgroup -S dotnet && adduser -S dotnet -G dotnet \
-    && apk add --no-cache dumb-init
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-# FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["OWSManagement/OWSManagement.csproj", "OWSManagement/"]
 COPY ["OWSShared/OWSShared.csproj", "OWSShared/"]
@@ -32,6 +28,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 COPY --from=build-node /wwwroot/dist ./wwwroot/dist
-USER dotnet
-# ENTRYPOINT ["dotnet", "OWSManagement.dll"]
-CMD ["dumb-init", "dotnet", "OWSManagement.dll"]
+ENTRYPOINT ["dotnet", "OWSManagement.dll"]
