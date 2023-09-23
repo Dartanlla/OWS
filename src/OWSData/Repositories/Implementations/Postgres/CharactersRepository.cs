@@ -51,7 +51,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 if (outputCharacter.CharacterId > 0)
                 {
                     parameters.Add("@CharacterID", outputCharacter.CharacterId);
-                    parameters.Add("@ZoneName", outputZone.ZoneName);
+                    parameters.Add("@ZoneNameTag", outputZone.ZoneNameTag);
 
                     await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
                         parameters,
@@ -173,6 +173,11 @@ namespace OWSData.Repositories.Implementations.Postgres
                 transaction.Rollback();
                 throw new Exception("Database Exception in CleanUpInstances!");
             }
+        }
+
+        public async Task<CharacterSaveData> GetSaveDataByCharName(Guid customerGUID, string characterName)
+        {
+            return new CharacterSaveData();
         }
 
         public async Task<IEnumerable<GetCharStatsByCharName>> GetCharStatsByCharName(Guid customerGUID, string characterName)
@@ -399,7 +404,7 @@ namespace OWSData.Repositories.Implementations.Postgres
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
-                parameters.Add("@ZoneName", zoneName);
+                parameters.Add("@ZoneNameTag", zoneName);
                 parameters.Add("@PlayerGroupId", playerGroupId);
 
                 List<WorldServers> outputWorldServers = (List<WorldServers>)await Connection.QueryAsync<WorldServers>(GenericQueries.GetActiveWorldServersByLoad,

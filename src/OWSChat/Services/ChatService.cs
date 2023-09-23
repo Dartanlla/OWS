@@ -10,16 +10,22 @@ using System.ServiceModel.Channels;
 using ChatServiceApp.Protos;
 using static System.Net.Mime.MediaTypeNames;
 using OWSData.Models.Tables;
+using OWSData.Repositories.Interfaces;
+using OWSShared.Interfaces;
 
 namespace OWSChat.Service
 {
     public class ChatService : ChatApp.ChatAppBase
     {
-        private readonly ILogger<ChatService> _logger;
-
+        
         public static List<ClientInfo> _clients = new List<ClientInfo>();
 
-        public ChatService(ILogger<ChatService> logger) => _logger = logger;
+        private readonly IHeaderCustomerGUID _customerGuid;
+
+        public ChatService(IHeaderCustomerGUID customerGuid)
+        {
+            _customerGuid = customerGuid;
+        }
 
         public override Task RegisterMsg(LoggingMessage request, IServerStreamWriter<ServerMessage> responseStream, ServerCallContext context)
         {

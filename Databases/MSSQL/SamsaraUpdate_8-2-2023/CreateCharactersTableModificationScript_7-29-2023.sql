@@ -81,6 +81,7 @@ CREATE TABLE [dbo].[Characters](
 	[CustomerGUID] [uniqueidentifier] NOT NULL,
 	[CharacterID] [int] IDENTITY(1,1) NOT NULL,
 	[UserGUID] [uniqueidentifier] NULL,
+	[CharGuid] [uniqueidentifier] NULL,
 	[CharName] [nvarchar](50) NOT NULL,
 	[MapName] [varchar](50) NULL,
 	[X] [float] NOT NULL,

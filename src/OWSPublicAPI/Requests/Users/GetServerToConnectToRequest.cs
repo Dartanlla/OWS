@@ -42,7 +42,7 @@ namespace OWSPublicAPI.Requests.Users
         {
             Output = new JoinMapByCharName();
 
-            //If ZoneName is empty, look it up from the character.  This is used for the inital login.
+            //If ZoneName is empty, look it up from the character.  This is used for the initial login.
             if (String.IsNullOrEmpty(ZoneName) || ZoneName == "GETLASTZONENAME")
             {
                 GetCharByCharName character = await charactersRepository.GetCharByCharName(CustomerGUID, CharacterName);

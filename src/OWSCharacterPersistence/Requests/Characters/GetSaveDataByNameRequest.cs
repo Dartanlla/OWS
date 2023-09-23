@@ -1,5 +1,6 @@
-﻿using OWSData.Models.Composites;
-using OWSData.Models.Tables;
+﻿using Microsoft.AspNetCore.Mvc;
+using OWSData.Models.Composites;
+using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 using System;
@@ -7,18 +8,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace OWSCharacterPersistence.Requests.Abilities
+namespace OWSCharacterPersistence.Requests.Characters
 {
-    /// <summary>
-    /// Get Abilities
-    /// </summary>
-    /// <remarks>
-    /// Gets a List of all Abilities
-    /// </remarks>
-    public class GetAbilitiesRequest
+    public class GetSaveDataByNameRequest
     {
+        public string CharacterName { get; set; }
 
-        private IEnumerable<OWSData.Models.Tables.Abilities> output;
+        private CharacterSaveData output;
+       
         private Guid customerGUID;
         private ICharactersRepository charactersRepository;
 
@@ -28,11 +25,11 @@ namespace OWSCharacterPersistence.Requests.Abilities
             customerGUID = customerGuid.CustomerGUID;
         }
 
-        public async Task<IEnumerable<OWSData.Models.Tables.Abilities>> Handle()
+        public async Task<IActionResult> Handle()
         {
-            output = await charactersRepository.GetAbilities(customerGUID);
+            output = await charactersRepository.GetSaveDataByCharName(customerGUID, CharacterName);
 
-            return output;
+            return new OkObjectResult(output);
         }
     }
 }

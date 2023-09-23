@@ -48,4 +48,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Requests\Abilities\" />
+    <Folder Include="Requests\Status\" />
+  </ItemGroup>
+
 </Project>

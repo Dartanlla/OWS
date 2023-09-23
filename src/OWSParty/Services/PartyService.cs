@@ -52,7 +52,7 @@ namespace OWSParty.Service
 
             PartyToSend partyInformation = await getInitalPartySettings.Handle();
 
-            if(partyInformation != null && partyInformation != default)
+            if(partyInformation != null && partyInformation != default && partyInformation.PartyMembers.Count != 0)
             {
                 await responseStream.WriteAsync(partyInformation);
             }

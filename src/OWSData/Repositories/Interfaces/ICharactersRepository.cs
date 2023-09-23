@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
 using OWSData.Models.Tables;
 using PartyServiceApp.Protos;
@@ -14,6 +15,7 @@ namespace OWSData.Repositories.Interfaces
         Task AddOrUpdateCustomCharacterData(Guid customerGUID, AddOrUpdateCustomCharacterData addOrUpdateCustomCharacterData);
         Task<MapInstances> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID);
         Task CleanUpInstances(Guid customerGUID);
+        Task<CharacterSaveData> GetSaveDataByCharName(Guid customerGUID, string characterName);
         Task<IEnumerable<GetCharStatsByCharName>> GetCharStatsByCharName(Guid customerGUID, string characterName);
         Task<IEnumerable<GetCharQuestsByCharName>> GetCharQuetsByCharName(Guid customerGUID, string characterName);
         Task<IEnumerable<GetCharInventoryByCharName>> GetCharInventoryByCharName(Guid customerGUID, string characterName);

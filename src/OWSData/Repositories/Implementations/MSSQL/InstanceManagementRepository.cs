@@ -217,27 +217,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             return output;
 
-            /*
-            using (Connection)
-            {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@IP", serverIP);
-                p.Add("@Port", port);
-                p.Add("@NumberOfReportedPlayers", numberOfPlayers);
-
-                await Connection.ExecuteAsync("UpdateNumberOfPlayers",
-                    p,
-                    commandType: CommandType.StoredProcedure);
-            }
-
-            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
-            {
-                Success = true,
-                ErrorMessage = ""
-            };
-
-            return output;*/
+           
         }
 
         public async Task<IEnumerable<GetZoneInstancesForZone>> GetZoneInstancesOfZone(Guid customerGUID, string ZoneName)
@@ -248,7 +228,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
             {
                 var p = new DynamicParameters();
                 p.Add("@CustomerGUID", customerGUID);
-                p.Add("@ZoneName", ZoneName);
+                p.Add("@ZoneNameTag", ZoneName);
 
                 output = await Connection.QueryAsync<GetZoneInstancesForZone>("GetZoneInstancesOfZone",
                     p,
@@ -326,7 +306,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     p.Add("@MapID", 0);
                     p.Add("@MapName", mapName);
                     p.Add("@MapData", new byte[1]);
-                    p.Add("@ZoneName", zoneName);
+                    p.Add("@ZoneNameTag", zoneName);
                     p.Add("@WorldCompContainsFilter", worldCompContainsFilter);
                     p.Add("@WorldCompListFilter", worldCompListFilter);
                     p.Add("@SoftPlayerCap", softPlayerCap);
@@ -369,7 +349,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     p.Add("@MapID", mapId);
                     p.Add("@MapName", mapName);
                     p.Add("@MapData", new byte[1]);
-                    p.Add("@ZoneName", zoneName);
+                    p.Add("@ZoneNameTag", zoneName);
                     p.Add("@WorldCompContainsFilter", worldCompContainsFilter);
                     p.Add("@WorldCompListFilter", worldCompListFilter);
                     p.Add("@SoftPlayerCap", softPlayerCap);
