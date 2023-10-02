@@ -10,11 +10,15 @@ namespace OWSData.Models.Composites
         public bool Success { get; set; }
         public string ErrorMessage { get; set; }
 
+        public string CharGuid { get; set; }
+
         public IEnumerable<CharacterStat> CharStats { get; set; }
 
         public IEnumerable<CharacterQuest> CharQuests { get; set; }
 
         public IEnumerable<CharacterInventory> CharInventory { get; set; }
+
+        public IEnumerable<CharacterCurrency> CharCurrency { get; set; }
     }
 
 
@@ -39,5 +43,10 @@ namespace OWSData.Models.Composites
         public int Quantity { get; set; }
         public int InSlotNumber { get; set; }
         public string CustomData { get; set; }
+    }
+
+    public class CharacterCurrency
+    {
+
     }
 }

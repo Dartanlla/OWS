@@ -71,6 +71,11 @@ namespace OWSData.SQL
 				WHERE CustomerGUID = @CustomerGUID
 				  AND CharName = @CharName";
 
+        public static readonly string GetCharGuidByCharName = @"SELECT Convert(varchar(50), C.CharGuid) as CharGuid
+				FROM Characters C 
+				WHERE C.CharName = @CharName
+				AND C.CustomerGUID = @CustomerGUID";
+
         public static readonly string GetCharStatsByCharName = @"SELECT CS.*
 				FROM Characters C INNER JOIN CharStats CS
 				ON C.CharName = @CharName
@@ -93,7 +98,7 @@ namespace OWSData.SQL
 				WHERE CI.CharacterID = C.CharacterID
 				AND CI.CustomerGUID = @CustomerGUID";
 				
-        public static readonly string GetCharInventoryByCharName = @"SELECT ItemIDTag, Quantity, InSlotNumber, CustomData
+        public static readonly string GetCharInventoryByCharName = @"SELECT CII.ItemIDTag, CII.Quantity, CII.InSlotNumber, CII.CustomData
 				FROM CharInventoryItems CII
 				INNER JOIN Characters C ON C.CharName = @CharName
 				INNER JOIN CharInventory CI ON CI.CharacterID = C.CharacterID
@@ -155,11 +160,11 @@ namespace OWSData.SQL
 				WHERE CCD.CustomerGUID = @CustomerGUID
 				  AND C.CharName = @CharName";
 
-	    public static readonly string GetPlayerGroupIDByType = @"SELECT COALESCE(PG.PlayerGroupID, 0)
-				FROM PlayerGroupCharacters PGC
-				INNER JOIN PlayerGroup PG ON PG.PlayerGroupID = PGC.PlayerGroupID
-				WHERE PGC.CustomerGUID = @CustomerGUID
-				  AND PGC.CharacterID = @CharacterID
+	    public static readonly string GetPlayerGroupIDByType = @"SELECT PG.PlayerGroupID
+				FROM PlayerGroupMember PGM
+				INNER JOIN PlayerGroup PG ON PG.PlayerGroupID = PGM.PlayerGroupID
+				WHERE PGM.CustomerGUID = @CustomerGUID
+				  AND PGM.CharacterID = @CharacterID
 				  AND PG.PlayerGroupTypeID = @PlayerGroupType";
 
 		public static readonly string GetUsers = @"SELECT UserGUID, FirstName, LastName, Email, CreateDate, LastAccess, Role
@@ -384,6 +389,11 @@ namespace OWSData.SQL
 				INNER JOIN Characters C ON C.CharacterID = PM.CharacterID 
 				AND C.CharName = @CharName
 				WHERE PM.CustomerGUID = @CustomerGUID";
+
+        public static readonly string GetGuildId = @"SELECT GM.GuildID FROM GuildMember GM
+				INNER JOIN Characters C ON C.CharacterID = GM.CharacterID 
+				AND C.CharName = @CharName
+				WHERE GM.CustomerGUID = @CustomerGUID";
 
         #endregion
 

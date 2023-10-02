@@ -64,7 +64,7 @@ namespace OWSPublicAPI.Requests.Users
                 return new OkObjectResult(Output);
             }
 
-            JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharName(CustomerGUID, CharacterName, ZoneName, PlayerGroupType);
+            JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharName(CustomerGUID, CharacterName, ZoneName);
 
             bool readyForPlayersToConnect = false;
 

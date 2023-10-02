@@ -18,5 +18,6 @@ namespace OWSData.Models.Tables
         public int MapMode { get; set; }
         public int SoftPlayerCap { get; set; }
         public int HardPlayerCap { get; set; }
+        public int PlayerGroupType { get; set; }
     }
 }

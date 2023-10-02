@@ -12,6 +12,7 @@ using OWSParty.Requests.Party;
 using OWSData.Models.StoredProcs;
 using MySqlX.XDevAPI;
 using System.Linq;
+using OWSData.Models.Tables;
 
 namespace OWSParty.Service
 {
@@ -65,9 +66,19 @@ namespace OWSParty.Service
 
         public override async Task<Empty> SendPartyMsg(PartyToSend request, ServerCallContext context)
         {
-            switch(request.PartyAction)
+            ClientInfo client = null;
+            List<Task> PartyTasks = new List<Task>();
+            switch (request.PartyAction)
             {
                 case PartyAction.MessageTypeAsk:
+
+                    client = _partyClients.Find(client => client.UserName == request.PartyMembers[1].CharName);
+                    if (client == null || client == default)
+                    {
+                        break;
+                    }
+                    PartyTasks.Add(client.serverStreamWriter.WriteAsync(request));
+                    await Task.WhenAll(PartyTasks);
                     break;
                 case PartyAction.MessageTypeCreate:
                 case PartyAction.MessageTypeAdd:
@@ -77,17 +88,16 @@ namespace OWSParty.Service
 
                     PartyToSend partyInformation = await createPartyOrAddMemberRequest.Handle();
 
-                    var createPartyTasks = new List<Task>();
                     foreach (var partyMember in partyInformation.PartyMembers)
                     {
-                        ClientInfo client = _partyClients.Find(client => client.UserName == partyMember.CharName);
+                        client = _partyClients.Find(client => client.UserName == partyMember.CharName);
                         if(client == null || client == default)
                         {
                             continue;
                         }
-                        createPartyTasks.Add(client.serverStreamWriter.WriteAsync(partyInformation));
+                        PartyTasks.Add(client.serverStreamWriter.WriteAsync(partyInformation));
                     }
-                    await Task.WhenAll(createPartyTasks);
+                    await Task.WhenAll(PartyTasks);
                     break;
                 case PartyAction.MessageTypeKick:
                 case PartyAction.MessageTypeLeave:
@@ -101,29 +111,28 @@ namespace OWSParty.Service
                         break;
                     }
 
-                    var leavePartyTasks = new List<Task>();
                     PartyToSend LeaveParty = new PartyToSend();
                     LeaveParty.PartyAction = request.PartyAction;
                     foreach (var partyMember in request.PartyMembers)
                     {
-                        ClientInfo client = _partyClients.Find(client => client.UserName == partyMember.CharName);
+                        client = _partyClients.Find(client => client.UserName == partyMember.CharName);
                         if (client == null || client == default)
                         {
                             continue;
                         }
-                        leavePartyTasks.Add(client.serverStreamWriter.WriteAsync(LeaveParty));
+                        PartyTasks.Add(client.serverStreamWriter.WriteAsync(LeaveParty));
                     }
 
                     foreach (var partyMember in Party.PartyMembers)
                     {
-                        ClientInfo client = _partyClients.Find(client => client.UserName == partyMember.CharName);
+                        client = _partyClients.Find(client => client.UserName == partyMember.CharName);
                         if (client == null || client == default)
                         {
                             continue;
                         }
-                        leavePartyTasks.Add(client.serverStreamWriter.WriteAsync(Party));
+                        PartyTasks.Add(client.serverStreamWriter.WriteAsync(Party));
                     }
-                    await Task.WhenAll(leavePartyTasks);
+                    await Task.WhenAll(PartyTasks);
                     break;
 
                 case PartyAction.MessageTypeMakeLead:
@@ -133,17 +142,16 @@ namespace OWSParty.Service
                     
                     PartyToSend PartyLeaderChanged = await changePartyLeaderRequest.Handle();
 
-                    var makePartyLeaderTasks = new List<Task>();
                     foreach (var partyMember in PartyLeaderChanged.PartyMembers)
                     {
-                        ClientInfo client = _partyClients.Find(client => client.UserName == partyMember.CharName);
+                        client = _partyClients.Find(client => client.UserName == partyMember.CharName);
                         if (client == null || client == default)
                         {
                             continue;
                         }
-                        makePartyLeaderTasks.Add(client.serverStreamWriter.WriteAsync(PartyLeaderChanged));
+                        PartyTasks.Add(client.serverStreamWriter.WriteAsync(PartyLeaderChanged));
                     }
-                    await Task.WhenAll(makePartyLeaderTasks);
+                    await Task.WhenAll(PartyTasks);
                     break;
                 case PartyAction.MessageTypeRaid:
                     break;

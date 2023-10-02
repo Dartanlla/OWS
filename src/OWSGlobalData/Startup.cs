@@ -132,12 +132,6 @@ namespace OWSGlobalData
 
                 switch (dbBackend)
                 {
-                    case "postgres":
-                        container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.Postgres.GlobalDataRepository>(Lifestyle.Scoped);
-                        break;
-                    case "mysql":
-                        container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.MySQL.GlobalDataRepository>(Lifestyle.Scoped);
-                        break;
                     default: // Default to MSSQL
                         container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.MSSQL.GlobalDataRepository>(Lifestyle.Scoped);
                         break;

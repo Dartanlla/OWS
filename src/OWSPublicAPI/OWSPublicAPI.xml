@@ -97,19 +97,9 @@
             Users may have zero or more Characters.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.GetPlayerGroupsCharacterIsIn(OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest)">
-            <summary>
-            Gets a list of Player Groups that a Character is in.
-            </summary>
-            <remarks>
-            Send a UserSessionGUID, a Character's CharacterName, and a PlayerGroupTypeID to get a list of groups the player is in.  Set the PlayerGroupTypeID parameter to zero to remove the Player Group Type filter.
-            Player Groups are persistent across player sessions and can be used to manage Party groups, Raid groups, Guilds, etc.
-            See the PlayerGroupTypes table for a list of Player Group Types.
-            </remarks>
-        </member>
         <member name="M:OWSPublicAPI.Controllers.UsersController.GetServerToConnectTo(OWSPublicAPI.Requests.Users.GetServerToConnectToRequest)">
             <summary>
-            Gets the server to connect to for a specific character or zonename.
+            Gets the server to connect to for a specific character or zone name.
             </summary>
             <remarks>
             Get the Zone Server to travel to based on the User referenced by the UserSessionGUID.  Prior to calling this API, you MUST set the Selected Character to connect with using the UserSessionSetSelectedCharacter API for the UserSessionGUID passed into this API.
@@ -447,54 +437,6 @@
             </remarks>
         </member>
         <member name="M:OWSPublicAPI.Requests.Users.GetAllCharactersRequest.Handle">
-            <summary>
-            Handle
-            </summary>
-            <remarks>
-            This handles the Request.
-            </remarks>
-        </member>
-        <member name="T:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest">
-            <summary>
-            GetPlayerGroupsCharacterIsInRequest
-            </summary>
-            <remarks>
-            This request object handles requests for api/Users/GetPlayerGroupsCharacterIsIn
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.UserSessionGUID">
-            <summary>
-            UserSessionGUID
-            </summary>
-            <remarks>
-            This is the User Session GUID to determine the User to get Player Groups for.
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.CharacterName">
-            <summary>
-            CharacterName
-            </summary>
-            <remarks>
-            CharacterName filters the list of Player Groups to only return for this CharacterName.
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.PlayerGroupTypeID">
-            <summary>
-            PlayerGroupTypeID
-            </summary>
-            <remarks>
-            PlayerGroupTypeID filters the list of Player Groups to only return for this PlayerGroupTypeID.  Set this parameter to zero to remove the Player Group Type filter.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.SetData(OWSData.Repositories.Interfaces.IUsersRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
-            <summary>
-            SetData
-            </summary>
-            <remarks>
-            Used to pass dependencies to the Request object (for performance reasons).
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.Handle">
             <summary>
             Handle
             </summary>

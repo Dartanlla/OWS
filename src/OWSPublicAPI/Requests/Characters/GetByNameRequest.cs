@@ -76,37 +76,6 @@ namespace OWSPublicAPI.Requests.Characters
             //Assign the character data to the output object
             Output.CharacterData = characterData;
 
-            //Get custom character data
-            IEnumerable<CustomCharacterData> customCharacterDataItems = await _charactersRepository.GetCustomCharacterData(_customerGUID, _getByNameDTO.CharacterName);
-
-            //Initialize the list
-            Output.CustomCharacterDataRows = new List<CustomCharacterDataDTO>();
-
-            //Loop through all the CustomCharacterData rows
-            foreach (CustomCharacterData currentCustomCharacterData in customCharacterDataItems)
-            {
-                //Use the ICustomCharacterDataSelector implementation to filter which fields are returned
-                if (_customCharacterDataSelector.ShouldExportThisCustomCharacterDataField(currentCustomCharacterData.CustomFieldName))
-                {
-                    CustomCharacterDataDTO customCharacterDataDTO = new CustomCharacterDataDTO()
-                    {
-                        CustomFieldName = currentCustomCharacterData.CustomFieldName,
-                        FieldValue = currentCustomCharacterData.FieldValue
-                    };
-
-                    //Add the filtered Custom Character Data
-                    Output.CustomCharacterDataRows.Add(customCharacterDataDTO);
-                }
-            }
-
-            //Add Read-only Character Data
-            CustomCharacterDataDTO readOnlyCharacterData = new CustomCharacterDataDTO()
-            {
-                CustomFieldName = "ReadOnlyCharacterData",
-                FieldValue = await _getReadOnlyPublicCharacterData.GetReadOnlyPublicCharacterData(characterData.CharacterId)
-            };
-            Output.CustomCharacterDataRows.Add(readOnlyCharacterData);
-
             return new OkObjectResult(Output);
         }
     }

@@ -138,25 +138,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
         }
 
         //_PlayerGroupTypeID 0 returns all group types
-        public async Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid customerGUID, Guid userSessionGUID, string characterName, int playerGroupTypeID = 0)
-        {
-            IEnumerable<GetPlayerGroupsCharacterIsIn> outputObject;
-
-            using (Connection)
-            {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
-                p.Add("@UserSessionGUID", userSessionGUID);
-                p.Add("@PlayerGroupTypeID", playerGroupTypeID);
-
-                outputObject = await Connection.QueryAsync<GetPlayerGroupsCharacterIsIn>("GetPlayerGroupsCharacterIsIn",
-                    p,
-                    commandType: CommandType.StoredProcedure);
-            }
-
-            return outputObject;
-        }
+       
 
         public async Task<User> GetUser(Guid customerGuid, Guid userGuid)
         {

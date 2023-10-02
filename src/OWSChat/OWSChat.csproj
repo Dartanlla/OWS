@@ -55,13 +55,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="OWSChat.xml">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
+		<Protobuf Include="..\OWSData\Protos\Chat.proto"  ProtoCompile="False" GrpcServices="Service" Link="Protos\Chat.proto" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Protobuf Include="Protos\chat.proto" GrpcServices="Server" />
+		<None Update="OWSChat.xml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 	<Target Name="DockerComposeOverrideWindows" BeforeTargets="PreBuildEvent" Condition="$([MSBuild]::IsOSPlatform('Windows'))">

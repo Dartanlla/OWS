@@ -28,41 +28,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
-        public async Task AddOrUpdateGlobalData(GlobalData globalData)
-        {
-            using (Connection)
-            {
-                var outputGlobalData = await Connection.QuerySingleOrDefaultAsync<GlobalData>(GenericQueries.GetGlobalDataByGlobalDataKey,
-                    globalData,
-                    commandType: CommandType.Text);
 
-                if (outputGlobalData != null)
-                {
-                    await Connection.ExecuteAsync(GenericQueries.UpdateGlobalData,
-                        globalData,
-                        commandType: CommandType.Text);
-                }
-                else
-                {
-                    await Connection.ExecuteAsync(GenericQueries.AddGlobalData,
-                        globalData,
-                        commandType: CommandType.Text);
-                }
-            }
-        }
-
-        public async Task<GlobalData> GetGlobalDataByGlobalDataKey(Guid customerGuid, string globalDataKey)
-        {
-            using (Connection)
-            {
-                var parameters = new
-                {
-                    CustomerGUID = customerGuid,
-                    GlobalDataKey = globalDataKey
-                };
-
-                return await Connection.QueryFirstOrDefaultAsync<GlobalData>(GenericQueries.GetGlobalDataByGlobalDataKey, parameters);
-            }
-        }
     }
 }

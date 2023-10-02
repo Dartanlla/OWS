@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace OWSData.Models.Tables
 {
@@ -7,11 +10,8 @@ namespace OWSData.Models.Tables
     {
         public int PlayerGroupId { get; set; }
         public Guid CustomerGuid { get; set; }
-        public string PlayerGroupName { get; set; }
         public int PlayerGroupTypeId { get; set; }
         public int ReadyState { get; set; }
-        public DateTime? CreateDate { get; set; }
-
-        public PlayerGroupTypes PlayerGroupType { get; set; }
+        public DateTime? DateAdded { get; set; }
     }
 }
