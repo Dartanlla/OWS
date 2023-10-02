@@ -7,9 +7,7 @@ namespace OWSData.Models.Tables
     {
         public Characters()
         {
-            CharHasAbilities = new HashSet<CharHasAbilities>();
             CharHasItems = new HashSet<CharHasItems>();
-            CustomCharacterData = new HashSet<CustomCharacterData>();
         }
 
         public Guid CustomerGuid { get; set; }
@@ -30,13 +28,9 @@ namespace OWSData.Models.Tables
         public short CharacterLevel { get; set; }
         public byte Gender { get; set; }
         public string Description { get; set; }
-        public string DefaultPawnClassPath { get; set; }
         public bool IsInternalNetworkTestUser { get; set; }
         public int ClassId { get; set; }
-        public string BaseMesh { get; set; }
 
-        public ICollection<CharHasAbilities> CharHasAbilities { get; set; }
         public ICollection<CharHasItems> CharHasItems { get; set; }
-        public ICollection<CustomCharacterData> CustomCharacterData { get; set; }
     }
 }

@@ -6,11 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.ServiceModel.Channels;
 using ChatServiceApp.Protos;
-using static System.Net.Mime.MediaTypeNames;
-using OWSData.Models.Tables;
-using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 
 namespace OWSChat.Service

@@ -15,7 +15,6 @@ namespace OWSInstanceManagement.Requests.Instance
     {
         public string CharacterName { get; set; }
         public string ZoneName { get; set; }
-        public int PlayerGroupType { get; set; }
 
         private JoinMapByCharName Output;
         private Guid CustomerGUID;
@@ -41,7 +40,7 @@ namespace OWSInstanceManagement.Requests.Instance
                 ZoneName = character.MapName;
             }
 
-            JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharName(CustomerGUID, CharacterName, ZoneName, PlayerGroupType);
+            JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharName(CustomerGUID, CharacterName, ZoneName);
 
             bool readyForPlayersToConnect = false;
 

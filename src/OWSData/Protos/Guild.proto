@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package Guild;
+option csharp_namespace = "GuildServiceApp.Protos";
+
+import "google/protobuf/empty.proto";
+	
+enum GuildAction 
+{
+  MESSAGE_TYPE_INITIAL = 0;
+  MESSAGE_TYPE_ASK = 1;
+  MESSAGE_TYPE_CREATE = 2;
+  MESSAGE_TYPE_ADD = 3;
+  MESSAGE_TYPE_MAKE_LEAD = 4;
+  MESSAGE_TYPE_KICK = 5;
+  MESSAGE_TYPE_LEAVE = 6;
+  MESSAGE_TYPE_DISMISS = 7;
+  MESSAGE_TYPE_ABILITY = 8;
+  MESSAGE_TYPE_STORAGE_DEPOSIT = 9;
+  MESSAGE_TYPE_STORAGE_WITHDRAW = 10;
+}
+
+enum GuildRank
+{
+  GUILD_RANK_TRIAL = 0;
+  GUILD_RANK_MEMBER = 1;
+  GUILD_RANK_JUNIOR_OFFICER = 2;
+  GUILD_RANK_SENIOR_OFFICER = 3;
+  GUILD_RANK_GUILD_SECRETARY = 4;
+  GUILD_RANK_GUILD_LEADER = 5;
+}
+
+message GuildRegister
+{
+	string customer_guid = 1;
+	string user_id = 2;
+	string user_name = 3;
+}
+
+message GuildInfo
+{
+	string guild_guid = 1;
+	string guild_name = 2;
+	string guild_message = 3;
+	string guild_description = 4;
+	int32 guild_image = 5;
+	string guild_date = 6;
+	
+}
+
+message GuildMemberInfo
+{
+	string char_guid = 1;
+	string char_name = 2;
+	GuildRank guild_rank = 3;
+}
+
+message GuildAbility
+{
+	repeated int32 guild_abilities = 1;
+
+}
+
+message GuildStorageItem
+{
+	string guild_item_id = 1;
+	int32 guild_item_quantity = 2;
+	string guild_item_custom_data = 3;
+}
+
+message GuildStorage
+{
+	repeated GuildStorageItem guild_storage_items = 1;
+	repeated GuildStorageItem guild_current_stored_items = 2;
+}
+
+//Client Messages:
+message GuildToSend
+{
+	string customer_guid = 1;
+	GuildAction guild_action = 2;
+	GuildInfo guild_info = 3;
+	GuildAbility guild_ability = 4;
+	GuildStorage guild_bank = 5;
+	repeated GuildMemberInfo guild_members = 6;
+	string guild_error = 7;
+}
+
+service GuildApp
+{
+	rpc RegisterGuild(GuildRegister) returns (stream GuildToSend);
+	rpc SendGuildMsg (GuildToSend) returns (google.protobuf.Empty);
+}
+
+

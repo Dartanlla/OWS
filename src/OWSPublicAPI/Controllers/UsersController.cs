@@ -127,24 +127,7 @@ namespace OWSPublicAPI.Controllers
         }
 
         /// <summary>
-        /// Gets a list of Player Groups that a Character is in.
-        /// </summary>
-        /// <remarks>
-        /// Send a UserSessionGUID, a Character's CharacterName, and a PlayerGroupTypeID to get a list of groups the player is in.  Set the PlayerGroupTypeID parameter to zero to remove the Player Group Type filter.
-        /// Player Groups are persistent across player sessions and can be used to manage Party groups, Raid groups, Guilds, etc.
-        /// See the PlayerGroupTypes table for a list of Player Group Types.
-        /// </remarks>
-        [HttpPost]
-        [Route("GetPlayerGroupsCharacterIsIn")]
-        [Produces(typeof(GetPlayerGroupsCharacterIsIn))]
-        public async Task<IActionResult> GetPlayerGroupsCharacterIsIn([FromBody] GetPlayerGroupsCharacterIsInRequest request)
-        {
-            request.SetData(_usersRepository, _customerGuid);
-            return await request.Handle();
-        }
-
-        /// <summary>
-        /// Gets the server to connect to for a specific character or zonename.
+        /// Gets the server to connect to for a specific character or zone name.
         /// </summary>
         /// <remarks>
         /// Get the Zone Server to travel to based on the User referenced by the UserSessionGUID.  Prior to calling this API, you MUST set the Selected Character to connect with using the UserSessionSetSelectedCharacter API for the UserSessionGUID passed into this API.

@@ -39,6 +39,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSChat", "OWSChat\OWSChat.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSParty", "OWSParty\OWSParty.csproj", "{7A284500-C311-4B1D-9080-295291F9E6B9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSGuild", "OWSGuild\OWSGuild.csproj", "{86A6645B-44D6-4F89-830F-E4288C06B949}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OWSActionHouse", "OWSActionHouse\OWSActionHouse.csproj", "{9AC52B0A-2B7F-4C1D-BF62-ED910B9BF616}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +105,14 @@ Global
 		{7A284500-C311-4B1D-9080-295291F9E6B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7A284500-C311-4B1D-9080-295291F9E6B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7A284500-C311-4B1D-9080-295291F9E6B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86A6645B-44D6-4F89-830F-E4288C06B949}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86A6645B-44D6-4F89-830F-E4288C06B949}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86A6645B-44D6-4F89-830F-E4288C06B949}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86A6645B-44D6-4F89-830F-E4288C06B949}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9AC52B0A-2B7F-4C1D-BF62-ED910B9BF616}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AC52B0A-2B7F-4C1D-BF62-ED910B9BF616}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AC52B0A-2B7F-4C1D-BF62-ED910B9BF616}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AC52B0A-2B7F-4C1D-BF62-ED910B9BF616}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

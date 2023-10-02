@@ -14,7 +14,6 @@ namespace OWSData.Repositories.Interfaces
         Task<CreateCharacter> CreateCharacter(Guid customerGUID, Guid userSessionGUID, string characterName, string className);
         Task<SuccessAndErrorMessage> CreateCharacterUsingDefaultCharacterValues(Guid customerGUID, Guid userGUID, string characterName, string defaultSetName);
         Task<IEnumerable<GetAllCharacters>> GetAllCharacters(Guid customerGUID, Guid userSessionGUID);
-        Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid customerGUID, Guid userSessionGUID, string characterName, int playerGroupTypeID = 0);
         Task<User> GetUser(Guid customerGuid, Guid userGuid);
         Task<IEnumerable<User>> GetUsers(Guid customerGuid);
         Task<GetUserSession> GetUserSession(Guid customerGUID, Guid userSessionGUID);

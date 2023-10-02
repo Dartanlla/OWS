@@ -2,6 +2,25 @@ version: '3.7'
 
 services:
   # OWS chat Api
+  
+  owsactionhouse:
+    image: ${REGISTRY:-ows}/owsactionhouse:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: OWSActionHouse/Dockerfile
+    environment:
+     - OWSStorageConfig__OWSDBBackend=${DATABASE}
+     - OWSStorageConfig__OWSDBConnectionString=${DATABASE_CONNECTION_STRING}
+     - OWSAPIPathConfig__InternalPublicApiURL=${InternalPublicApiURL}
+     - OWSAPIPathConfig__InternalInstanceManagementApiURL=${InternalInstanceManagementApiURL}
+     - OWSAPIPathConfig__InternalCharacterPersistenceApiURL=${InternalCharacterPersistenceApiURL}
+    ports:
+      - "44320:80"
+      - "44321:443"
+    depends_on:
+      - database
+      - messaging
+      
   owschat:
     image: ${REGISTRY:-ows}/owschat:${PLATFORM:-linux}-${TAG:-latest}
     build:
@@ -28,12 +47,24 @@ services:
     environment:
      - OWSStorageConfig__OWSDBBackend=${DATABASE}
      - OWSStorageConfig__OWSDBConnectionString=${DATABASE_CONNECTION_STRING}
-     - OWSAPIPathConfig__InternalPublicApiURL=${InternalPublicApiURL}
-     - OWSAPIPathConfig__InternalInstanceManagementApiURL=${InternalInstanceManagementApiURL}
-     - OWSAPIPathConfig__InternalCharacterPersistenceApiURL=${InternalCharacterPersistenceApiURL}
     ports:
       - "44306:80"
       - "44307:443"
+    depends_on:
+      - database
+      - messaging
+      
+  owsguild:
+    image: ${REGISTRY:-ows}/owsguild:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: owsguild/Dockerfile
+    environment:
+     - OWSStorageConfig__OWSDBBackend=${DATABASE}
+     - OWSStorageConfig__OWSDBConnectionString=${DATABASE_CONNECTION_STRING}
+    ports:
+      - "44308:80"
+      - "44309:443"
     depends_on:
       - database
       - messaging

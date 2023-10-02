@@ -15,6 +15,8 @@ using OWSData.Models.Composites;
 using OWSData.Models.Tables;
 using OWSData.SQL;
 using PartyServiceApp.Protos;
+using GuildServiceApp.Protos;
+using Amazon.Runtime.Internal.Util;
 
 namespace OWSData.Repositories.Implementations.MSSQL
 {
@@ -74,45 +76,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 throw new Exception("Database Exception in AddCharacterToMapInstanceByCharName!");
             }
         }
-
-        public async Task AddOrUpdateCustomCharacterData(Guid customerGUID, AddOrUpdateCustomCharacterData addOrUpdateCustomCharacterData)
-        {
-            using (Connection)
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("@CustomerGUID", customerGUID);
-                parameters.Add("@CharName", addOrUpdateCustomCharacterData.CharacterName);
-                parameters.Add("@CustomFieldName", addOrUpdateCustomCharacterData.CustomFieldName);
-                parameters.Add("@FieldValue", addOrUpdateCustomCharacterData.FieldValue);
-
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
-                    parameters,
-                    commandType: CommandType.Text);
-
-                if (outputCharacter.CharacterId > 0)
-                {
-                    parameters.Add("@CharacterID", outputCharacter.CharacterId);
-
-                    var hasCustomCharacterData = await Connection.QuerySingleOrDefaultAsync<int>(GenericQueries.HasCustomCharacterDataForField,
-                        parameters,
-                        commandType: CommandType.Text);
-
-                    if (hasCustomCharacterData > 0)
-                    {
-                        await Connection.ExecuteAsync(GenericQueries.UpdateCharacterCustomDataField,
-                            parameters,
-                            commandType: CommandType.Text);
-                    }
-                    else
-                    {
-                        await Connection.ExecuteAsync(GenericQueries.AddCharacterCustomDataField,
-                            parameters,
-                            commandType: CommandType.Text);
-                    }
-                }
-            }
-        }
-
         public async Task<MapInstances> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID)
         {
             using (Connection)
@@ -133,7 +96,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 return outputObject;
             }
         }
-
         public async Task CleanUpInstances(Guid customerGUID)
         {
             IDbConnection conn = Connection;
@@ -175,7 +137,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 throw new Exception("Database Exception in CleanUpInstances!");
             }
         }
-
         public async Task<CharacterSaveData> GetSaveDataByCharName(Guid customerGUID, string characterName)
         {
             CharacterSaveData outputCharacter = new CharacterSaveData();
@@ -185,6 +146,10 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@CharName", characterName);
+
+                outputCharacter.CharGuid = await Connection.QuerySingleOrDefaultAsync<string>(GenericQueries.GetCharGuidByCharName,
+                    parameters,
+                    commandType: CommandType.Text);
 
                 outputCharacter.CharStats = await Connection.QueryAsync<CharacterStat>(GenericQueries.GetCharStatsByCharName,
                     parameters,
@@ -197,11 +162,14 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 outputCharacter.CharInventory = await Connection.QueryAsync<CharacterInventory>(GenericQueries.GetCharInventoryByCharName,
                     parameters,
                     commandType: CommandType.Text);
+
+                outputCharacter.CharCurrency = await Connection.QueryAsync<CharacterCurrency>(GenericQueries.GetCharInventoryByCharName,
+                    parameters,
+                    commandType: CommandType.Text);
             }
 
             return outputCharacter;
         }
-
         public async Task<IEnumerable<GetCharStatsByCharName>> GetCharStatsByCharName(Guid customerGUID, string characterName)
         {
             IEnumerable<GetCharStatsByCharName> outputCharacter = new List<GetCharStatsByCharName>();
@@ -219,7 +187,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             return outputCharacter;
         }
-
         public async Task<IEnumerable<GetCharQuestsByCharName>> GetCharQuetsByCharName(Guid customerGUID, string characterName)
         {
             IEnumerable<GetCharQuestsByCharName> outputCharacter = new List<GetCharQuestsByCharName>();
@@ -237,8 +204,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             return outputCharacter;
         }
-
-            public async Task<IEnumerable<GetCharInventoryByCharName>> GetCharInventoryByCharName(Guid customerGUID, string characterName)
+        public async Task<IEnumerable<GetCharInventoryByCharName>> GetCharInventoryByCharName(Guid customerGUID, string characterName)
         {
             IEnumerable<GetCharInventoryByCharName> outputCharacter = new List<GetCharInventoryByCharName>();
 
@@ -266,7 +232,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             return outputCharacter;
         }
-
         public async Task<GetCharByCharName> GetCharByCharName(Guid customerGUID, string characterName)
         {
             IEnumerable<GetCharByCharName> outputCharacter;
@@ -284,26 +249,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             return outputCharacter.FirstOrDefault();
         }
-
-        public async Task<IEnumerable<CustomCharacterData>> GetCustomCharacterData(Guid customerGUID, string characterName)
-        {
-            IEnumerable<CustomCharacterData> outputCustomCharacterDataRows;
-
-            using (Connection)
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("@CustomerGUID", customerGUID);
-                parameters.Add("@CharName", characterName);
-
-                outputCustomCharacterDataRows = await Connection.QueryAsync<CustomCharacterData>(GenericQueries.GetCharacterCustomDataByName,
-                    parameters,
-                    commandType: CommandType.Text);
-            }
-
-            return outputCustomCharacterDataRows;
-        }
-
-        public async Task<JoinMapByCharName> JoinMapByCharName(Guid customerGUID, string characterName, string zoneName, int playerGroupType)
+        public async Task<JoinMapByCharName> JoinMapByCharName(Guid customerGUID, string characterName, string zoneName)
         {
             // TODO: Run Cleanup here for now. Later this can get moved to a scheduler to run periodically.
             await CleanUpInstances(customerGUID);
@@ -353,12 +299,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     parameters,
                     commandType: CommandType.Text);
 
-                /*
-                Customers outputCustomer = await Connection.QuerySingleOrDefaultAsync<Customers>(GenericQueries.GetCustomer,
-                    parameters,
-                    commandType: CommandType.Text);
-                */
-
                 //We could not find a valid character for characterName in this customerGUID
                 if (outputCharacter == null)
                 {
@@ -378,11 +318,11 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     }; ;
                 }
 
-                //If there is a playerGroupType, then look up the player group by type.  This assumes that for this playerGroupType, the player can only be in at most one Player Group
                 PlayerGroup outputPlayerGroup = new PlayerGroup();
-                if (playerGroupType > 0)
+                if (outputMap.PlayerGroupType > 0)
                 {
-                    parameters.Add("@PlayerGroupType", playerGroupType);
+                    parameters.Add("@PlayerGroupType", outputMap.PlayerGroupType);
+                    parameters.Add("@CharacterID", outputCharacter.CharacterId);
                     outputPlayerGroup = await Connection.QuerySingleOrDefaultAsync<PlayerGroup>(GenericQueries.GetPlayerGroupIDByType,
                         parameters,
                         commandType: CommandType.Text);
@@ -391,6 +331,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 {
                     outputPlayerGroup.PlayerGroupId = 0;
                 }
+                
 
                 //This query has the conditions required to find a Zone Instance to connect the player to
                 parameters.Add("@IsInternalNetworkTestUser", outputCharacter.IsInternalNetworkTestUser);
@@ -453,7 +394,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             return outputObject;
         }
-
         public async Task<MapInstances> SpinUpInstance(Guid customerGUID, string zoneName, int playerGroupId = 0)
         {
             using (Connection)
@@ -501,14 +441,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                                 parameters,
                                 commandType: CommandType.Text);
 
-                            //Get the recently inserted Zone Instance row
-                            /*
-                            parameters.Add("@MapInstanceID", outputMapInstanceID);
-                            MapInstances outputMapInstances = await Connection.QuerySingleOrDefaultAsync<MapInstances>(GenericQueries.GetMapInstance,
-                                parameters,
-                                commandType: CommandType.Text);
-                            */
-
                             //Return the inserted Zone Instance row
                             MapInstances outputMapInstances = new MapInstances() { 
                                 CustomerGuid = customerGUID,
@@ -535,7 +467,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             return new MapInstances { MapInstanceId = -1 };
         }
-
         public async Task UpdateCharacterStats(Guid customerGUID, string characterName, IEnumerable<UpdateCharacterStats> updateCharacterStats)
         {
             using (Connection)
@@ -554,26 +485,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 }
             }
         }
-
-        public async Task UpdateCharacterAbilities(Guid customerGUID, string characterName, IEnumerable<UpdateCharacterAbilities> CharacterAbilities)
-        {
-            using (Connection)
-            {
-                foreach (UpdateCharacterAbilities Ability in CharacterAbilities)
-                {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@CharName", characterName);
-                    p.Add("@AbilityIDTag", Ability.AbilityIDTag);
-                    p.Add("@CurrentAbilityLevel", Ability.CurrentAbilityLevel);
-                    p.Add("@ActualAbilityLevel", Ability.ActualAbilityLevel);
-                    p.Add("@CustomData", Ability.CustomData);
-
-                    await Connection.ExecuteAsync(MSSQLQueries.UpdateAbilityOnCharacter, p);
-                }
-            }
-        }
-
         public async Task UpdateCharacterQuests(Guid customerGUID, string characterName, IEnumerable<UpdateCharacterQuest> updateCharacterQuests)
         {
             using (Connection)
@@ -592,7 +503,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 }
             }
         }
-
         public async Task UpdateCharacterInventory(Guid customerGUID, string characterName, IEnumerable<UpdateCharacterInventory> updateCharacterInventory)
         {
             using (Connection)
@@ -627,7 +537,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 }
             }
         }
-
         public async Task UpdatePosition(Guid customerGUID, string characterName, string mapName, float X, float Y, float Z, float RX, float RY, float RZ)
         {
             IDbConnection conn = Connection;
@@ -671,7 +580,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 throw new Exception("Database Exception in UpdatePosition!");
             }
         }
-
         public async Task PlayerLogout(Guid customerGUID, string characterName)
         {
             using (Connection)
@@ -694,119 +602,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 }
             }
         }
-
-        public async Task AddAbilityToCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
-        {
-            using (Connection)
-            {
-                var parameters = new
-                {
-                    CustomerGUID = customerGUID,
-                    AbilityName = abilityName,
-                    CharacterName = characterName,
-                    AbilityLevel = abilityLevel,
-                    CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
-                };
-
-                var outputCharacterAbility = await Connection.QuerySingleOrDefaultAsync<GlobalData>(GenericQueries.GetCharacterAbilityByName,
-                    parameters,
-                    commandType: CommandType.Text);
-
-                if (outputCharacterAbility == null)
-                {
-                    await Connection.ExecuteAsync(MSSQLQueries.AddAbilityToCharacter,
-                        parameters,
-                        commandType: CommandType.Text);
-                }
-            }
-        }
-
-        public async Task<IEnumerable<Abilities>> GetAbilities(Guid customerGUID)
-        {
-            IEnumerable<Abilities> outputGetAbilities;
-
-            using (Connection)
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("@CustomerGUID", customerGUID);
-
-                outputGetAbilities = await Connection.QueryAsync<Abilities>(GenericQueries.GetAbilities,
-                    parameters,
-                    commandType: CommandType.Text);
-            }
-
-            return outputGetAbilities;
-        }
-
-        public async Task<IEnumerable<GetCharacterAbilities>> GetCharacterAbilities(Guid customerGUID, string characterName)
-        {
-            IEnumerable<GetCharacterAbilities> outputGetCharacterAbilities;
-
-            using (Connection)
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("@CustomerGUID", customerGUID);
-                parameters.Add("@CharName", characterName);
-
-                outputGetCharacterAbilities = await Connection.QueryAsync<GetCharacterAbilities>(GenericQueries.GetCharacterAbilities,
-                    parameters,
-                    commandType: CommandType.Text);
-            }
-
-            return outputGetCharacterAbilities;
-        }
-
-        public async Task<IEnumerable<GetAbilityBars>> GetAbilityBars(Guid customerGUID, string characterName)
-        {
-            IEnumerable<GetAbilityBars> outputGetAbilityBars;
-
-            using (Connection)
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("@CustomerGUID", customerGUID);
-                parameters.Add("@CharName", characterName);
-
-                outputGetAbilityBars = await Connection.QueryAsync<GetAbilityBars>(GenericQueries.GetCharacterAbilityBars,
-                    parameters,
-                    commandType: CommandType.Text);
-            }
-
-            return outputGetAbilityBars;
-        }
-
-        public async Task<IEnumerable<GetAbilityBarsAndAbilities>> GetAbilityBarsAndAbilities(Guid customerGUID, string characterName)
-        {
-            IEnumerable<GetAbilityBarsAndAbilities> outputGetAbilityBarsAndAbilities;
-
-            using (Connection)
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("@CustomerGUID", customerGUID);
-                parameters.Add("@CharName", characterName);
-
-                outputGetAbilityBarsAndAbilities = await Connection.QueryAsync<GetAbilityBarsAndAbilities>(GenericQueries.GetCharacterAbilityBarsAndAbilities,
-                    parameters,
-                    commandType: CommandType.Text);
-            }
-
-            return outputGetAbilityBarsAndAbilities;
-        }
-
-        public async Task RemoveAbilityFromCharacter(Guid customerGUID, string abilityName, string characterName)
-        {
-            using (Connection)
-            {
-                var parameters = new
-                {
-                    CustomerGUID = customerGUID,
-                    AbilityName = abilityName,
-                    CharacterName = characterName
-                };
-
-                await Connection.ExecuteAsync(MSSQLQueries.RemoveAbilityFromCharacter, parameters);
-            }
-        }
-
         public async Task AddQuestListToDatabase(Guid customerGUID, IEnumerable<AddQuestListToDabase> addQuestListToDabase)
         {
             using (Connection)
@@ -825,7 +620,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 }
             }
         }
-
         public async Task<IEnumerable<GetQuestsFromDb>> GetQuestsFromDatabase(Guid customerGUID)
         {
             IEnumerable<GetQuestsFromDb> QuestsFromDb;
@@ -841,7 +635,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             return QuestsFromDb;
         }
-
         public async Task<PartyToSend> CreatePartyOrAddMember(Guid customerGUID, PartyToSend partyRequest)
         {
             try
@@ -858,20 +651,29 @@ namespace OWSData.Repositories.Implementations.MSSQL
                         commandType: CommandType.StoredProcedure);
                     }
                    
-                    p.Add("@PartyGuid", new Guid(partyRequest.PartyInfo.PartyGuid));
+                    p.Add("@PartyGuid", Guid.Parse(partyRequest.PartyInfo.PartyGuid));
                         
                     IEnumerable<PartyMemberInfo> PartyMembersToAdd = partyRequest.PartyMembers.Clone();
+                    PartyMemberInfo LastPartyMember = partyRequest.PartyMembers.LastOrDefault();
+                    partyRequest.PartyMembers.Clear();
 
                     foreach (PartyMemberInfo Party in PartyMembersToAdd)
                     {
                         p.Add("@CharacterName", Party.CharName);
-                        p.Add("@CharacterGUID", new Guid(Party.CharGuid));
+                        p.Add("@CharacterGUID", Guid.Parse(Party.CharGuid));
                         p.Add("@PartyLeader", Party.PartyLeader);
 
-                        partyRequest.PartyMembers.Clear();
-                        partyRequest.PartyMembers.Add( await Connection.QueryAsync<PartyMemberInfo>("AddNewPartyMember",
-                        p,
-                        commandType: CommandType.StoredProcedure));
+                        if (Party.Equals(LastPartyMember))
+                        {
+                            partyRequest.PartyMembers.Add(await Connection.QueryAsync<PartyMemberInfo>("AddNewPartyMember",
+                            p,
+                            commandType: CommandType.StoredProcedure));
+                            break;
+                        }
+
+                        await Connection.QueryAsync<PartyMemberInfo>("AddNewPartyMember",
+                            p,
+                            commandType: CommandType.StoredProcedure);
                     }
 
                 }
@@ -882,7 +684,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
             return partyRequest;
         }
-
         public async Task<PartyToSend> GetInitialPartySettings(Guid customerGUID, string charName)
         {
             PartyToSend partyRequest = new PartyToSend();
@@ -917,7 +718,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
             return partyRequest;
         }
-
         public async Task<PartyToSend> LeaveParty(Guid customerGUID, PartyToSend partyRequest)
         {
             PartyToSend party = partyRequest.Clone();
@@ -927,7 +727,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 {
                     var p = new DynamicParameters();
                     p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@PartyGuid", new Guid(partyRequest.PartyInfo.PartyGuid));
+                    p.Add("@PartyGuid", Guid.Parse(partyRequest.PartyInfo.PartyGuid));
                     foreach (PartyMemberInfo partyMember in partyRequest.PartyMembers)
                     {
                         p.Add("@CharName", partyMember.CharName);
@@ -945,7 +745,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
             return party;
         }
-
         public async Task<PartyToSend> ChangePartyLeader(Guid customerGUID, PartyToSend partyRequest)
         {
             PartyToSend party = partyRequest.Clone();
@@ -955,7 +754,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 {
                     var p = new DynamicParameters();
                     p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@PartyGuid", new Guid(partyRequest.PartyInfo.PartyGuid));
+                    p.Add("@PartyGuid", Guid.Parse(partyRequest.PartyInfo.PartyGuid));
                     PartyMemberInfo partyMember = partyRequest.PartyMembers.ElementAt(0);
                     if(partyMember != null && partyMember != default) 
                     {
@@ -975,6 +774,138 @@ namespace OWSData.Repositories.Implementations.MSSQL
             return party;
         }
 
+        public async Task<GuildToSend> CreateGuildOrAddMember(Guid customerGUID, GuildToSend guildRequest)
+        {
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@GuildName", guildRequest.GuildInfo.GuildName);
 
+                    if (guildRequest.GuildAction == GuildAction.MessageTypeCreate)
+                    {
+                        
+                        guildRequest.GuildInfo = await Connection.QuerySingleAsync<GuildInfo>("AddNewGuild",
+                        p,
+                        commandType: CommandType.StoredProcedure);
+                        
+                    }
+                    
+                    p.Add("@GuildGuid", Guid.Parse(guildRequest.GuildInfo.GuildGuid));
+
+                    IEnumerable<GuildMemberInfo> guildMembersToAdd = guildRequest.GuildMembers.Clone();
+                    guildRequest.GuildMembers.Clear();
+                    GuildMemberInfo LastGuildMember = guildMembersToAdd.LastOrDefault();
+                    foreach (GuildMemberInfo guildMember in guildMembersToAdd)
+                    {
+                        p.Add("@CharacterName", guildMember.CharName);
+                        p.Add("@CharacterGUID", Guid.Parse(guildMember.CharGuid));
+                        p.Add("@GuildRank", guildMember.GuildRank);
+
+                        if(guildMember.Equals(LastGuildMember))
+                        {
+                            guildRequest.GuildMembers.Add(await Connection.QueryAsync<GuildMemberInfo>("AddNewGuildMember",
+                            p,
+                            commandType: CommandType.StoredProcedure));
+                            break;
+                        }
+                        await Connection.QueryAsync<GuildMemberInfo>("AddNewGuildMember",
+                        p,
+                        commandType: CommandType.StoredProcedure);
+                    }
+                    
+                }
+
+            }
+            catch (Exception ex)
+            {
+            }
+            return guildRequest;
+        }
+        public async Task<GuildToSend> GetInitialGuildSettings(Guid customerGUID, string charName)
+        {
+            GuildToSend guildRequest = new GuildToSend();
+            guildRequest.GuildInfo = new GuildInfo();
+            guildRequest.GuildAction = GuildAction.MessageTypeInitial;
+            guildRequest.GuildAbility = new GuildAbility();
+            guildRequest.GuildBank = new GuildStorage();
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@CharName", charName);
+
+                    
+                    int guildId = await Connection.QuerySingleAsync<int>(GenericQueries.GetGuildId,
+                    p,
+                    commandType: CommandType.Text);
+
+                    p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@GuildID", guildId);
+
+                    guildRequest.GuildMembers.Add(await Connection.QueryAsync<GuildMemberInfo>("GetInitialGuildMembers",
+                                                p,
+                                                commandType: CommandType.StoredProcedure));
+
+                    guildRequest.GuildInfo = await Connection.QuerySingleAsync<GuildInfo>("GetInitialGuildSettings",
+                    p,
+                    commandType: CommandType.StoredProcedure);
+
+                    guildRequest.GuildAbility.GuildAbilities.Add(await Connection.QueryAsync<int>("GetInitialGuildAbilities",
+                    p,
+                    commandType: CommandType.StoredProcedure));
+
+
+                }
+            }
+            catch (Exception ex)
+            {
+                guildRequest.GuildError = ex.ToString();
+            }
+            guildRequest.GuildInfo.GuildGuid = guildRequest.GuildInfo.GuildGuid.Replace("-", "");
+            return guildRequest;
+        }
+
+        public async Task<GuildToSend> AddGuildAbilities(Guid customerGUID, GuildToSend guildInfo)
+        {
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@GuildGuid", Guid.Parse(guildInfo.GuildInfo.GuildGuid));
+
+                    int LastAbilityId = guildInfo.GuildAbility.GuildAbilities.LastOrDefault();
+                    foreach(int GuildAbilityId in guildInfo.GuildAbility.GuildAbilities)
+                    {
+                        p.Add("@GuildAbilityId", GuildAbilityId);
+
+                        await Connection.QueryAsync<int>("AddNewGuildAbility",
+                        p,
+                        commandType: CommandType.StoredProcedure);
+                        
+                    }
+
+                    p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@GuildGuid", Guid.Parse(guildInfo.GuildInfo.GuildGuid));
+
+                    guildInfo.GuildMembers.Add(await Connection.QueryAsync<GuildMemberInfo>("GetGuildMembers",
+                   p,
+                   commandType: CommandType.StoredProcedure));
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return guildInfo;
+        }
     }
 }
