@@ -40,6 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OWSData\OWSData.csproj" />
     <ProjectReference Include="..\OWSShared\OWSShared.csproj" />
   </ItemGroup>
 

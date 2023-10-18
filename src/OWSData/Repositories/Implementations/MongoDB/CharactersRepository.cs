@@ -10,6 +10,7 @@ using System.Text;
 using OWSData.Repositories.Implementations.MongoDB.Models;
 using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
+using OWSShared.Options;
 
 namespace OWSData.Repositories.Implementations.MongoDB
 {

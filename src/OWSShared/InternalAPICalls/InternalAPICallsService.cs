@@ -1,9 +1,9 @@
-﻿using Newtonsoft.Json;
-using OWSShared.RequestPayloads;
+﻿using OWSShared.RequestPayloads;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace OWSShared.InternalAPICalls
@@ -32,7 +32,7 @@ namespace OWSShared.InternalAPICalls
                 Port = port
             };
 
-            var serverSpinUpPayload = new StringContent(JsonConvert.SerializeObject(spinUpServerInstanceRequestPayload), Encoding.UTF8, "application/json");
+            var serverSpinUpPayload = new StringContent(JsonSerializer.Serialize(spinUpServerInstanceRequestPayload), Encoding.UTF8, "application/json");
 
             var responseMessage = await instanceManagementHttpClient.PostAsync("api/Instance/SpinUpServerInstance", serverSpinUpPayload);
 
