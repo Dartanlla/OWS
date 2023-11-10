@@ -17,9 +17,9 @@ using OWSShared.Extensions;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
 using OWSShared.Messages;
-using OWSShared.Objects;
 using SimpleInjector;
 using Serilog;
+using OWSInstanceLauncher.Services;
 
 namespace OWSInstanceLauncher
 {
@@ -27,7 +27,7 @@ namespace OWSInstanceLauncher
     {
         //Container container;
         private Container container = new SimpleInjector.Container();
-        private OWSData.Models.OWSInstanceLauncherOptions owsInstanceLauncherOptions;
+        private OWSShared.Options.OWSInstanceLauncherOptions owsInstanceLauncherOptions;
 
         public IConfiguration Configuration { get; }
 
@@ -39,8 +39,8 @@ namespace OWSInstanceLauncher
 
             Configuration = configuration;
 
-            owsInstanceLauncherOptions = new OWSData.Models.OWSInstanceLauncherOptions();
-            Configuration.GetSection(OWSData.Models.OWSInstanceLauncherOptions.SectionName).Bind(owsInstanceLauncherOptions);
+            owsInstanceLauncherOptions = new OWSShared.Options.OWSInstanceLauncherOptions();
+            Configuration.GetSection(OWSShared.Options.OWSInstanceLauncherOptions.SectionName).Bind(owsInstanceLauncherOptions);
 
             //Check appsettings.json file for potential errors
             bool thereWasAStartupError = false;
@@ -116,7 +116,7 @@ namespace OWSInstanceLauncher
             .AddViews()
             .AddApiExplorer();
 
-            services.ConfigureWritable<OWSData.Models.OWSInstanceLauncherOptions>(Configuration.GetSection(OWSData.Models.OWSInstanceLauncherOptions.SectionName));
+            services.ConfigureWritable<OWSShared.Options.OWSInstanceLauncherOptions>(Configuration.GetSection(OWSShared.Options.OWSInstanceLauncherOptions.SectionName));
             services.Configure<OWSShared.Options.APIPathOptions>(Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName));
             services.Configure<OWSShared.Options.RabbitMQOptions>(Configuration.GetSection(OWSShared.Options.RabbitMQOptions.SectionName));
 

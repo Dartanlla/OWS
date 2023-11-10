@@ -11,6 +11,7 @@ using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
 using OWSData.Models.Tables;
+using OWSShared.Options;
 
 namespace OWSData.Repositories.Implementations.MySQL
 {

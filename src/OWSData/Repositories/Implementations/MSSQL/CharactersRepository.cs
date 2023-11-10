@@ -14,6 +14,7 @@ using OWSData.Models;
 using OWSData.Models.Composites;
 using OWSData.Models.Tables;
 using OWSData.SQL;
+using OWSShared.Options;
 
 namespace OWSData.Repositories.Implementations.MSSQL
 {

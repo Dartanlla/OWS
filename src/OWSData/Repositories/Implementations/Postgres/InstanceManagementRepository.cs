@@ -10,6 +10,7 @@ using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
+using OWSShared.Options;
 
 namespace OWSData.Repositories.Implementations.Postgres
 {

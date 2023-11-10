@@ -12,6 +12,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Text;
 using System.Threading.Tasks;
+using OWSShared.Options;
 
 namespace OWSData.Repositories.Implementations.MSSQL
 {

@@ -12,10 +12,9 @@
 #include "GameplayTagContainer.h"
 #include "GameplayTagsModule.h"
 #include "OWSAttributeSet.h"
+#include "OWSAdvancedProjectile.h"
 //#include "OWSGameplayAbility.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerState.h"
-
-class AOWSAdvancedProjectile;
 
 #define CONSTRUCT_CLASS(Class, Name) Class* Name = NewObject<Class>(GetTransientPackage(), FName(TEXT(#Name)))
 
