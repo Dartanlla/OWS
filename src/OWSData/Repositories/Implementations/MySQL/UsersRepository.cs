@@ -12,6 +12,7 @@ using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
 using OWSData.Models.Tables;
 using CryptSharp.Core;
+using OWSShared.Options;
 
 namespace OWSData.Repositories.Implementations.MySQL
 {

@@ -5,6 +5,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Runtime/Online/HTTP/Public/Http.h"
 #include "Net/UnrealNetwork.h"
+#include "OWSCharacterWithAbilities.h"
 #include "OWSCharacter.h"
 #include "OWSGameMode.h"
 #include "OWSGameInstance.h"
@@ -382,11 +383,6 @@ void AOWSPlayerController::PawnLeavingGame()
 AOWSPlayerState* AOWSPlayerController::GetOWSPlayerState() const
 {
 	return GetPlayerState<AOWSPlayerState>();
-}
-
-UOWSReplicationGraph* AOWSPlayerController::GetReplicationGraph() const
-{
-	return CastChecked<UOWSReplicationGraph>(GetNetDriver()->GetReplicationDriver());
 }
 
 bool AOWSPlayerController::InputAxis(FKey Key, float Delta, float DeltaTime, int32 NumSamples, bool bGamepad)

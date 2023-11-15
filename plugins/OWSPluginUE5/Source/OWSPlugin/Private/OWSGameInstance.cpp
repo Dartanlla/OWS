@@ -132,8 +132,7 @@ FString UOWSGameInstance::EncryptWithAES(FString StringToEncrypt, FString Key)
 	StringToEncrypt.Append(SplitSymbol);
 
 	Key = FMD5::HashAnsiString(*Key);
-	TCHAR *KeyTChar = Key.GetCharArray().GetData();
-	ANSICHAR *KeyAnsi = (ANSICHAR*)TCHAR_TO_ANSI(KeyTChar);
+	TCHAR* KeyTChar = Key.GetCharArray().GetData();
 
 	uint32 Size = StringToEncrypt.Len();
 	Size = Size + (FAES::AESBlockSize - (Size % FAES::AESBlockSize));
@@ -142,7 +141,7 @@ FString UOWSGameInstance::EncryptWithAES(FString StringToEncrypt, FString Key)
 
 	if (StringToBytes(StringToEncrypt, ByteString, Size)) {
 
-		FAES::EncryptData(ByteString, Size, KeyAnsi);
+		FAES::EncryptData(ByteString, Size, TCHAR_TO_ANSI(KeyTChar));
 		StringToEncrypt = FString::FromHexBlob(ByteString, Size);
 
 		delete[] ByteString;
@@ -161,8 +160,7 @@ FString UOWSGameInstance::DecryptWithAES(FString StringToDecrypt, FString Key)
 	FString SplitSymbol = "OWS#@!";
 
 	Key = FMD5::HashAnsiString(*Key);
-	TCHAR *KeyTChar = Key.GetCharArray().GetData();
-	ANSICHAR *KeyAnsi = (ANSICHAR*)TCHAR_TO_ANSI(KeyTChar);
+	TCHAR* KeyTChar = Key.GetCharArray().GetData();
 
 	uint32 Size = StringToDecrypt.Len();
 	Size = Size + (FAES::AESBlockSize - (Size % FAES::AESBlockSize));
@@ -171,7 +169,7 @@ FString UOWSGameInstance::DecryptWithAES(FString StringToDecrypt, FString Key)
 
 	if (FString::ToHexBlob(StringToDecrypt, ByteString, Size)) {
 
-		FAES::DecryptData(ByteString, Size, KeyAnsi);
+		FAES::DecryptData(ByteString, Size, TCHAR_TO_ANSI(KeyTChar));
 		StringToDecrypt = BytesToString(ByteString, Size);
 
 		FString LeftPart;

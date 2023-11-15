@@ -34,8 +34,8 @@ void AOWSGameplayAbilityWorldReticle::InitializeReticleVisualizationInformation(
 		VisualizationActor->GetComponents(MeshComps);
 		check(MyRoot);
 
-		TargetingActor = (AActor*)InTargetingActor;
-		AddTickPrerequisiteActor(TargetingActor);		//We want the reticle to tick after the targeting actor so that designers have the final say on the position
+		TargetingActor = InTargetingActor;
+		AddTickPrerequisiteActor((AActor*)TargetingActor.Get());		//We want the reticle to tick after the targeting actor so that designers have the final say on the position
 
 		for (UMeshComponent* MeshComp : MeshComps)
 		{
