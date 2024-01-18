@@ -24,7 +24,8 @@ namespace OWSGlobalData.Requests
 
         public async Task<SuccessAndErrorMessage> Handle()
         {
-            var globalDataToAdd = new GlobalData() {
+            var globalDataToAdd = default(GlobalData) with
+            {
                 CustomerGuid = _CustomerGUID,
                 GlobalDataKey = _dto.GlobalDataKey,
                 GlobalDataValue = _dto.GlobalDataValue
