@@ -127,7 +127,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
                 if (outputObject == null)
                 {
-                    return new MapInstances();
+                    return null;
                 }
 
                 return outputObject;
@@ -288,17 +288,20 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 }
 
                 //If there is a playerGroupType, then look up the player group by type.  This assumes that for this playerGroupType, the player can only be in at most one Player Group
-                PlayerGroup outputPlayerGroup = new PlayerGroup();
+                PlayerGroup? outputPlayerGroup;
+
                 if (playerGroupType > 0)
                 {
                     parameters.Add("@PlayerGroupType", playerGroupType);
+
                     outputPlayerGroup = await Connection.QuerySingleOrDefaultAsync<PlayerGroup>(GenericQueries.GetPlayerGroupIDByType,
                         parameters,
                         commandType: CommandType.Text);
                 }
                 else
                 {
-                    outputPlayerGroup.PlayerGroupId = 0;
+                    //outputPlayerGroup.PlayerGroupId = 0;
+                    outputPlayerGroup = null;
                 }
 
                 //This query has the conditions required to find a Zone Instance to connect the player to
@@ -417,7 +420,8 @@ namespace OWSData.Repositories.Implementations.MSSQL
                             */
 
                             //Return the inserted Zone Instance row
-                            MapInstances outputMapInstances = new MapInstances() { 
+                            MapInstances outputMapInstances = default(MapInstances) with
+                            {
                                 CustomerGuid = customerGUID,
                                 MapId = outputMaps.MapId,
                                 MapInstanceId = outputMapInstanceID,
@@ -440,7 +444,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             //Log the error
 
-            return new MapInstances { MapInstanceId = -1 };
+            return null;
         }
 
         public async Task UpdateCharacterStats(UpdateCharacterStats updateCharacterStats)

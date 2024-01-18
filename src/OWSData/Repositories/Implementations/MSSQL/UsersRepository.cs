@@ -161,7 +161,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<User> GetUser(Guid customerGuid, Guid userGuid)
         {
-            User outputObject = new User();
+            User outputObject;
 
             using (Connection)
             {
@@ -232,9 +232,9 @@ namespace OWSData.Repositories.Implementations.MSSQL
         public async Task<GetUserSessionComposite> GetUserSessionParallel(Guid customerGUID, Guid userSessionGUID) //id = UserSessionGUID
         {
             GetUserSessionComposite outputObject = new GetUserSessionComposite();
-            UserSessions userSession = new UserSessions();
-            User user = new User();
-            Characters character = new Characters();
+            UserSessions userSession;
+            User user;
+            Characters character;
 
             using (Connection)
             {

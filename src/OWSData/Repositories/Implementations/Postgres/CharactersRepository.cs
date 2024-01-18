@@ -126,7 +126,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
                 if (outputObject == null)
                 {
-                    return new MapInstances();
+                    return null;
                 }
 
                 return outputObject;
@@ -269,17 +269,13 @@ namespace OWSData.Repositories.Implementations.Postgres
                     return outputObject;
                 }
 
-                PlayerGroup outputPlayerGroup = new PlayerGroup();
+                PlayerGroup? outputPlayerGroup = null;
 
                 if (playerGroupType > 0)
                 {
                     outputPlayerGroup = await Connection.QuerySingleOrDefaultAsync<PlayerGroup>(GenericQueries.GetPlayerGroupIDByType,
                         parameters,
                         commandType: CommandType.Text);
-                }
-                else
-                {
-                    outputPlayerGroup.PlayerGroupId = 0;
                 }
 
                 parameters.Add("@IsInternalNetworkTestUser", outputCharacter.IsInternalNetworkTestUser);
@@ -393,7 +389,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 }
             }
 
-            return new MapInstances { MapInstanceId = -1 };
+            return null;
         }
 
         public async Task UpdateCharacterStats(UpdateCharacterStats updateCharacterStats)
