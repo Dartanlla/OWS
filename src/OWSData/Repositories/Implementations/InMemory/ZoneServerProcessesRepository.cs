@@ -11,32 +11,13 @@ namespace OWSData.Repositories.Implementations.InMemory
     {
         private List<ZoneServerProcess> zoneServerProcesses;
 
-        public ZoneServerProcessesRepository()
-        {
-            zoneServerProcesses = new List<ZoneServerProcess>();
-        }
+        public ZoneServerProcessesRepository() => zoneServerProcesses = [];
 
-        public void AddZoneServerProcess(ZoneServerProcess zoneServerProcess)
-        {
-            zoneServerProcesses.Add(zoneServerProcess);
-        }
+        public void AddZoneServerProcess(ZoneServerProcess zoneServerProcess) => zoneServerProcesses.Add(zoneServerProcess);
 
-        public List<ZoneServerProcess> GetZoneServerProcesses()
-        {
-            return zoneServerProcesses;
-        }
+        public List<ZoneServerProcess> GetZoneServerProcesses() => zoneServerProcesses;
 
         //Returns the processId.  Returns -1 if not found.
-        public int FindZoneServerProcessId(int zoneInstanceId)
-        {
-            var foundZoneServerProcess = zoneServerProcesses.Find(item => item.ZoneInstanceId == zoneInstanceId);
-
-            if (foundZoneServerProcess == null)
-            {
-                return -1;
-            }
-
-            return (foundZoneServerProcess.ProcessId > 0 ? foundZoneServerProcess.ProcessId : -1);
-        }
+        public int FindZoneServerProcessId(int zoneInstanceId) => zoneServerProcesses.Find(item => item.ZoneInstanceId == zoneInstanceId) != null ? zoneServerProcesses.Find(item => item.ZoneInstanceId == zoneInstanceId).ProcessId > 0 ? zoneServerProcesses.Find(item => item.ZoneInstanceId == zoneInstanceId).ProcessId : -1 : -1;
     }
 }

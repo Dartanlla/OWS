@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 
 namespace OWSData.Models.Tables
 {
@@ -7,12 +8,12 @@ namespace OWSData.Models.Tables
     public record WorldServers(
     Guid CustomerGuid,
     int WorldServerId,
-    string ServerIp,
+    IPAddress ServerIp,
     int MaxNumberOfInstances,
     DateTime? ActiveStartTime,
     int Port,
     byte ServerStatus,
-    string InternalServerIp,
+    IPAddress InternalServerIp,
     int StartingMapInstancePort
     );
 

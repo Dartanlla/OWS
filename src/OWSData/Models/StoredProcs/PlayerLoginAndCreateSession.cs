@@ -5,15 +5,17 @@ using System.Threading.Tasks;
 
 namespace OWSData.Models.StoredProcs
 {
-    public class PlayerLoginAndCreateSession
-    {
-        public bool Authenticated { get; set; }
-        public Guid? UserSessionGuid { get; set; }
-        public string ErrorMessage { get; set; }
+    public record PlayerLoginAndCreateSession(bool Authenticated, Guid? UserSessionGuid, string ErrorMessage = "");
 
-        public PlayerLoginAndCreateSession()
-        {
-            ErrorMessage = "";
-        }
-    }
+    //public class PlayerLoginAndCreateSession
+    //{
+    //    public bool Authenticated { get; set; }
+    //    public Guid? UserSessionGuid { get; set; }
+    //    public string ErrorMessage { get; set; }
+
+    //    public PlayerLoginAndCreateSession()
+    //    {
+    //        ErrorMessage = "";
+    //    }
+    //}
 }

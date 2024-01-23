@@ -18,19 +18,10 @@ namespace OWSData.Repositories.Implementations.InMemory
             }
         }
 
-        public int GetWorldServerID()
-        {
-            return worldServerID;
-        }
+        public int GetWorldServerID() => worldServerID;
 
-        public void SetLauncherGuid(Guid launcherGuid)
-        {
-            this.launcherGuid = launcherGuid;
-        }
+        public void SetLauncherGuid(Guid launcherGuid) => this.launcherGuid = launcherGuid;
 
-        public Guid GetLauncherGuid()
-        {
-            return launcherGuid;
-        }
+        public Guid GetLauncherGuid() => launcherGuid;
     }
 }

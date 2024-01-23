@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace OWSData.Models.Composites
 {
-    public class GetWorldServerID
-    {
-        public int WorldServerID { get; set; }
-    }
+    public record GetWorldServerID(int WorldServerID);
+
+    //public class GetWorldServerID
+    //{
+    //    public int WorldServerID { get; set; }
+    //}
 }

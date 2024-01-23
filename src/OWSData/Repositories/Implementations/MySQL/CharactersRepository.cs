@@ -14,6 +14,7 @@ using OWSData.Repositories.Interfaces;
 using OWSData.Models.Tables;
 using OWSData.SQL;
 using OWSShared.Options;
+using System.Net;
 
 namespace OWSData.Repositories.Implementations.MySQL
 {
@@ -126,7 +127,7 @@ namespace OWSData.Repositories.Implementations.MySQL
 
                 if (outputObject == null)
                 {
-                    return null;
+                    return default(MapInstances);
                 }
 
                 return outputObject;
@@ -216,7 +217,7 @@ namespace OWSData.Repositories.Implementations.MySQL
             // TODO: Run Cleanup here for now. Later this can get moved to a scheduler to run periodically.
             await CleanUpInstances(customerGUID);
 
-            JoinMapByCharName outputObject = new JoinMapByCharName();
+            JoinMapByCharName outputObject = default;
 
             string serverIp = "";
             int? worldServerId = 0;
@@ -252,30 +253,32 @@ namespace OWSData.Repositories.Implementations.MySQL
 
                 if (outputCharacter == null)
                 {
-                    outputObject = new JoinMapByCharName() {
-                        ServerIP = serverIp,
+                    outputObject = default(JoinMapByCharName) with
+                    {
+                        ServerIP = IPAddress.Parse(serverIp),
                         Port = port,
                         WorldServerID = -1,
-                        WorldServerIP = worldServerIp,
+                        WorldServerIP = IPAddress.Parse(worldServerIp),
                         WorldServerPort = worldServerPort,
                         MapInstanceID = mapInstanceID,
                         MapNameToStart = mapNameToStart,
-                        MapInstanceStatus = -1,
-                        NeedToStartupMap = false,
-                        EnableAutoLoopback = enableAutoLoopback,
-                        NoPortForwarding = noPortForwarding
+                        MapInstanceStatus = -1
                     };
 
                     return outputObject;
                 }
 
-                PlayerGroup? outputPlayerGroup = null;
+                PlayerGroup outputPlayerGroup = default(PlayerGroup);
 
                 if (playerGroupType > 0)
                 {
                     outputPlayerGroup = await Connection.QuerySingleOrDefaultAsync<PlayerGroup>(GenericQueries.GetPlayerGroupIDByType,
                         parameters,
                         commandType: CommandType.Text);
+                }
+                else
+                {
+                    outputPlayerGroup = outputPlayerGroup with { PlayerGroupId = 0 };
                 }
 
                 parameters.Add("@IsInternalNetworkTestUser", outputCharacter.IsInternalNetworkTestUser);
@@ -289,18 +292,23 @@ namespace OWSData.Repositories.Implementations.MySQL
 
                 if (outputJoinMapByCharName != null)
                 {
-                    outputObject.NeedToStartupMap = false;
-                    outputObject.WorldServerID = outputJoinMapByCharName.WorldServerID;
-                    outputObject.ServerIP = outputJoinMapByCharName.ServerIP;
+                    IPAddress IP = outputJoinMapByCharName.ServerIP;
+
                     if (outputCharacter.IsInternalNetworkTestUser)
                     {
-                        outputObject.ServerIP = outputJoinMapByCharName.WorldServerIP;
+                        IP = outputJoinMapByCharName.WorldServerIP;
                     }
-                    outputObject.WorldServerIP = outputJoinMapByCharName.WorldServerIP;
-                    outputObject.WorldServerPort = outputJoinMapByCharName.WorldServerPort;
-                    outputObject.Port = outputJoinMapByCharName.Port;
-                    outputObject.MapInstanceID = outputJoinMapByCharName.MapInstanceID;
-                    outputObject.MapNameToStart = outputMap.MapName;
+
+                    outputObject = outputObject with
+                    {
+                        WorldServerID = outputJoinMapByCharName.WorldServerID,
+                        ServerIP = IP,
+                        WorldServerIP = outputJoinMapByCharName.WorldServerIP,
+                        WorldServerPort = outputJoinMapByCharName.WorldServerPort,
+                        Port = outputJoinMapByCharName.Port,
+                        MapInstanceID = outputJoinMapByCharName.MapInstanceID,
+                        MapNameToStart = outputMap.MapName
+                    };
                 }
                 else
                 {
@@ -308,27 +316,31 @@ namespace OWSData.Repositories.Implementations.MySQL
 
                     parameters.Add("@WorldServerId", outputMapInstance.WorldServerId);
 
-                    WorldServers outputWorldServers =  await Connection.QuerySingleOrDefaultAsync<WorldServers>(GenericQueries.GetWorldByID,
+                    WorldServers outputWorldServers = await Connection.QuerySingleOrDefaultAsync<WorldServers>(GenericQueries.GetWorldByID,
                         parameters,
                         commandType: CommandType.Text);
 
-                    outputObject.NeedToStartupMap = true;
-                    outputObject.WorldServerID = outputMapInstance.WorldServerId;
-                    outputObject.ServerIP = outputWorldServers.ServerIp;
+                    outputObject = outputObject with
+                    {
+                        NeedToStartupMap = true,
+                        WorldServerID = outputMapInstance.WorldServerId,
+                        WorldServerIP = outputWorldServers.InternalServerIp,
+                        WorldServerPort = outputWorldServers.Port,
+                        Port = outputMapInstance.Port,
+                        MapInstanceID = outputMapInstance.MapInstanceId,
+                        MapNameToStart = outputMap.MapName,
+                        ServerIP = outputWorldServers.ServerIp
+                    };
+
                     if (outputCharacter.IsInternalNetworkTestUser)
                     {
-                        outputObject.ServerIP = outputWorldServers.InternalServerIp;
+                        outputObject = outputObject with { ServerIP = outputWorldServers.InternalServerIp };
                     }
-                    outputObject.WorldServerIP = outputWorldServers.InternalServerIp;
-                    outputObject.WorldServerPort = outputWorldServers.Port;
-                    outputObject.Port = outputMapInstance.Port;
-                    outputObject.MapInstanceID = outputMapInstance.MapInstanceId;
-                    outputObject.MapNameToStart = outputMap.MapName;
                 }
 
                 if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
                 {
-                    outputObject.ServerIP = "127.0.0.1";
+                    outputObject = outputObject with { ServerIP = IPAddress.Loopback };
                 }
 
             }
@@ -336,7 +348,7 @@ namespace OWSData.Repositories.Implementations.MySQL
             return outputObject;
         }
 
-                 public async Task<MapInstances> SpinUpInstance(Guid customerGUID, string zoneName, int playerGroupId = 0)
+        public async Task<MapInstances> SpinUpInstance(Guid customerGUID, string zoneName, int playerGroupId = 0)
         {
             using (Connection)
             {
@@ -389,7 +401,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                 }
             }
 
-            return null;
+            return default(MapInstances) with { MapInstanceId = -1 };
         }
 
         public async Task UpdateCharacterStats(UpdateCharacterStats updateCharacterStats)

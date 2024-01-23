@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 
 namespace OWSData.Models.Composites
 {
-    public class SuccessAndErrorMessage
-    {
-        public bool Success { get; set; }
-        public string ErrorMessage { get; set; }
-    }
+    public record SuccessAndErrorMessage(bool Success = true, string ErrorMessage = "");
+
+    //public class SuccessAndErrorMessage
+    //{
+    //    public bool Success { get; set; }
+    //    public string ErrorMessage { get; set; }
+    //}
 }

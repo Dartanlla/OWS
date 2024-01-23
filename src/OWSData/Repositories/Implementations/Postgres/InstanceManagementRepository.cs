@@ -11,6 +11,7 @@ using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
 using OWSShared.Options;
+using System.Net;
 
 namespace OWSData.Repositories.Implementations.Postgres
 {
@@ -44,14 +45,13 @@ namespace OWSData.Repositories.Implementations.Postgres
 
                 return output;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                output = new GetServerInstanceFromPort();
-                return output;
+                return default;
             }
         }
 
-        public async Task<GetServerInstanceFromPort> GetServerInstanceFromPort(Guid customerGUID, string serverIP, int port)
+        public async Task<GetServerInstanceFromPort> GetServerInstanceFromPort(Guid customerGUID, IPAddress serverIP, int port)
         {
             GetServerInstanceFromPort output;
 
@@ -71,9 +71,9 @@ namespace OWSData.Repositories.Implementations.Postgres
 
                 return output;
             }
-            catch (Exception ex) {
-                output = new GetServerInstanceFromPort();
-                return output;
+            catch (Exception)
+            {
+                return default;
             }
         }
 
@@ -110,7 +110,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     commandType: CommandType.Text);
             }
 
-            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+            SuccessAndErrorMessage output = default(SuccessAndErrorMessage) with
             {
                 Success = true,
                 ErrorMessage = ""
@@ -147,7 +147,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 throw new Exception("Database Exception in ShutDownWorldServer!");
             }
 
-            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+            SuccessAndErrorMessage output = default(SuccessAndErrorMessage) with
             {
                 Success = true,
                 ErrorMessage = ""
@@ -202,7 +202,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 _ = await Connection.ExecuteAsync(PostgresQueries.UpdateNumberOfPlayersSQL, paremeters);
             }
 
-            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+            SuccessAndErrorMessage output = default(SuccessAndErrorMessage) with
             {
                 Success = true,
                 ErrorMessage = ""
@@ -247,7 +247,7 @@ namespace OWSData.Repositories.Implementations.Postgres
             return output;
         }
 
-        public async Task<SuccessAndErrorMessage> RegisterLauncher(Guid customerGUID, string launcherGuid, string serverIp, int maxNumberOfInstances, string internalServerIp, int startingInstancePort)
+        public async Task<SuccessAndErrorMessage> RegisterLauncher(Guid customerGUID, string launcherGuid, IPAddress serverIp, int maxNumberOfInstances, IPAddress internalServerIp, int startingInstancePort)
         {
             try
             {
@@ -266,23 +266,15 @@ namespace OWSData.Repositories.Implementations.Postgres
                         commandType: CommandType.Text);
                 }
 
-                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
-                {
-                    Success = true,
-                    ErrorMessage = ""
-                };
-
-                return output;
+                return default;
             }
             catch (Exception ex)
             {
-                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                return default(SuccessAndErrorMessage) with
                 {
                     Success = false,
                     ErrorMessage = ex.Message
                 };
-
-                return output;
             }
         }
 
@@ -309,23 +301,15 @@ namespace OWSData.Repositories.Implementations.Postgres
                         commandType: CommandType.Text);
                 }
 
-                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
-                {
-                    Success = true,
-                    ErrorMessage = ""
-                };
-
-                return output;
+                return default;
             }
             catch (Exception ex)
             {
-                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                return default(SuccessAndErrorMessage) with
                 {
                     Success = false,
                     ErrorMessage = ex.Message
                 };
-
-                return output;
             }
         }
 
@@ -352,23 +336,16 @@ namespace OWSData.Repositories.Implementations.Postgres
                         commandType: CommandType.Text);
                 }
 
-                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
-                {
-                    Success = true,
-                    ErrorMessage = ""
-                };
-
-                return output;
+                return default;
             }
             catch (Exception ex)
             {
-                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+
+                return default(SuccessAndErrorMessage) with
                 {
                     Success = false,
                     ErrorMessage = ex.Message
                 };
-
-                return output;
             }
         }
     }

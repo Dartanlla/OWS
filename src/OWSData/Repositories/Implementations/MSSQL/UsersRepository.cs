@@ -54,7 +54,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<CreateCharacter> CreateCharacter(Guid customerGUID, Guid userSessionGUID, string characterName, string className)
         {
-            CreateCharacter outputObject = new CreateCharacter();
+            CreateCharacter outputObject = default;
 
             try
             {
@@ -72,21 +72,17 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     commandType: CommandType.StoredProcedure);
                 }
 
-                if (String.IsNullOrEmpty(outputObject.ErrorMessage))
-                {
-                    outputObject.Success = true;
-                }
-                else
-                {
-                    outputObject.Success = false;
-                }
+                outputObject = outputObject with { Success = string.IsNullOrEmpty(outputObject.ErrorMessage) };
 
                 return outputObject;
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
+                outputObject = outputObject with
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
 
                 return outputObject;
             }
@@ -94,33 +90,33 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<SuccessAndErrorMessage> CreateCharacterUsingDefaultCharacterValues(Guid customerGUID, Guid userGUID, string characterName, string defaultSetName)
         {
-            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+            SuccessAndErrorMessage outputObject = default;
 
             IDbConnection conn = Connection;
             conn.Open();
             using IDbTransaction transaction = conn.BeginTransaction();
             try
             {
-                    var parameters = new DynamicParameters();
-                    parameters.Add("CustomerGUID", customerGUID);
-                    parameters.Add("UserGUID", userGUID);
-                    parameters.Add("CharacterName", characterName);
-                    parameters.Add("DefaultSetName", defaultSetName);
+                var parameters = new DynamicParameters();
+                parameters.Add("CustomerGUID", customerGUID);
+                parameters.Add("UserGUID", userGUID);
+                parameters.Add("CharacterName", characterName);
+                parameters.Add("DefaultSetName", defaultSetName);
 
-                    int outputCharacterId = await Connection.QuerySingleOrDefaultAsync<int>(MSSQLQueries.AddCharacterUsingDefaultCharacterValues,
-                        parameters,
+                int outputCharacterId = await Connection.QuerySingleOrDefaultAsync<int>(MSSQLQueries.AddCharacterUsingDefaultCharacterValues,
+                    parameters,
+                commandType: CommandType.Text);
+
+                parameters.Add("CharacterID", outputCharacterId);
+                await Connection.ExecuteAsync(GenericQueries.AddDefaultCustomCharacterData,
+                    parameters,
                     commandType: CommandType.Text);
-
-                    parameters.Add("CharacterID", outputCharacterId);
-                    await Connection.ExecuteAsync(GenericQueries.AddDefaultCustomCharacterData,
-                        parameters,
-                        commandType: CommandType.Text);
-                    transaction.Commit();
+                transaction.Commit();
             }
             catch (Exception ex)
             {
                 transaction.Rollback();
-                outputObject = new SuccessAndErrorMessage()
+                outputObject = default(SuccessAndErrorMessage) with
                 {
                     Success = false,
                     ErrorMessage = ex.Message
@@ -129,7 +125,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 return outputObject;
             }
 
-            outputObject = new SuccessAndErrorMessage()
+            outputObject = default(SuccessAndErrorMessage) with
             {
                 Success = true,
                 ErrorMessage = ""
@@ -161,7 +157,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<User> GetUser(Guid customerGuid, Guid userGuid)
         {
-            User outputObject;
+            User outputObject = default(User);
 
             using (Connection)
             {
@@ -201,7 +197,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<GetUserSession> GetUserSession(Guid customerGUID, Guid userSessionGUID)
         {
-            GetUserSession outputObject = new GetUserSession();
+            GetUserSession outputObject = default;
 
             using (Connection)
             {
@@ -219,7 +215,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<GetUserSession> GetUserSessionORM(Guid customerGUID, Guid userSessionGUID)
         {
-            GetUserSession outputObject = new GetUserSession();
+            GetUserSession outputObject = default;
 
             using (Connection)
             {
@@ -231,10 +227,10 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<GetUserSessionComposite> GetUserSessionParallel(Guid customerGUID, Guid userSessionGUID) //id = UserSessionGUID
         {
-            GetUserSessionComposite outputObject = new GetUserSessionComposite();
-            UserSessions userSession;
-            User user;
-            Characters character;
+            GetUserSessionComposite outputObject = default;
+            UserSessions userSession = default;
+            User user = default;
+            Characters character = default;
 
             using (Connection)
             {
@@ -246,9 +242,12 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 character = await characterTask;
             }
 
-            outputObject.userSession = userSession;
-            outputObject.user = user;
-            outputObject.character = character;
+            outputObject = outputObject with
+            {
+                UserSession = userSession,
+                User = user,
+                Character = character
+            };
 
             return outputObject;
         }
@@ -275,7 +274,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<SuccessAndErrorMessage> Logout(Guid customerGuid, Guid userSessionGuid)
         {
-            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+            SuccessAndErrorMessage outputObject = default;
 
             try
             {
@@ -288,15 +287,21 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     await Connection.ExecuteAsync(GenericQueries.Logout, p, commandType: CommandType.Text);
                 }
 
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
+                outputObject = default(SuccessAndErrorMessage) with
+                {
+                    Success = true,
+                    ErrorMessage = ""
+                };
 
                 return outputObject;
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
+                outputObject = outputObject with
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
 
                 return outputObject;
             }
@@ -304,7 +309,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<SuccessAndErrorMessage> UserSessionSetSelectedCharacter(Guid customerGUID, Guid userSessionGUID, string selectedCharacterName)
         {
-            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+            SuccessAndErrorMessage outputObject = default;
 
             try
             {
@@ -320,15 +325,23 @@ namespace OWSData.Repositories.Implementations.MSSQL
                         commandType: CommandType.StoredProcedure);
                 }
 
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
+                outputObject = outputObject with
+                {
+                    Success = true,
+                    ErrorMessage = ""
+                }
+
+                ;
 
                 return outputObject;
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
+                outputObject = outputObject with
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
 
                 return outputObject;
             }
@@ -336,7 +349,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<SuccessAndErrorMessage> RegisterUser(Guid customerGUID, string email, string password, string firstName, string lastName)
         {
-            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+            SuccessAndErrorMessage outputObject = default;
 
             try
             {
@@ -356,15 +369,18 @@ namespace OWSData.Repositories.Implementations.MSSQL
                         commandType: CommandType.StoredProcedure);
                 }
 
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
+                outputObject = outputObject with { Success = true,
+                ErrorMessage = "" };
 
                 return outputObject;
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
+                outputObject = outputObject with
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
 
                 return outputObject;
             }
@@ -372,7 +388,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<GetUserSession> GetUserFromEmail(Guid customerGUID, string email)
         {
-            GetUserSession outputObject = new GetUserSession();
+            GetUserSession outputObject = default;
 
             using (Connection)
             {
@@ -384,8 +400,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGUID, Guid userSessionGUID, string characterName)
         {
-            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
-
             try
             {
                 using (Connection)
@@ -400,24 +414,16 @@ namespace OWSData.Repositories.Implementations.MSSQL
                         commandType: CommandType.StoredProcedure);
                 }
 
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
-
-                return outputObject;
+                return default;
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
-
-                return outputObject;
+                return default(SuccessAndErrorMessage) with { Success = false, ErrorMessage = ex.Message };
             }
         }
 
         public async Task<SuccessAndErrorMessage> UpdateUser(Guid customerGuid, Guid userGuid, string firstName, string lastName, string email)
         {
-            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
-
             try
             {
                 using (Connection)
@@ -434,17 +440,11 @@ namespace OWSData.Repositories.Implementations.MSSQL
                         commandType: CommandType.Text);
                 }
 
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
-
-                return outputObject;
+                return default;
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
-
-                return outputObject;
+                return default(SuccessAndErrorMessage) with { Success = false, ErrorMessage = ex.Message };
             }
         }
     }

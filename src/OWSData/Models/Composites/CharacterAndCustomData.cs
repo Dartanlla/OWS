@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 
 namespace OWSData.Models.Composites
 {
-    public class CharacterAndCustomData
-    {
-        public GetCharByCharName CharacterData { get; set; }
-        public List<CustomCharacterDataDTO> CustomCharacterDataRows { get; set; }
-}
+    public record CharacterAndCustomData(GetCharByCharName CharacterData, List<CustomCharacterDataDTO> CustomCharacterDataRows);
+
+    //public class CharacterAndCustomData
+    //{
+    //    public GetCharByCharName CharacterData { get; set; }
+    //    public List<CustomCharacterDataDTO> CustomCharacterDataRows { get; set; }
+    //}
 }
