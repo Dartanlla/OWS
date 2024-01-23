@@ -11,6 +11,7 @@ using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
 using OWSShared.Options;
+using System.Net;
 
 namespace OWSData.Repositories.Implementations.MySQL
 {
@@ -44,14 +45,13 @@ namespace OWSData.Repositories.Implementations.MySQL
 
                 return output;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                output = new GetServerInstanceFromPort();
-                return output;
+                return default;
             }
         }
 
-        public async Task<GetServerInstanceFromPort> GetServerInstanceFromPort(Guid customerGUID, string serverIP, int port)
+        public async Task<GetServerInstanceFromPort> GetServerInstanceFromPort(Guid customerGUID, IPAddress serverIP, int port)
         {
             GetServerInstanceFromPort output;
 
@@ -71,9 +71,9 @@ namespace OWSData.Repositories.Implementations.MySQL
 
                 return output;
             }
-            catch (Exception ex) {
-                output = new GetServerInstanceFromPort();
-                return output;
+            catch (Exception)
+            {
+                return default;
             }
         }
 
@@ -92,7 +92,6 @@ namespace OWSData.Repositories.Implementations.MySQL
                     commandType: CommandType.Text);
             }
 
-
             return output;
         }
 
@@ -110,13 +109,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                     commandType: CommandType.Text);
             }
 
-            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
-            {
-                Success = true,
-                ErrorMessage = ""
-            };
-
-            return output;
+            return default;
         }
 
         public async Task<SuccessAndErrorMessage> ShutDownWorldServer(Guid customerGUID, int worldServerID)
@@ -147,13 +140,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                 throw new Exception("Database Exception in ShutDownWorldServer!");
             }
 
-            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
-            {
-                Success = true,
-                ErrorMessage = ""
-            };
-
-            return output;
+            return default;
         }
 
         public async Task<int> StartWorldServer(Guid customerGUID, string launcherGuid)
@@ -202,13 +189,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                 _ = await Connection.ExecuteAsync(MySQLQueries.UpdateNumberOfPlayersSQL, paremeters);
             }
 
-            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
-            {
-                Success = true,
-                ErrorMessage = ""
-            };
-
-            return output;
+            return default;
         }
 
         public async Task<IEnumerable<GetZoneInstancesForZone>> GetZoneInstancesOfZone(Guid customerGUID, string ZoneName)
@@ -225,7 +206,6 @@ namespace OWSData.Repositories.Implementations.MySQL
                     p,
                     commandType: CommandType.Text);
             }
-
 
             return output;
         }
@@ -247,7 +227,7 @@ namespace OWSData.Repositories.Implementations.MySQL
             return output;
         }
 
-        public async Task<SuccessAndErrorMessage> RegisterLauncher(Guid customerGUID, string launcherGuid, string serverIp, int maxNumberOfInstances, string internalServerIp, int startingInstancePort)
+        public async Task<SuccessAndErrorMessage> RegisterLauncher(Guid customerGUID, string launcherGuid, IPAddress serverIp, int maxNumberOfInstances, IPAddress internalServerIp, int startingInstancePort)
         {
             try
             {
@@ -266,23 +246,15 @@ namespace OWSData.Repositories.Implementations.MySQL
                         commandType: CommandType.Text);
                 }
 
-                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
-                {
-                    Success = true,
-                    ErrorMessage = ""
-                };
-
-                return output;
+                return default;
             }
             catch (Exception ex)
             {
-                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                return default(SuccessAndErrorMessage) with
                 {
                     Success = false,
                     ErrorMessage = ex.Message
                 };
-
-                return output;
             }
         }
 
@@ -309,23 +281,15 @@ namespace OWSData.Repositories.Implementations.MySQL
                         commandType: CommandType.Text);
                 }
 
-                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
-                {
-                    Success = true,
-                    ErrorMessage = ""
-                };
-
-                return output;
+                return default;
             }
             catch (Exception ex)
             {
-                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                return default(SuccessAndErrorMessage) with
                 {
                     Success = false,
                     ErrorMessage = ex.Message
                 };
-
-                return output;
             }
         }
 
@@ -352,23 +316,15 @@ namespace OWSData.Repositories.Implementations.MySQL
                         commandType: CommandType.Text);
                 }
 
-                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
-                {
-                    Success = true,
-                    ErrorMessage = ""
-                };
-
-                return output;
+                return default;
             }
             catch (Exception ex)
             {
-                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                return default(SuccessAndErrorMessage) with
                 {
                     Success = false,
                     ErrorMessage = ex.Message
                 };
-
-                return output;
             }
         }
     }

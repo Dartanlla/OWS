@@ -19,6 +19,7 @@ namespace OWSData.Repositories.Implementations.MongoDB
         private readonly IOptions<StorageOptions> storageOptions;
         private readonly IMongoCollection<CharacterStats> characterStats;
 
+        [Obsolete]
         public CharactersRepository(IConfiguration config)
         {
             MongoDefaults.GuidRepresentation = GuidRepresentation.Standard;
@@ -34,18 +35,18 @@ namespace OWSData.Repositories.Implementations.MongoDB
             this.storageOptions = storageOptions;
         }
 
-        public async Task<GetCharByCharName> GetCharByCharName(Guid _CustomerGUID, string _CharacterName)
+        public Task<GetCharByCharName> GetCharByCharName(Guid _CustomerGUID, string _CharacterName)
         {
-            GetCharByCharName OutputCharacter = new GetCharByCharName();
+            GetCharByCharName OutputCharacter = default;
 
-            return OutputCharacter;
+            return Task.FromResult(OutputCharacter);
         }
 
-        public async Task<JoinMapByCharName> JoinMapByCharName(Guid _CustomerGUID, string _CharacterName, string _ZoneName, int _PlayerGroupType)
+        public Task<JoinMapByCharName> JoinMapByCharName(Guid _CustomerGUID, string _CharacterName, string _ZoneName, int _PlayerGroupType)
         {
-            JoinMapByCharName OutputObject = new JoinMapByCharName();
+            JoinMapByCharName OutputObject = default;
 
-            return OutputObject;
+            return Task.FromResult(OutputObject);
         }
 
         public async Task<CharacterStats> GetCharacterStats(Guid _CustomerGUID, string _CharacterName)

@@ -4,9 +4,11 @@ using System.Text;
 
 namespace OWSData.Models.StoredProcs
 {
-    public class GetCurrentWorldTime
-    {
-        public long CurrentWorldTime { get; set; }
+    [Serializable]
+    public record GetCurrentWorldTime(long CurrentWorldTime);
 
-    }
+    //public class GetCurrentWorldTime
+    //{
+    //    public long CurrentWorldTime { get; set; }
+    //}
 }

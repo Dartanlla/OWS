@@ -12,6 +12,7 @@ using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
 using OWSData.Models.Tables;
 using OWSShared.Options;
+using Npgsql.Replication.PgOutput.Messages;
 
 namespace OWSData.Repositories.Implementations.MySQL
 {
@@ -46,7 +47,7 @@ namespace OWSData.Repositories.Implementations.MySQL
 
         public async Task<CreateCharacter> CreateCharacter(Guid customerGUID, Guid userSessionGUID, string characterName, string className)
         {
-            CreateCharacter outputObject = new CreateCharacter();
+            CreateCharacter outputObject = default;
 
             try
             {
@@ -63,23 +64,20 @@ namespace OWSData.Repositories.Implementations.MySQL
                         commandType: CommandType.Text);
                 }
 
-                outputObject.Success = String.IsNullOrEmpty(outputObject.ErrorMessage);
-
-                return outputObject;
+                return outputObject with { Success = string.IsNullOrEmpty(outputObject.ErrorMessage) }; ;
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
-
-                return outputObject;
+                return outputObject with
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                }; ;
             }
         }
 
         public async Task<SuccessAndErrorMessage> CreateCharacterUsingDefaultCharacterValues(Guid customerGUID, Guid userGUID, string characterName, string defaultSetName)
         {
-            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
-
             IDbConnection conn = Connection;
             conn.Open();
             using IDbTransaction transaction = conn.BeginTransaction();
@@ -104,22 +102,11 @@ namespace OWSData.Repositories.Implementations.MySQL
             catch (Exception ex)
             {
                 transaction.Rollback();
-                outputObject = new SuccessAndErrorMessage()
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message
-                };
 
-                return outputObject;
+                return default(SuccessAndErrorMessage) with { Success = false, ErrorMessage = ex.Message };
             }
-
-            outputObject = new SuccessAndErrorMessage()
-            {
-                Success = true,
-                ErrorMessage = ""
-            };
-
-            return outputObject;
+            
+            return default;
         }
 
         //_PlayerGroupTypeID 0 returns all group types
@@ -208,7 +195,7 @@ namespace OWSData.Repositories.Implementations.MySQL
 
         public async Task<GetUserSessionComposite> GetUserSessionParallel(Guid customerGUID, Guid userSessionGUID) //id = UserSessionGUID
         {
-            GetUserSessionComposite outputObject = new GetUserSessionComposite();
+            GetUserSessionComposite outputObject = default;
             UserSessions userSession;
             User user;
             Characters character;
@@ -223,9 +210,12 @@ namespace OWSData.Repositories.Implementations.MySQL
                 character = await characterTask;
             }
 
-            outputObject.userSession = userSession;
-            outputObject.user = user;
-            outputObject.character = character;
+            outputObject = outputObject with
+            {
+                UserSession = userSession,
+                User=user,
+                Character=character
+            };
 
             return outputObject;
         }
@@ -252,8 +242,6 @@ namespace OWSData.Repositories.Implementations.MySQL
 
         public async Task<SuccessAndErrorMessage> Logout(Guid customerGuid, Guid userSessionGuid)
         {
-            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
-
             try
             {
                 using (Connection)
@@ -265,23 +253,15 @@ namespace OWSData.Repositories.Implementations.MySQL
                     await Connection.ExecuteAsync(GenericQueries.Logout, p, commandType: CommandType.Text);
                 }
 
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
-
-                return outputObject;
+                return default;
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
-
-                return outputObject;
+                return default(SuccessAndErrorMessage) with { Success = false, ErrorMessage = ex.Message };
             }
         }
         public async Task<SuccessAndErrorMessage> UserSessionSetSelectedCharacter(Guid customerGUID, Guid userSessionGUID, string selectedCharacterName)
         {
-            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
-
             try
             {
                 using (Connection)
@@ -296,24 +276,16 @@ namespace OWSData.Repositories.Implementations.MySQL
                         commandType: CommandType.Text);
                 }
 
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
-
-                return outputObject;
+                return default;
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
-
-                return outputObject;
+                return default(SuccessAndErrorMessage) with { Success = false, ErrorMessage = ex.Message };
             }
         }
 
         public async Task<SuccessAndErrorMessage> RegisterUser(Guid customerGUID, string email, string password, string firstName, string lastName)
         {
-            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
-
             try
             {
                 using (Connection)
@@ -331,17 +303,12 @@ namespace OWSData.Repositories.Implementations.MySQL
                         commandType: CommandType.Text);
                 }
 
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
-
-                return outputObject;
+                return default;
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
 
-                return outputObject;
+                return default(SuccessAndErrorMessage) with {Success=false, ErrorMessage=ex.Message };
             }
         }
 
@@ -375,24 +342,16 @@ namespace OWSData.Repositories.Implementations.MySQL
                         commandType: CommandType.Text);
                 }
 
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
-
-                return outputObject;
+                return default;
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
-
-                return outputObject;
+                return default(SuccessAndErrorMessage) with { Success = false, ErrorMessage = ex.Message };
             }
         }
 
         public async Task<SuccessAndErrorMessage> UpdateUser(Guid customerGuid, Guid userGuid, string firstName, string lastName, string email)
         {
-            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
-
             try
             {
                 using (Connection)
@@ -409,17 +368,11 @@ namespace OWSData.Repositories.Implementations.MySQL
                         commandType: CommandType.Text);
                 }
 
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
-
-                return outputObject;
+                return default;
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
-
-                return outputObject;
+                return default(SuccessAndErrorMessage) with { Success = false, ErrorMessage = ex.Message };
             }
         }
     }
