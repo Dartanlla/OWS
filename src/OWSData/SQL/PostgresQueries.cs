@@ -56,8 +56,10 @@ ON CONFLICT ON CONSTRAINT ak_zoneservers
 	            WHERE U.CustomerGUID=@CustomerGUID::UUID
 	            AND U.UserGUID=@UserGUID";
 
-        public static readonly string GetUserFromEmailSQL = @"SELECT U.Email, U.FirstName, U.LastName, U.CreateDate, U.LastAccess, U.Role
+        public static readonly string GetUserFromEmailSQL = @"SELECT U.Email, U.FirstName, U.LastName, U.CreateDate, U.LastAccess, U.Role, US.UserSessionGUID
 	            FROM Users U
+				LEFT JOIN UserSessions US
+					ON U.UserGUID=US.UserGUID
 	            WHERE U.CustomerGUID=@CustomerGUID::UUID
 	            AND U.Email=@Email";
 

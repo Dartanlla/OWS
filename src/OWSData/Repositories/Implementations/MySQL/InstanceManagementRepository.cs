@@ -11,6 +11,7 @@ using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
 using OWSShared.Options;
+using OWSData.Models.Tables;
 
 namespace OWSData.Repositories.Implementations.MySQL
 {
@@ -74,6 +75,19 @@ namespace OWSData.Repositories.Implementations.MySQL
             catch (Exception ex) {
                 output = new GetServerInstanceFromPort();
                 return output;
+            }
+        }
+
+        public async Task<IEnumerable<WorldServers>> GetActiveWorldServersByLoad(Guid customerGUID)
+        {
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                List<WorldServers> outputWorldServers = (List<WorldServers>)await Connection.QueryAsync<WorldServers>(GenericQueries.GetActiveWorldServersByLoad,
+                    parameters,
+                    commandType: CommandType.Text);
+                return outputWorldServers;
             }
         }
 

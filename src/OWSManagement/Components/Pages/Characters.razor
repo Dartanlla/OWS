@@ -1,0 +1,58 @@
+﻿@page "/characters"
+@using OWSManagement.Services
+@using OWSData.Models.StoredProcs;
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using System.Text
+@inject IHttpClientFactory ClientFactory
+@inject IConfiguration Configuration
+@inject ICharactersService CharactersService
+
+<PageTitle>Characters</PageTitle>
+
+<h1>Characters</h1>
+
+<p>Search for user email addresses to see characters.</p>
+
+<RadzenCard>
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Placeholder</RadzenText>
+    <RadzenTextBox Placeholder="Search..." @bind-Value="Email" class="w-50" aria-label="Search for Characters" />
+    <RadzenButton Click=@NewSearch Icon="search" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Medium" class="rz-border-radius-10" />
+</RadzenCard>
+
+@if (characters == null)
+{
+    <p><em>Loading... Try searching for a new email address</em></p>
+}
+else
+{
+    <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.SimpleWithMenu" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                    Data="@characters" TItem="GetAllCharacters" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.And">
+        <Columns>
+            <RadzenDataGridColumn TItem="GetAllCharacters" Property="CharName" Title="Character Name" Width="160px" TextAlign="TextAlign.Center" />
+            <RadzenDataGridColumn TItem="GetAllCharacters" Property="CharacterLevel" Title="Character Level" Width="160px" />
+            <RadzenDataGridColumn TItem="GetAllCharacters" Property="ClassName" Title="ClassName" Width="160px" />
+            <RadzenDataGridColumn TItem="GetAllCharacters" Property="CreateDate" Title="Creation Date" FormatString="{0:d}" Width="200px" />
+        </Columns>
+    </RadzenDataGrid>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? Email { get; set; } = "";
+
+    private IEnumerable<GetAllCharacters>? characters;
+
+    public async Task NewSearch()
+    {
+        if (!string.IsNullOrWhiteSpace(Email))
+        {
+            characters = await CharactersService.GetCharactersAsync(Email)!;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await NewSearch();
+    }
+}

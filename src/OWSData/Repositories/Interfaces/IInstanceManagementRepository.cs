@@ -1,5 +1,6 @@
 ﻿using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
+using OWSData.Models.Tables;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,6 +12,7 @@ namespace OWSData.Repositories.Interfaces
     {
         Task<GetServerInstanceFromPort> GetZoneInstance(Guid customerGUID, int zoneInstanceId);
         Task<GetServerInstanceFromPort> GetServerInstanceFromPort(Guid customerGUID, string serverIP, int port);
+        Task<IEnumerable<WorldServers>> GetActiveWorldServersByLoad(Guid customerGUID);
         Task<IEnumerable<GetZoneInstancesForWorldServer>> GetZoneInstancesForWorldServer(Guid customerGUID, int worldServerID);
         Task<SuccessAndErrorMessage> SetZoneInstanceStatus(Guid customerGUID, int zoneInstanceID, int instanceStatus);
         Task<SuccessAndErrorMessage> ShutDownWorldServer(Guid customerGUID, int worldServerID);
