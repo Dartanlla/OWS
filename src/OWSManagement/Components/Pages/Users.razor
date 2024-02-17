@@ -1,0 +1,80 @@
+﻿@page "/users"
+@using OWSManagement.Components.Templates
+@using OWSManagement.DTOs
+@using OWSManagement.Services
+@using OWSData.Models.Tables
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using System.Text
+@inject IHttpClientFactory ClientFactory
+@inject IConfiguration Configuration
+@inject IUsersService UsersService
+@inject DialogService DialogService
+
+<PageTitle>Users</PageTitle>
+
+<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.End" JustifyContent="JustifyContent.Center" Gap="5rem" Wrap="FlexWrap.Wrap" class="rz-p-12">
+    <h1>
+        Users
+    </h1>
+    <RadzenButton Click=@OpenAddUser Icon="add" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" class="rz-border-radius-10" />
+</RadzenStack>
+
+@if (users == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.SimpleWithMenu" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                    Data="@users" TItem="User" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.And">
+        <Columns>
+            <RadzenDataGridColumn TItem="User" Property="FirstName" Title="First Name" Frozen="true" Width="80px" TextAlign="TextAlign.Center" />
+            <RadzenDataGridColumn TItem="User" Property="LastName" Title="Last Name" Width="160px" />
+            <RadzenDataGridColumn TItem="User" Property="Email" Title="Email" Width="160px" />
+            <RadzenDataGridColumn TItem="User" Property="CreateDate" Title="Creation Date" FormatString="{0:d}" Width="200px" />
+            <RadzenDataGridColumn Width="160px" TItem="User" Property="Email" Title="Manage" Filterable="false">
+                <Template Context="data">
+                    <RadzenLink Path=@($"characters?email={data.Email}") Text="Characters">
+                        <RadzenButton Icon="people" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Medium" />
+                    </RadzenLink>
+                    <RadzenButton Click="@(async () => { await OpenEditUser(new EditUserDTO{
+                                                                                    UserGUID=data.UserGuid,
+                                                                                    FirstName=data.FirstName,
+                                                                                    LastName=data.LastName,
+                                                                                    Email=data.Email}); })"
+                                  Icon="edit" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Medium" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+}
+
+@code {
+    private IEnumerable<User>? users;
+
+    AddUserDTO addUser = new AddUserDTO();
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await UsersService.GetUsersAsync();
+    }
+
+    public async Task OpenEditUser(EditUserDTO editUser)
+    {
+        await DialogService.OpenSideAsync<EditUserTemplate>($"Edit User",
+               new Dictionary<string, object>() { { "User", editUser } },
+               new SideDialogOptions() { Style = "top: 0;", Width = "50%", ShowMask = false, Position = DialogPosition.Right });
+
+        users = await UsersService.GetUsersAsync();
+    }
+
+    public async Task OpenAddUser()
+    {
+        await DialogService.OpenSideAsync<AddUserTemplate>($"Add User",
+               new Dictionary<string, object>() { { "User", addUser } },
+               new SideDialogOptions() { Style = "top: 0;", Width = "50%", ShowMask = false, Position = DialogPosition.Right });
+
+        users = await UsersService.GetUsersAsync();
+    }
+}

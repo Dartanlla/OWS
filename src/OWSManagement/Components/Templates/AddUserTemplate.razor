@@ -1,0 +1,61 @@
+﻿@page "/users/add/{user}"
+@using OWSManagement.DTOs
+@using OWSManagement.Services
+@inject IUsersService UsersService
+
+<RadzenTemplateForm Data="@user" Submit="@(async (AddUserDTO args) => { await AddUser(args); })">
+    <RadzenFieldset Text="User Details">
+        <RadzenStack Gap="1rem">
+            <RadzenRow AlignItems="AlignItems.Center">
+                <RadzenColumn Size="12" SizeMD="4">
+                    <RadzenLabel Text="First Name" Component="FirstName" />
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenTextBox @bind-Value="user!.FirstName" Style="width: 100%;" Name="FirstName" />
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow AlignItems="AlignItems.Center">
+                <RadzenColumn Size="12" SizeMD="4">
+                    <RadzenLabel Text="Last Name" Component="LastName" />
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenTextBox @bind-Value="user!.LastName" Style="width: 100%;" Name="LastName" />
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow AlignItems="AlignItems.Center">
+                <RadzenColumn Size="12" SizeMD="4">
+                    <RadzenLabel Text="Email" Component="Email" />
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenTextBox @bind-Value="user!.Email" Style="width: 100%;" Name="Email" />
+                </RadzenColumn>
+                <RadzenRequiredValidator Component="Email" Text="Email is required"/>
+                <RadzenEmailValidator Component="Email" Text="Provide a valid email address"/>
+            </RadzenRow>
+            <RadzenRow AlignItems="AlignItems.Center">
+                <RadzenColumn Size="12" SizeMD="4">
+                    <RadzenLabel Text="Password" Component="Password" />
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenTextBox @bind-Value="user!.Password" Style="width: 100%;" Name="Password" />
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" Class="rz-mt-8 rz-mb-4">
+        <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Large" Icon="save" Text="Save" />
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+
+    [Parameter] public AddUserDTO? user { get; set; }
+    [Inject] DialogService? Service { get; set; }
+
+    async Task AddUser(AddUserDTO arg)
+    {
+        await UsersService.AddUserAsync(arg);
+        Service!.CloseSide();
+    }
+}

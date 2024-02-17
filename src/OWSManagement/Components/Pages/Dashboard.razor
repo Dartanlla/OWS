@@ -1,0 +1,29 @@
+﻿@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<RadzenCard>
+        <div class="container">
+            <div>
+                <img src="assets/logo.png">
+                <h2>Open World Server 2</h2>
+                <p><a href="http://www.sabredartstudios.com/">By SabreDartStudios </a></p>
+                <div class="d-flex justify-space-around" style="margin-top:30px;">
+                <RadzenLink Path="https://www.openworldserver.com/" Text="Characters" Style="margin-right:30px;" Target="_blank">
+                    <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" Text="Documentation" />
+                </RadzenLink>
+                <RadzenLink Path="https://www.youtube.com/watch?v=yRXzbaNT6_k" Text="Characters" Target="_blank">
+                    <RadzenButton Icon="smart_display" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Large" Text="Watch Tutorials" />
+                </RadzenLink>
+                </div>
+            </div>
+        </div>
+    </RadzenCard>
+
+<style scoped>
+    .container {
+        text-align: center;
+        display: flex;
+        justify-content: center;
+    }
+</style>

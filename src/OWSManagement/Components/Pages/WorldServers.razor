@@ -1,0 +1,39 @@
+﻿@page "/world-servers"
+@using OWSManagement.Services
+@using OWSData.Models.Tables
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using System.Text
+@inject IHttpClientFactory ClientFactory
+@inject IConfiguration Configuration
+@inject IInstanceManagementService InstanceManagementService
+
+<PageTitle>World Servers</PageTitle>
+
+<h1>World Servers</h1>
+
+@if (worldServers == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.SimpleWithMenu" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                    Data="@worldServers" TItem="OWSData.Models.Tables.WorldServers" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.And">
+        <Columns>
+            <RadzenDataGridColumn TItem="OWSData.Models.Tables.WorldServers" Property="WorldServerId" Title="World Server Id" Width="160px" TextAlign="TextAlign.Center" />
+            <RadzenDataGridColumn TItem="OWSData.Models.Tables.WorldServers" Property="ServerIp" Title="Server Ip" Width="160px" />
+            <RadzenDataGridColumn TItem="OWSData.Models.Tables.WorldServers" Property="ServerStatus" Title="Server Status" Width="160px" />
+            <RadzenDataGridColumn TItem="OWSData.Models.Tables.WorldServers" Property="ActiveStartTime" Title="Active Start Time" FormatString="{0:d}" Width="200px" />
+        </Columns>
+    </RadzenDataGrid>
+}
+
+@code {
+    private IEnumerable<OWSData.Models.Tables.WorldServers>? worldServers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        worldServers = await InstanceManagementService.GetWorldServersAsync();
+    }
+}
