@@ -4,18 +4,16 @@
     <h5 align="center"><a href="http://www.sabredartstudios.com/">By Sabre Dart Studios</a></h5>
 </p>
 
-<p align="center">
-    <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Dartanlla/OWS/.github/workflows/ci.yml?branch=main&style=flat-square">
-    <a href="https://github.com/Dartanlla/OWS/blob/master/LICENSE">
-        <img src="https://img.shields.io/github/license/Dartanlla/ows.svg?style=flat-square">
-    </a>
-    <a href="https://discord.gg/qZ76Cmxcgp">
-        <img src="https://img.shields.io/badge/Discord-%237289DA.svg?style=flat-square&logo=discord&logoColor=white" alt="Join Discord">
-    </a>
-    <img src="https://img.shields.io/badge/unrealengine-%23313131.svg?style=flat-square&logo=unrealengine&logoColor=white">
-    <img src="https://img.shields.io/badge/docker-%230db7ed.svg?style=flat-square&logo=docker&logoColor=white">
-    <img src="https://img.shields.io/badge/.NET-5C2D91?style=flat-square&logo=.net&logoColor=white">
-</p>
+<div align="center">
+
+  ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Dartanlla/OWS/.github/workflows/ci.yml?branch=main&style=flat-square)
+  <a href="https://github.com/Dartanlla/OWS/blob/master/LICENSE">![LICENSE](https://img.shields.io/github/license/Dartanlla/ows.svg?style=flat-square)</a>
+  <a href="https://discord.gg/qZ76Cmxcgp">![Join Discord](https://img.shields.io/badge/Discord-%237289DA.svg?style=flat-square&logo=discord&logoColor=white)</a>
+  ![Unreal Engine](https://img.shields.io/badge/unrealengine-%23313131.svg?style=flat-square&logo=unrealengine&logoColor=white)
+  ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat-square&logo=docker&logoColor=white)
+  ![.Net](https://img.shields.io/badge/.NET-5C2D91?style=flat-square&logo=.net&logoColor=white)
+
+</div>
 
 Open World Server (OWS) is a server instance manager designed to create large worlds in UE5. Either by stitching together multiple UE5 maps or by splitting a single large map into multiple zones, OWS will spin up and shut down server instances as needed based on your world population. OWS can load balance your world across multiple hardware devices. OWS can support thousands of players in the same world by instancing up and out. A single zone can be instanced multiple times to support a large population in one area. Areas of a map can also be split up into multiple zones to support a larger population. In addition to server instance management, OWS also handles persistence for Accounts, Characters, Abilities, Inventory and more.
 
