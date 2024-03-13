@@ -12,7 +12,7 @@ nav_order: 1
 * Download and install [Visual Studio 2022 Community](https://visualstudio.microsoft.com/downloads/)
   * The ASP.NET and Web Development, Node.js Development, and Game development with C++ workloads are required
 * Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop) for Windows/macOS/Linux
-* [.Net 6.0 SDK]([another-page](https://dotnet.microsoft.com/download/dotnet/6.0))  (On Windows this is included in VS 2022 by default)
+* [.Net 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)  (On Windows this is included in VS 2022 by default)
 * Enable "Virtualization Technology" in your BIOS
 <br />
 <br />
