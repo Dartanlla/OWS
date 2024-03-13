@@ -1,9 +1,3 @@
-<style>
-    table {
-        width: 100%;
-    }
-</style>
-
 <p align="center"><img src="img/Logo512pxWhite.png" alt="SabreDartStudios" width="128"></p>
 <p align="center">
     <h3 align="center">Open World Server (OWS)</h3>
