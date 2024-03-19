@@ -283,17 +283,30 @@ namespace OWSData.Repositories.Implementations.MSSQL
             {
                 using (Connection)
                 {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@ZoneServerGUID", launcherGuid);
-                    p.Add("@ServerIP", serverIp);
-                    p.Add("@MaxNumberOfInstances", maxNumberOfInstances);
-                    p.Add("@InternalServerIP", internalServerIp);
-                    p.Add("@StartingMapInstancePort", startingInstancePort);
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@CustomerGUID", customerGUID);
+                    parameters.Add("@ZoneServerGUID", launcherGuid);
+                    parameters.Add("@ServerIP", serverIp);
+                    parameters.Add("@MaxNumberOfInstances", maxNumberOfInstances);
+                    parameters.Add("@InternalServerIP", internalServerIp);
+                    parameters.Add("@StartingMapInstancePort", startingInstancePort);
 
-                    await Connection.ExecuteAsync(MSSQLQueries.AddOrUpdateWorldServerSQL,
-                        p,
+                    var outputWorldServer = await Connection.QuerySingleOrDefaultAsync<WorldServers>(GenericQueries.GetWorldByZoneGUID,
+                        parameters,
                         commandType: CommandType.Text);
+
+                    if (outputWorldServer != null)
+                    {
+                        await Connection.ExecuteAsync(GenericQueries.UpdateWorldServer,
+                            parameters,
+                            commandType: CommandType.Text);
+                    }
+                    else
+                    {
+                        await Connection.ExecuteAsync(GenericQueries.AddWorldServer,
+                            parameters,
+                            commandType: CommandType.Text);
+                    }
                 }
 
                 SuccessAndErrorMessage output = new SuccessAndErrorMessage()

@@ -3,6 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="CryptSharp.NET" Version="7.0.1" />
     <PackageReference Include="Dapper" Version="2.1.28" />
     <PackageReference Include="Dapper.Transaction" Version="2.1.24" />
     <PackageReference Include="MongoDB.Driver" Version="2.23.1" />
