@@ -736,6 +736,15 @@ void AOWSCharacterWithAbilities::UpdateCharacterStats()
 		CharacterStats.UpdateCharacterStats.ReloadSpeed = OWSAttributes->ReloadSpeed.GetBaseValue();
 		CharacterStats.UpdateCharacterStats.Range = OWSAttributes->Range.GetBaseValue();
 		CharacterStats.UpdateCharacterStats.Speed = OWSAttributes->Speed.GetBaseValue();
+		
+		// Save Location also
+		CharacterStats.UpdateCharacterStats.X = this->GetActorLocation().X;
+		CharacterStats.UpdateCharacterStats.Y = this->GetActorLocation().Y;
+		CharacterStats.UpdateCharacterStats.Z = this->GetActorLocation().Z;
+		CharacterStats.UpdateCharacterStats.RX = this->GetActorRotation().Roll;
+		CharacterStats.UpdateCharacterStats.RY = this->GetActorRotation().Pitch;
+		CharacterStats.UpdateCharacterStats.RZ = this->GetActorRotation().Yaw;
+		
 
 		FString PostParameters = "";
 		if (FJsonObjectConverter::UStructToJsonObjectString(CharacterStats, PostParameters))
