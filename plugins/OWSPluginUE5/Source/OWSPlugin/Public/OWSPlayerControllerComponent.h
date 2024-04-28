@@ -358,9 +358,6 @@ protected:
 	UPROPERTY(BlueprintReadWrite, Category = "Config")
 		FString OWSEncryptionKey = "";
 
-	UPROPERTY(BlueprintReadWrite)
-		float TravelTimeout = 60.f;
-
 	FString ServerTravelUserSessionGUID;
 	FString ServerTravelCharacterName;
 	float ServerTravelX;

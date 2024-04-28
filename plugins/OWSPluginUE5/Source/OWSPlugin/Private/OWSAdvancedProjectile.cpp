@@ -10,6 +10,7 @@
 #include "Runtime/Engine/Classes/Components/AudioComponent.h"
 #include "Runtime/Engine/Public/Audio.h"
 #include "Runtime/Engine/Classes/Sound/SoundBase.h"
+#include "Runtime/Engine/Classes/Engine/OverlapResult.h"
 #include "Abilities/GameplayAbilityTargetTypes.h"
 #include "AbilitySystemBlueprintLibrary.h"
 
@@ -358,7 +359,7 @@ void AOWSAdvancedProjectile::BeginFakeProjectileSynch(AOWSAdvancedProjectile* In
 	}
 	else
 	{
-		UE_LOG(OWS, Verbose, TEXT("%S: BeginFakeProjectileSynch: Move Replicated To Fake Pos: %s"), *ServerOrClient, *GetNameSafe(this));
+		UE_LOG(OWS, Verbose, TEXT("%s: BeginFakeProjectileSynch: Move Replicated To Fake Pos: %s"), *ServerOrClient, *GetNameSafe(this));
 
 		FRepMovement RepMovement;
 		RepMovement.Location = MyFakeProjectile->GetActorLocation();
@@ -938,10 +939,10 @@ void AOWSAdvancedProjectile::DamageImpactedActor_Implementation(AActor* OtherAct
 
 
 	//We use the InstigatorCharacter because if we use the Hit Character we won't have an owning connecto RPC up the prediction key.
-	AOWSCharacterWithAbilities* InstigatorCharacter = CastChecked<AOWSCharacterWithAbilities>(GetInstigator());
+	//AOWSCharacterWithAbilities* InstigatorCharacter = CastChecked<AOWSCharacterWithAbilities>(GetInstigator());
 
-	if (!IsValid(InstigatorCharacter))
-	{
+	//if (!IsValid(InstigatorCharacter))
+	//{
 //		InstigatorCharacter->HandleProjectileEffectApplicationPrediction(this, OtherActor);
 
 		/*IAbilitySystemInterface* AbilitySystemInterface = Cast<IAbilitySystemInterface>(CharacterWhoWasHit);
@@ -966,11 +967,11 @@ void AOWSAdvancedProjectile::DamageImpactedActor_Implementation(AActor* OtherAct
 				UE_LOG(OWS, Error, TEXT("Send GameplayEvent.AdvancedProjectile.DirectDamageEvent"));
 			}
 		}*/
-	}
+	/* }
 	else //Hit something other than an AOWSCharacterWithAbilities
 	{
 
-	}
+	}*/
 
 
 	/*

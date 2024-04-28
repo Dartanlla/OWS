@@ -4,6 +4,8 @@
 #include "GameFramework/Pawn.h"
 #include "WorldCollision.h"
 #include "Abilities/GameplayAbility.h"
+#include "Runtime/Engine/Classes/Engine/OverlapResult.h"
+
 
 AOWSGameplayAbilityTargetAct_Cone::AOWSGameplayAbilityTargetAct_Cone(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

@@ -27,7 +27,6 @@ UOWSLoginWidget::UOWSLoginWidget(const class FObjectInitializer& ObjectInitializ
 void UOWSLoginWidget::ProcessOWS2POSTRequest(FString ApiToCall, FString PostParameters, void (UOWSLoginWidget::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful))
 {
 	Http = &FHttpModule::Get();
-	Http->SetHttpTimeout(LoginTimeout); //Set timeout
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
 	Request->OnProcessRequestComplete().BindUObject(this, InMethodPtr);
 

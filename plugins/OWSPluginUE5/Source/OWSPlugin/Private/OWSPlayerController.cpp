@@ -39,7 +39,6 @@ AOWSPlayerController::AOWSPlayerController()
 		GGameIni
 	);
 
-	TravelTimeout = 60.f;
 	MaxPredictionPing = 120.f;
 	bEnableClickEvents = true;
 
@@ -167,15 +166,15 @@ void AOWSPlayerController::NotifyGetCharacterDataAndCustomData2(TSharedPtr<FJson
 {
 	TArray<FCustomCharacterDataStruct> CustomData;
 
-	if (JsonObject->HasField("CustomCharacterDataRows"))
+	if (JsonObject->HasField(TEXT("CustomCharacterDataRows")))
 	{
-		TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField("CustomCharacterDataRows");
+		TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField(TEXT("CustomCharacterDataRows"));
 
 		for (int RowNum = 0; RowNum != Rows.Num(); RowNum++) {
 			FCustomCharacterDataStruct tempCustomData;
 			TSharedPtr<FJsonObject> tempRow = Rows[RowNum]->AsObject();
-			tempCustomData.CustomFieldName = tempRow->GetStringField("CustomFieldName");
-			tempCustomData.FieldValue = tempRow->GetStringField("FieldValue");
+			tempCustomData.CustomFieldName = tempRow->GetStringField(TEXT("CustomFieldName"));
+			tempCustomData.FieldValue = tempRow->GetStringField(TEXT("FieldValue"));
 
 			CustomData.Add(tempCustomData);
 		}
