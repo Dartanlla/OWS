@@ -15,13 +15,13 @@ Here is a brief overview of OWS 2.
 
 ## What technologies / architecture does OWS 2 use?
 * The OWS Web API is developed in **C#** with **.NET 8** (previously .NET Core)
-* The default storage technology is [Microsoft SQL Server (MSSQL)](mssql)
+* The default storage technology is [Microsoft SQL Server (MSSQL)](mssql.md)
   * Each repository can use its own storage technology
-  * [Storage technologies](setup-database) can be easily added by implementing each repository interface
+  * [Storage technologies](setup-database.md) can be easily added by implementing each repository interface
 * Microservices allow OWS to scale more easily
 * Dependency injection
   * Easily plug-in various implementations to support different services and technologies
-* [Docker](docker-setup) for one click deployment on your local development PC
+* [Docker](docker-setup.md) for one click deployment on your local development PC
   * Docker runs all OWS servers in containers
   * OWS can run with or without Docker
 * [Unreal Engine](https://www.unrealengine.com/)
@@ -46,4 +46,4 @@ Here is a brief overview of OWS 2.
 * More than one Zone Server Instance can be run per Zone (shards) to allow more players in that Zone
 * A Zone Server Instance can be configured with a Soft Player Cap and a Hard Player Cap. New shards are spun up when the Soft Player Cap is met.
 
-[Next: Docker Setup](docker-setup){: .btn .btn-outline }
+[Next: Docker Setup](docker-setup.md){: .btn .btn-outline }
