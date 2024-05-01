@@ -7,7 +7,7 @@ nav_order: 2
 ---
 
 # OWS Starter Project for Unreal Engine 4.27.2
-Follow these instructions if you want to setup the OWS Starter Project for Unreal Engine 4.27.2. Before you are able to setup this project you need to finish the [Docker Setup](docker-setup) and [Database setup](setup-database) sections.
+Follow these instructions if you want to setup the OWS Starter Project for Unreal Engine 4.27.2. Before you are able to setup this project you need to finish the [Docker Setup](docker-setup.md) and [Database setup](setup-database.md) sections.
 
 ## Download the project
 
@@ -17,7 +17,7 @@ UE4 is no longer supported by OWS 2
 
 ## Initial setup
 
-1. Open the [OWS GitHub project](https://github.com/Dartanlla/OWS) in Visual Studio 2022 and click on the Docker Compose button (if it is not already running). Check the [Docker Setup](docker-setup) section for a detailed explanation.
+1. Open the [OWS GitHub project](https://github.com/Dartanlla/OWS) in Visual Studio 2022 and click on the Docker Compose button (if it is not already running). Check the [Docker Setup](docker-setup.md) section for a detailed explanation.
    
 2. Unzip OpenWorldStarterPlugin.zip to your Unreal Projects folder or another location on your PC.
    
