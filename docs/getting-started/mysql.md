@@ -85,4 +85,4 @@ Secondly you need will need to run the following as a SUPER user, or grant your 
 SET GLOBAL log_bin_trust_function_creators = 1;
 ```
 
-[Next: OWS Starter Project](starter-project){: .btn .btn-outline }
+[Next: OWS Starter Project](starter-project.md){: .btn .btn-outline }
