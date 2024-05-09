@@ -1,8 +1,7 @@
 ---
 layout: default
 title: Visual Studio Code
-parent: Docker Setup
-grand_parent: Getting Started
+parent: Getting Started
 nav_order: 2
 ---
 
