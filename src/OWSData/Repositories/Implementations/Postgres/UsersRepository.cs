@@ -252,25 +252,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@UserSessionGUID", userSessionGUID);
-
-                outputObject = await Connection.QuerySingleOrDefaultAsync<GetUserSession>("select * from GetUserSession(@CustomerGUID,@UserSessionGUID)",
-                    p,
-                    commandType: CommandType.Text);
-            }
-
-            return outputObject;
-        }
-
-        public async Task<GetUserSession> GetUserSessionORM(Guid customerGUID, Guid userSessionGUID)
-        {
-            GetUserSession outputObject;
-
-            using (Connection)
-            {
-                outputObject = await Connection.QueryFirstOrDefaultAsync<GetUserSession>(PostgresQueries.GetUserSessionSQL, new { @CustomerGUID = customerGUID, @UserSessionGUID = userSessionGUID });
+                outputObject = await Connection.QueryFirstOrDefaultAsync<GetUserSession>(GenericQueries.GetUserSession, new { @CustomerGUID = customerGUID, @UserSessionGUID = userSessionGUID });
             }
 
             return outputObject;
@@ -368,13 +350,13 @@ namespace OWSData.Repositories.Implementations.Postgres
             {
                 using (Connection)
                 {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@UserSessionGUID", userSessionGUID);
-                    p.Add("@SelectedCharacterName", selectedCharacterName);
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@CustomerGUID", customerGUID);
+                    parameters.Add("@UserSessionGUID", userSessionGUID);
+                    parameters.Add("@SelectedCharacterName", selectedCharacterName);
 
-                    await Connection.ExecuteAsync("call UserSessionSetSelectedCharacter(@CustomerGUID, @UserSessionGUID, @SelectedCharacterName)",
-                        p,
+                    await Connection.ExecuteAsync(GenericQueries.UpdateUserSessionSetSelectedCharacter,
+                        parameters,
                         commandType: CommandType.Text);
                 }
 

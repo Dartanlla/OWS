@@ -265,25 +265,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@UserSessionGUID", userSessionGUID);
-
-                outputObject = await Connection.QuerySingleOrDefaultAsync<GetUserSession>("GetUserSession",
-                    p,
-                    commandType: CommandType.StoredProcedure);
-            }
-
-            return outputObject;
-        }
-
-        public async Task<GetUserSession> GetUserSessionORM(Guid customerGUID, Guid userSessionGUID)
-        {
-            GetUserSession outputObject = new GetUserSession();
-
-            using (Connection)
-            {
-                outputObject = await Connection.QueryFirstOrDefaultAsync<GetUserSession>(MSSQLQueries.GetUserSessionSQL, new { CustomerGUID = customerGUID, UserSessionGUID = userSessionGUID });
+                outputObject = await Connection.QueryFirstOrDefaultAsync<GetUserSession>(GenericQueries.GetUserSession, new { @CustomerGUID = customerGUID, @UserSessionGUID = userSessionGUID });
             }
 
             return outputObject;
@@ -381,14 +363,14 @@ namespace OWSData.Repositories.Implementations.MSSQL
             {
                 using (Connection)
                 {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@UserSessionGUID", userSessionGUID);
-                    p.Add("@SelectedCharacterName", selectedCharacterName);
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@CustomerGUID", customerGUID);
+                    parameters.Add("@UserSessionGUID", userSessionGUID);
+                    parameters.Add("@SelectedCharacterName", selectedCharacterName);
 
-                    await Connection.ExecuteAsync("UserSessionSetSelectedCharacter",
-                        p,
-                        commandType: CommandType.StoredProcedure);
+                    await Connection.ExecuteAsync(GenericQueries.UpdateUserSessionSetSelectedCharacter,
+                        parameters,
+                        commandType: CommandType.Text);
                 }
 
                 outputObject.Success = true;

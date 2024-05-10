@@ -458,7 +458,24 @@ namespace OWSData.SQL
 
         public static readonly string GetUserBySession = @"SELECT * FROM UserSessions WHERE CustomerGUID = @CustomerGuid AND UserSessionGUID = @UserSessionGUID";
 
+        public static readonly string GetUserSession = @"SELECT US.CustomerGUID, US.UserGUID, US.UserSessionGUID, US.LoginDate, US.SelectedCharacterName,
+	            U.Email, U.FirstName, U.LastName, U.CreateDate, U.LastAccess, U.Role,
+	            C.CharacterID, C.CharName, C.X, C.Y, C.Z, C.RX, C.RY, C.RZ, C.MapName as ZoneName
+	            FROM UserSessions US
+	            INNER JOIN Users U
+		            ON U.UserGUID = US.UserGUID
+	            LEFT JOIN Characters C
+		            ON C.CustomerGUID = US.CustomerGUID
+		            AND C.CharName = US.SelectedCharacterName
+	            WHERE US.CustomerGUID = @CustomerGUID
+	            AND US.UserSessionGUID = @UserSessionGUID";
+
         public static readonly string Logout = @"DELETE FROM UserSessions WHERE CustomerGUID=@CustomerGuid AND UserSessionGUID=@UserSessionGUID";
+
+        public static readonly string UpdateUserSessionSetSelectedCharacter = @"UPDATE UserSessions
+				SET SelectedCharacterName = @SelectedCharacterName
+				WHERE CustomerGUID = @CustomerGUID
+				  AND UserSessionGUID = @UserSessionGUID";
 
         #endregion
     }

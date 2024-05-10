@@ -18,7 +18,6 @@ namespace OWSData.Repositories.Interfaces
         Task<User> GetUser(Guid customerGuid, Guid userGuid);
         Task<IEnumerable<User>> GetUsers(Guid customerGuid);
         Task<GetUserSession> GetUserSession(Guid customerGUID, Guid userSessionGUID);
-        Task<GetUserSession> GetUserSessionORM(Guid customerGUID, Guid userSessionGUID);
         Task<GetUserSessionComposite> GetUserSessionParallel(Guid customerGUID, Guid userSessionGUID);
         Task<PlayerLoginAndCreateSession> LoginAndCreateSession(Guid customerGUID, string email, string password, bool dontCheckPassword = false);
         Task<SuccessAndErrorMessage> Logout(Guid customerGuid, Guid userSessionGuid);
