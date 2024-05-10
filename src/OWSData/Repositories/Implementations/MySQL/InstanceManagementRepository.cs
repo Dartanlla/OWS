@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using OWSData.Models;
