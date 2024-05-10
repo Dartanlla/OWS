@@ -3,7 +3,6 @@ layout: default
 title: Visual Studio
 parent: Troubleshooting
 nav_order: 1
-has_children: true
 ---
 
 # Visual Studio

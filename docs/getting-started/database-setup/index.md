@@ -2,7 +2,7 @@
 layout: default
 title: Database Setup
 parent: Getting Started
-nav_order: 2
+nav_order: 3
 has_children: true
 ---
 
