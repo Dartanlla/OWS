@@ -145,6 +145,7 @@ namespace OWSData.SQL
 		public static readonly string UpdateUserLastAccess = @"UPDATE Users
 				SET LastAccess = NOW()
                 WHERE CustomerGUID = @CustomerGUID
+                AND UserGUID IN (
                     SELECT C.UserGUID
                       FROM Characters C
                       WHERE C.CustomerGUID = @CustomerGUID AND C.CharName = @CharName)";
