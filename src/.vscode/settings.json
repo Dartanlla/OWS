@@ -1,0 +1,16 @@
+{
+    "docker.commands.composeUp": [
+        {
+            "label": "Linux",
+            "template": "${composeCommand} ${configurationFile} -f docker-compose.override.linux.yml -f docker-compose-additional.yml up ${detached} ${build}"
+        },
+        {
+            "label": "macOS",
+            "template": "${composeCommand} ${configurationFile} -f docker-compose.override.osx.yml -f docker-compose-additional.yml up ${detached} ${build}"
+        },
+        {
+            "label": "Windows",
+            "template": "${composeCommand} ${configurationFile} -f docker-compose.override.windows.yml -f docker-compose-additional.yml up ${detached} ${build}"
+        },
+    ],
+}

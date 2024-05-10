@@ -157,99 +157,99 @@ void AOWSCharacter::LoadCharacterStatsFromJSON(TSharedPtr<FJsonObject>JsonObject
 {
 	UE_LOG(OWS, Verbose, TEXT("AOWSCharacter: Started LoadCharacterStatsFromJSON"));
 
-	CharacterName = JsonObject->GetStringField("CharacterName");
+	CharacterName = JsonObject->GetStringField(TEXT("CharacterName"));
 
-	IsAdmin = JsonObject->GetBoolField("IsAdmin");
-	IsModerator = JsonObject->GetBoolField("IsModerator");
+	IsAdmin = JsonObject->GetBoolField(TEXT("IsAdmin"));
+	IsModerator = JsonObject->GetBoolField(TEXT("IsModerator"));
 
-	ClassName = JsonObject->GetStringField("ClassName");
-	Gender = JsonObject->GetNumberField("Gender");
-	CharacterLevel = JsonObject->GetNumberField("CharacterLevel");
-	XP = JsonObject->GetNumberField("XP");
-	HitDice = JsonObject->GetNumberField("HitDie");
-	MaxHP = JsonObject->GetNumberField("MaxHealth");
-	Wounds = JsonObject->GetNumberField("Wounds");
-	Strength = JsonObject->GetNumberField("Strength");
-	Dexterity = JsonObject->GetNumberField("Dexterity");
-	Constitution = JsonObject->GetNumberField("Constitution");
-	Intellect = JsonObject->GetNumberField("Intellect");
-	Wisdom = JsonObject->GetNumberField("Wisdom");
-	Charisma = JsonObject->GetNumberField("Charisma");
-	Spirit = JsonObject->GetNumberField("Spirit");
-	Magic = JsonObject->GetNumberField("Magic");
-	Fortitude = JsonObject->GetNumberField("Fortitude");
-	Reflex = JsonObject->GetNumberField("Reflex");
-	Willpower = JsonObject->GetNumberField("Willpower");
-	BaseAttackBonus = JsonObject->GetNumberField("BaseAttackBonus");
-	Speed = JsonObject->GetNumberField("Speed");
-	Initiative = JsonObject->GetNumberField("Initiative");
-	NaturalArmor = JsonObject->GetNumberField("NaturalArmor");
-	Resistance = JsonObject->GetNumberField("Resistance");
-	TeamNumber = JsonObject->GetNumberField("TeamNumber");
+	ClassName = JsonObject->GetStringField(TEXT("ClassName"));
+	Gender = JsonObject->GetNumberField(TEXT("Gender"));
+	CharacterLevel = JsonObject->GetNumberField(TEXT("CharacterLevel"));
+	XP = JsonObject->GetNumberField(TEXT("XP"));
+	HitDice = JsonObject->GetNumberField(TEXT("HitDie"));
+	MaxHP = JsonObject->GetNumberField(TEXT("MaxHealth"));
+	Wounds = JsonObject->GetNumberField(TEXT("Wounds"));
+	Strength = JsonObject->GetNumberField(TEXT("Strength"));
+	Dexterity = JsonObject->GetNumberField(TEXT("Dexterity"));
+	Constitution = JsonObject->GetNumberField(TEXT("Constitution"));
+	Intellect = JsonObject->GetNumberField(TEXT("Intellect"));
+	Wisdom = JsonObject->GetNumberField(TEXT("Wisdom"));
+	Charisma = JsonObject->GetNumberField(TEXT("Charisma"));
+	Spirit = JsonObject->GetNumberField(TEXT("Spirit"));
+	Magic = JsonObject->GetNumberField(TEXT("Magic"));
+	Fortitude = JsonObject->GetNumberField(TEXT("Fortitude"));
+	Reflex = JsonObject->GetNumberField(TEXT("Reflex"));
+	Willpower = JsonObject->GetNumberField(TEXT("Willpower"));
+	BaseAttackBonus = JsonObject->GetNumberField(TEXT("BaseAttackBonus"));
+	Speed = JsonObject->GetNumberField(TEXT("Speed"));
+	Initiative = JsonObject->GetNumberField(TEXT("Initiative"));
+	NaturalArmor = JsonObject->GetNumberField(TEXT("NaturalArmor"));
+	Resistance = JsonObject->GetNumberField(TEXT("Resistance"));
+	TeamNumber = JsonObject->GetNumberField(TEXT("TeamNumber"));
 
 	//Change TeamId for AI Perception
 	TeamId = FGenericTeamId(TeamNumber);
 
-	Thirst = JsonObject->GetNumberField("Thirst");
-	Hunger = JsonObject->GetNumberField("Hunger");
-	Score = JsonObject->GetNumberField("Score");
-	MaxHealth = JsonObject->GetNumberField("MaxHealth");
-	Health = JsonObject->GetNumberField("Health");
-	HealthRegenRate = JsonObject->GetNumberField("HealthRegenRate");
-	MaxMana = JsonObject->GetNumberField("MaxMana");
-	Mana = JsonObject->GetNumberField("Mana");
-	ManaRegenRate = JsonObject->GetNumberField("ManaRegenRate");
-	MaxEnergy = JsonObject->GetNumberField("MaxEnergy");
-	Energy = JsonObject->GetNumberField("Energy");
-	EnergyRegenRate = JsonObject->GetNumberField("EnergyRegenRate");
-	MaxFatigue = JsonObject->GetNumberField("MaxFatigue");
-	Fatigue = JsonObject->GetNumberField("Fatigue");
-	FatigueRegenRate = JsonObject->GetNumberField("FatigueRegenRate");
-	MaxStamina = JsonObject->GetNumberField("MaxStamina");
-	Stamina = JsonObject->GetNumberField("Stamina");
-	StaminaRegenRate = JsonObject->GetNumberField("StaminaRegenRate");
-	MaxEndurance = JsonObject->GetNumberField("MaxEndurance");
-	Endurance = JsonObject->GetNumberField("Endurance");
-	EnduranceRegenRate = JsonObject->GetNumberField("EnduranceRegenRate");
-	Agility = JsonObject->GetNumberField("Agility");
-	BaseAttack = JsonObject->GetNumberField("BaseAttack");
-	BaseAttackBonus = JsonObject->GetNumberField("BaseAttackBonus");
-	AttackPower = JsonObject->GetNumberField("AttackPower");
-	AttackSpeed = JsonObject->GetNumberField("AttackSpeed");
-	CritChance = JsonObject->GetNumberField("CritChance");
-	CritMultiplier = JsonObject->GetNumberField("CritMultiplier");
-	Haste = JsonObject->GetNumberField("Haste");
-	SpellPower = JsonObject->GetNumberField("SpellPower");
-	SpellPenetration = JsonObject->GetNumberField("SpellPenetration");
-	Defense = JsonObject->GetNumberField("Defense");
-	Dodge = JsonObject->GetNumberField("Dodge");
-	Parry = JsonObject->GetNumberField("Parry");
-	Avoidance = JsonObject->GetNumberField("Avoidance");
-	Versatility = JsonObject->GetNumberField("Versatility");
-	Multishot = JsonObject->GetNumberField("Multishot");
-	Initiative = JsonObject->GetNumberField("Initiative");
-	NaturalArmor = JsonObject->GetNumberField("NaturalArmor");
-	PhysicalArmor = JsonObject->GetNumberField("PhysicalArmor");
-	BonusArmor = JsonObject->GetNumberField("BonusArmor");
-	ForceArmor = JsonObject->GetNumberField("ForceArmor");
-	MagicArmor = JsonObject->GetNumberField("MagicArmor");
-	Resistance = JsonObject->GetNumberField("Resistance");
-	ReloadSpeed = JsonObject->GetNumberField("ReloadSpeed");
-	Range = JsonObject->GetNumberField("Range");
-	Speed = JsonObject->GetNumberField("Speed");
+	Thirst = JsonObject->GetNumberField(TEXT("Thirst"));
+	Hunger = JsonObject->GetNumberField(TEXT("Hunger"));
+	Score = JsonObject->GetNumberField(TEXT("Score"));
+	MaxHealth = JsonObject->GetNumberField(TEXT("MaxHealth"));
+	Health = JsonObject->GetNumberField(TEXT("Health"));
+	HealthRegenRate = JsonObject->GetNumberField(TEXT("HealthRegenRate"));
+	MaxMana = JsonObject->GetNumberField(TEXT("MaxMana"));
+	Mana = JsonObject->GetNumberField(TEXT("Mana"));
+	ManaRegenRate = JsonObject->GetNumberField(TEXT("ManaRegenRate"));
+	MaxEnergy = JsonObject->GetNumberField(TEXT("MaxEnergy"));
+	Energy = JsonObject->GetNumberField(TEXT("Energy"));
+	EnergyRegenRate = JsonObject->GetNumberField(TEXT("EnergyRegenRate"));
+	MaxFatigue = JsonObject->GetNumberField(TEXT("MaxFatigue"));
+	Fatigue = JsonObject->GetNumberField(TEXT("Fatigue"));
+	FatigueRegenRate = JsonObject->GetNumberField(TEXT("FatigueRegenRate"));
+	MaxStamina = JsonObject->GetNumberField(TEXT("MaxStamina"));
+	Stamina = JsonObject->GetNumberField(TEXT("Stamina"));
+	StaminaRegenRate = JsonObject->GetNumberField(TEXT("StaminaRegenRate"));
+	MaxEndurance = JsonObject->GetNumberField(TEXT("MaxEndurance"));
+	Endurance = JsonObject->GetNumberField(TEXT("Endurance"));
+	EnduranceRegenRate = JsonObject->GetNumberField(TEXT("EnduranceRegenRate"));
+	Agility = JsonObject->GetNumberField(TEXT("Agility"));
+	BaseAttack = JsonObject->GetNumberField(TEXT("BaseAttack"));
+	BaseAttackBonus = JsonObject->GetNumberField(TEXT("BaseAttackBonus"));
+	AttackPower = JsonObject->GetNumberField(TEXT("AttackPower"));
+	AttackSpeed = JsonObject->GetNumberField(TEXT("AttackSpeed"));
+	CritChance = JsonObject->GetNumberField(TEXT("CritChance"));
+	CritMultiplier = JsonObject->GetNumberField(TEXT("CritMultiplier"));
+	Haste = JsonObject->GetNumberField(TEXT("Haste"));
+	SpellPower = JsonObject->GetNumberField(TEXT("SpellPower"));
+	SpellPenetration = JsonObject->GetNumberField(TEXT("SpellPenetration"));
+	Defense = JsonObject->GetNumberField(TEXT("Defense"));
+	Dodge = JsonObject->GetNumberField(TEXT("Dodge"));
+	Parry = JsonObject->GetNumberField(TEXT("Parry"));
+	Avoidance = JsonObject->GetNumberField(TEXT("Avoidance"));
+	Versatility = JsonObject->GetNumberField(TEXT("Versatility"));
+	Multishot = JsonObject->GetNumberField(TEXT("Multishot"));
+	Initiative = JsonObject->GetNumberField(TEXT("Initiative"));
+	NaturalArmor = JsonObject->GetNumberField(TEXT("NaturalArmor"));
+	PhysicalArmor = JsonObject->GetNumberField(TEXT("PhysicalArmor"));
+	BonusArmor = JsonObject->GetNumberField(TEXT("BonusArmor"));
+	ForceArmor = JsonObject->GetNumberField(TEXT("ForceArmor"));
+	MagicArmor = JsonObject->GetNumberField(TEXT("MagicArmor"));
+	Resistance = JsonObject->GetNumberField(TEXT("Resistance"));
+	ReloadSpeed = JsonObject->GetNumberField(TEXT("ReloadSpeed"));
+	Range = JsonObject->GetNumberField(TEXT("Range"));
+	Speed = JsonObject->GetNumberField(TEXT("Speed"));
 
-	Gold = JsonObject->GetNumberField("Gold");
-	Silver = JsonObject->GetNumberField("Silver");
-	Copper = JsonObject->GetNumberField("Copper");
-	FreeCurrency = JsonObject->GetNumberField("FreeCurrency");
-	PremiumCurrency = JsonObject->GetNumberField("PremiumCurrency");
+	Gold = JsonObject->GetNumberField(TEXT("Gold"));
+	Silver = JsonObject->GetNumberField(TEXT("Silver"));
+	Copper = JsonObject->GetNumberField(TEXT("Copper"));
+	FreeCurrency = JsonObject->GetNumberField(TEXT("FreeCurrency"));
+	PremiumCurrency = JsonObject->GetNumberField(TEXT("PremiumCurrency"));
 
-	Perception = JsonObject->GetNumberField("Perception");
-	Acrobatics = JsonObject->GetNumberField("Acrobatics");
-	Climb = JsonObject->GetNumberField("Climb");
-	Stealth = JsonObject->GetNumberField("Stealth");
+	Perception = JsonObject->GetNumberField(TEXT("Perception"));
+	Acrobatics = JsonObject->GetNumberField(TEXT("Acrobatics"));
+	Climb = JsonObject->GetNumberField(TEXT("Climb"));
+	Stealth = JsonObject->GetNumberField(TEXT("Stealth"));
 
-	Score = JsonObject->GetNumberField("Score");
+	Score = JsonObject->GetNumberField(TEXT("Score"));
 
 	LoadCustomCharacterStats();
 	UpdateCharacterStatsAfterLoading();
@@ -605,15 +605,15 @@ void AOWSCharacter::ProcessCustomCharacterData(TSharedPtr<FJsonObject> JsonObjec
 {
 	TArray<FCustomCharacterDataStruct> CustomCharacterData;
 
-	if (JsonObject->HasField("rows"))
+	if (JsonObject->HasField(TEXT("rows")))
 	{
-		TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField("rows");
+		TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField(TEXT("rows"));
 
 		for (int RowNum = 0; RowNum != Rows.Num(); RowNum++) {
 			FCustomCharacterDataStruct tempCustomData;
 			TSharedPtr<FJsonObject> tempRow = Rows[RowNum]->AsObject();
-			tempCustomData.CustomFieldName = tempRow->GetStringField("CustomFieldName");
-			tempCustomData.FieldValue = tempRow->GetStringField("FieldValue");
+			tempCustomData.CustomFieldName = tempRow->GetStringField(TEXT("CustomFieldName"));
+			tempCustomData.FieldValue = tempRow->GetStringField(TEXT("FieldValue"));
 
 			CustomCharacterData.Add(tempCustomData);
 		}
@@ -802,58 +802,56 @@ void AOWSCharacter::ReadInventoryItems(const TArray<TSharedPtr<FJsonValue>> Rows
 	for (int RowNum = 0; RowNum != Rows.Num(); RowNum++) {
 		FInventoryItemStruct tempInventoryItem;
 		TSharedPtr<FJsonObject> tempRow = Rows[RowNum]->AsObject();
-		tempInventoryItem.ItemName = tempRow->GetStringField("ItemName");
-		tempInventoryItem.InventoryName = tempRow->GetStringField("InventoryName");
+		tempInventoryItem.ItemName = tempRow->GetStringField(TEXT("ItemName"));
+		tempInventoryItem.InventoryName = tempRow->GetStringField(TEXT("InventoryName"));
 		InventoryName = FName(*tempInventoryItem.InventoryName);
-		InventorySize = tempRow->GetIntegerField("InventorySize");
+		InventorySize = tempRow->GetIntegerField(TEXT("InventorySize"));
 
 		//Default row when an inventory is empty just to get the inventory name
 		if (tempInventoryItem.ItemName == "EmptyInventory")
 			continue;
 
-		tempInventoryItem.ItemDescription = tempRow->GetStringField("ItemDescription");
-		FString tempUniqueItemGUIDString = tempRow->GetStringField("CharInventoryItemGUID");
+		tempInventoryItem.ItemDescription = tempRow->GetStringField(TEXT("ItemDescription"));
+		FString tempUniqueItemGUIDString = tempRow->GetStringField(TEXT("CharInventoryItemGUID"));
 		FGuid::Parse(tempUniqueItemGUIDString, tempInventoryItem.UniqueItemGUID);
-		tempInventoryItem.InSlotNumber = tempRow->GetIntegerField("InSlotNumber");
-		tempInventoryItem.Quantity = tempRow->GetIntegerField("Quantity");
-		tempInventoryItem.ItemCanStack = tempRow->GetBoolField("ItemCanStack");
-		tempInventoryItem.ItemStackSize = tempRow->GetIntegerField("ItemStackSize");
-		tempInventoryItem.IsUsable = tempRow->GetBoolField("ItemIsUsable");
-		tempInventoryItem.IsConsumedOnUse = tempRow->GetBoolField("ItemIsConsumedOnUse");
-		tempInventoryItem.NumberOfUsesLeft = tempRow->GetIntegerField("NumberOfUsesLeft");
-		tempInventoryItem.ItemWeight = (float)tempRow->GetNumberField("ItemWeight");
-		tempInventoryItem.ItemTypeID = tempRow->GetIntegerField("ItemTypeID");
-		tempInventoryItem.ItemTypeDescription = tempRow->GetStringField("ItemTypeDesc");
-		tempInventoryItem.ItemTypeQuality = tempRow->GetIntegerField("ItemTypeQuality");
+		tempInventoryItem.InSlotNumber = tempRow->GetIntegerField(TEXT("InSlotNumber"));
+		tempInventoryItem.Quantity = tempRow->GetIntegerField(TEXT("Quantity"));
+		tempInventoryItem.ItemCanStack = tempRow->GetBoolField(TEXT("ItemCanStack"));
+		tempInventoryItem.ItemStackSize = tempRow->GetIntegerField(TEXT("ItemStackSize"));
+		tempInventoryItem.IsUsable = tempRow->GetBoolField(TEXT("ItemIsUsable"));
+		tempInventoryItem.IsConsumedOnUse = tempRow->GetBoolField(TEXT("ItemIsConsumedOnUse"));
+		tempInventoryItem.NumberOfUsesLeft = tempRow->GetIntegerField(TEXT("NumberOfUsesLeft"));
+		tempInventoryItem.ItemWeight = (float)tempRow->GetNumberField(TEXT("ItemWeight"));
+		tempInventoryItem.ItemTypeID = tempRow->GetIntegerField(TEXT("ItemTypeID"));
+		tempInventoryItem.ItemTypeDescription = tempRow->GetStringField(TEXT("ItemTypeDesc"));
+		tempInventoryItem.ItemTypeQuality = tempRow->GetIntegerField(TEXT("ItemTypeQuality"));
 
-		tempInventoryItem.UserItemType = tempRow->GetIntegerField("UserItemType");
-		tempInventoryItem.EquipmentType = tempRow->GetIntegerField("EquipmentType");
-		tempInventoryItem.EquipmentSlotType = tempRow->GetIntegerField("EquipmentSlotType");
-		tempInventoryItem.ItemTier = tempRow->GetIntegerField("ItemTier");
-		tempInventoryItem.ItemQuality = tempRow->GetIntegerField("ItemQuality");
-		tempInventoryItem.ItemDuration = tempRow->GetIntegerField("ItemDuration");
-		tempInventoryItem.CanBeDropped = tempRow->GetBoolField("CanBeDropped");
-		tempInventoryItem.CanBeDestroyed = tempRow->GetBoolField("CanBeDestroyed");
+		tempInventoryItem.UserItemType = tempRow->GetIntegerField(TEXT("UserItemType"));
+		tempInventoryItem.EquipmentType = tempRow->GetIntegerField(TEXT("EquipmentType"));
+		tempInventoryItem.EquipmentSlotType = tempRow->GetIntegerField(TEXT("EquipmentSlotType"));
+		tempInventoryItem.ItemTier = tempRow->GetIntegerField(TEXT("ItemTier"));
+		tempInventoryItem.ItemQuality = tempRow->GetIntegerField(TEXT("ItemQuality"));
+		tempInventoryItem.ItemDuration = tempRow->GetIntegerField(TEXT("ItemDuration"));
+		tempInventoryItem.CanBeDropped = tempRow->GetBoolField(TEXT("CanBeDropped"));
+		tempInventoryItem.CanBeDestroyed = tempRow->GetBoolField(TEXT("CanBeDestroyed"));
 
-		tempInventoryItem.CustomData = tempRow->GetStringField("CustomData");
-		tempInventoryItem.PerInstanceCustomData = tempRow->GetStringField("PerInstanceCustomData");
-		tempInventoryItem.Condition = tempRow->GetIntegerField("Condition");
-		//tempInventoryItem.ItemMesh = tempRow->GetStringField("ItemMesh");
-		//tempInventoryItem.MeshToUseForPickup = tempRow->GetStringField("MeshToUseForPickup");
-		tempInventoryItem.PremiumCurrencyPrice = tempRow->GetIntegerField("PremiumCurrencyPrice");
-		tempInventoryItem.FreeCurrencyPrice = tempRow->GetIntegerField("FreeCurrencyPrice");
+		tempInventoryItem.CustomData = tempRow->GetStringField(TEXT("CustomData"));
+		tempInventoryItem.PerInstanceCustomData = tempRow->GetStringField(TEXT("PerInstanceCustomData"));
+		tempInventoryItem.Condition = tempRow->GetIntegerField(TEXT("Condition"));
+		tempInventoryItem.PremiumCurrencyPrice = tempRow->GetIntegerField(TEXT("PremiumCurrencyPrice"));
+		tempInventoryItem.FreeCurrencyPrice = tempRow->GetIntegerField(TEXT("FreeCurrencyPrice"));
 
-		tempInventoryItem.ItemMeshID = tempRow->GetIntegerField("ItemMeshID");
-		tempInventoryItem.WeaponActorClassPath = tempRow->GetStringField("WeaponActorClass");
-		tempInventoryItem.StaticMeshPath = tempRow->GetStringField("StaticMesh");
-		tempInventoryItem.SkeletalMeshPath = tempRow->GetStringField("SkeletalMesh");
+		tempInventoryItem.ItemMeshID = tempRow->GetIntegerField(TEXT("ItemMeshID"));
+		tempInventoryItem.WeaponActorClassPath = tempRow->GetStringField(TEXT("WeaponActorClass"));
+		tempInventoryItem.StaticMeshPath = tempRow->GetStringField(TEXT("StaticMesh"));
+		tempInventoryItem.SkeletalMeshPath = tempRow->GetStringField(TEXT("SkeletalMesh"));
 
 		//TextureIcon
-		tempInventoryItem.TextureToUseForIcon = tempRow->GetStringField("TextureToUseForIcon");
+		tempInventoryItem.TextureToUseForIcon = tempRow->GetStringField(TEXT("TextureToUseForIcon"));
 		tempInventoryItem.TextureIcon = nullptr;
-		if (!tempRow->GetStringField("TextureToUseForIcon").IsEmpty())
+		if (!tempInventoryItem.TextureToUseForIcon.IsEmpty())
 		{
-			tempInventoryItem.TextureIcon = LoadObject<UTexture2D>(NULL, *tempRow->GetStringField("TextureToUseForIcon"), NULL, LOAD_None, NULL);
+			tempInventoryItem.TextureIcon = LoadObject<UTexture2D>(NULL, *tempInventoryItem.TextureToUseForIcon, NULL, LOAD_None, NULL);
 
 			if (!tempInventoryItem.TextureIcon)
 			{
@@ -861,8 +859,8 @@ void AOWSCharacter::ReadInventoryItems(const TArray<TSharedPtr<FJsonValue>> Rows
 			}
 		}
 
-		tempInventoryItem.IconSlotWidth = tempRow->GetIntegerField("IconSlotWidth");
-		tempInventoryItem.IconSlotHeight = tempRow->GetIntegerField("IconSlotHeight");
+		tempInventoryItem.IconSlotWidth = tempRow->GetIntegerField(TEXT("IconSlotWidth"));
+		tempInventoryItem.IconSlotHeight = tempRow->GetIntegerField(TEXT("IconSlotHeight"));
 
 		if (tempInventoryItem.IconSlotWidth < 1)
 			tempInventoryItem.IconSlotWidth = 1;

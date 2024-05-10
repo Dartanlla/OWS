@@ -1,7 +1,7 @@
 {
   "FileVersion": 3,
   "Version": 5,
-  "VersionName": "5.3",
+  "VersionName": "5.4",
   "FriendlyName": "OWSPlugin",
   "Description": "Open World Server",
   "Category": "Other",
@@ -10,7 +10,7 @@
   "DocsURL": "https://www.openworldserver.com",
   "MarketplaceURL": "",
   "SupportURL": "",
-  "EngineVersion": "5.3.0",
+  "EngineVersion": "5.4.0",
   "CanContainContent": true,
   "IsBetaVersion": false,
   "Installed": true,

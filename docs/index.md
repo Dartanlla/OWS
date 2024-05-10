@@ -11,7 +11,7 @@ layout: home
 </p>
 
 <p>
-    <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Dartanlla/OWS/Continuous%20Integration?style=flat-square">
+    <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Dartanlla/OWS/.github/workflows/ci.yml?branch=main&style=flat-square">
     <a href="https://github.com/Dartanlla/OWS/blob/master/LICENSE">
         <img src="https://img.shields.io/github/license/Dartanlla/ows.svg?style=flat-square">
     </a>

@@ -1,4 +1,5 @@
-// Copyright 2022 Sabre Dart Studios
+// Copyright 2024 Open World Server
+// https://github.com/Dartanlla/OWS
 
 #pragma once
 
