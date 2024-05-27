@@ -5,6 +5,7 @@ WHERE OWSDBVersion IS NOT NULL;
 SELECT OWSDBVersion
 FROM OWSVersion;
 
+
 CREATE TABLE DefaultCharacterValues
 (
     CustomerGUID              UUID                       NOT NULL,
@@ -21,6 +22,7 @@ CREATE TABLE DefaultCharacterValues
         PRIMARY KEY (DefaultCharacterValuesID, CustomerGUID)
 );
 
+
 CREATE TABLE DefaultCustomCharacterData
 (
     CustomerGUID                 UUID                       NOT NULL,
@@ -33,3 +35,4 @@ CREATE TABLE DefaultCustomCharacterData
     CONSTRAINT FK_DefaultCustomCharacterData_DefaultCharacterValueID
         FOREIGN KEY (DefaultCharacterValuesID, CustomerGUID) REFERENCES DefaultCharacterValues (DefaultCharacterValuesID, CustomerGUID)
 );
+

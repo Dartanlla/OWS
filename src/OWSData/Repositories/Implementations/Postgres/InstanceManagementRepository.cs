@@ -135,6 +135,10 @@ namespace OWSData.Repositories.Implementations.Postgres
                     parameter,
                     commandType: CommandType.Text);
 
+                await Connection.ExecuteAsync(GenericQueries.RemoveAllMapInstancesForWorldServer,
+                    parameter,
+                    commandType: CommandType.Text);
+
                 await Connection.ExecuteAsync(GenericQueries.UpdateWorldServerStatus,
                     parameter,
                     commandType: CommandType.Text);
