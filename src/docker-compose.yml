@@ -50,6 +50,11 @@ services:
       file: .docker/messaging.yml
       service: rabbitmq
 
+  #matchmakingcache:
+  # extends:
+  #  file: .docker/matchmakingcache.yml
+  #  service: matchmakingcache
+
   # OWS Public Api
   owspublicapi:
     image: ${REGISTRY:-ows}/owspublicapi:${PLATFORM:-linux}-${TAG:-latest}
@@ -169,3 +174,5 @@ volumes:
     name: "ows2-database"
   messaging:
     name: "ows2-messaging"
+  matchmakingcache:
+    name: "ows2-matchmakingcache"

@@ -10,6 +10,21 @@ nav_order: 1
 
 [MSSQL](https://www.microsoft.com/de-de/sql-server/sql-server-2019) is a suite of database software published by Microsoft. It includes a relational database engine, which stores data in tables, columns and rows.
 
+## Using MSSQL as an alternative to PostgreSQL
+Open src/.env.
+Rem out this line using # like this:
+```
+# DATABASE_CONNECTION_STRING="Host=host.docker.internal;Port=5432;Database=openworldserver;Username=postgres;Password=${DATABASE_PASSWORD};"
+```
+Unrem out this line by removing the # in front of the line like this:
+```
+DATABASE_CONNECTION_STRING="Server=host.docker.internal;Database=OpenWorldServer;User Id=SA;Password=${DATABASE_PASSWORD};ConnectRetryCount=0"
+```
+Replace the value in DATABASE with mssql like this:
+```
+DATABASE='mssql'
+```
+
 ## Update database version
 
 1. Open SQL Server Management Studio or Azure Data Studio and connect to localhost with the following credentials.

@@ -1,0 +1,20 @@
+version: '3.7'
+
+services:
+  matchmakingcache:
+    hostname: 'ows2'
+    container_name: matchmakingcache
+    image: redis:alpine3.19
+    restart: always
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${MatchmakingCacheRedisPassword}
+    ports:
+      - "6379:6379"
+    volumes:
+      - matchmakingcache:/data
+  environment:
+    REDIS_HOST: matchmakingcache
+    REDIS_PORT: 6379
+    REDIS_PASSWORD: ${MatchmakingCacheRedisPassword}
+  volumes:
+    matchmakingcache:
+      driver: local    
