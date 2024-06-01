@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <UserSecretsId>9805f064-639a-42e6-9e13-a99860a79187</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
@@ -14,7 +13,6 @@
     <SpaProxyServerUrl>http://localhost:5173</SpaProxyServerUrl>
     <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
   </PropertyGroup>
-
   <ItemGroup>
     <Content Remove="wwwroot\src\components\CharactersGrid.vue" />
     <Content Remove="wwwroot\src\components\WorldServersGrid.vue" />
@@ -22,27 +20,24 @@
     <Content Remove="wwwroot\src\owsApiClient.ts" />
     <Content Remove="wwwroot\src\router\index.ts" />
   </ItemGroup>
-
   <ItemGroup>
     <None Remove="wwwroot\src\plugins\vuetify.ts" />
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="6.0.13" />
-    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="6.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="8.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="8.0.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.15.1" />
-    <PackageReference Include="SimpleInjector" Version="5.4.1" />
+    <PackageReference Include="SimpleInjector" Version="5.4.4" />
     <PackageReference Include="SimpleInjector.Integration.AspNetCore.Mvc" Version="5.4.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.5.0" />
   </ItemGroup>
-
   <ItemGroup>
+    <ProjectReference Include="..\OWSData\OWSData.csproj" />
     <ProjectReference Include="..\OWSShared\OWSShared.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <TypeScriptCompile Include="wwwroot\src\components\CharactersGrid.vue" />
     <TypeScriptCompile Include="wwwroot\src\components\WorldServersGrid.vue" />
@@ -51,7 +46,6 @@
     <TypeScriptCompile Include="wwwroot\src\plugins\vuetify.ts" />
     <TypeScriptCompile Include="wwwroot\src\router\index.ts" />
   </ItemGroup>
-
   <ItemGroup>
     <None Update="OWSManagement.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

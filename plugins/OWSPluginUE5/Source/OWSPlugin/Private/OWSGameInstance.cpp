@@ -141,7 +141,7 @@ FString UOWSGameInstance::EncryptWithAES(FString StringToEncrypt, FString Key)
 
 	if (StringToBytes(StringToEncrypt, ByteString, Size)) {
 
-		FAES::EncryptData(ByteString, Size, TCHAR_TO_ANSI(KeyTChar));
+		FAES::EncryptData(ByteString, Size, StringCast<ANSICHAR>((KeyTChar)).Get());
 		StringToEncrypt = FString::FromHexBlob(ByteString, Size);
 
 		delete[] ByteString;
@@ -169,7 +169,7 @@ FString UOWSGameInstance::DecryptWithAES(FString StringToDecrypt, FString Key)
 
 	if (FString::ToHexBlob(StringToDecrypt, ByteString, Size)) {
 
-		FAES::DecryptData(ByteString, Size, TCHAR_TO_ANSI(KeyTChar));
+		FAES::DecryptData(ByteString, Size, StringCast<ANSICHAR>((KeyTChar)).Get());
 		StringToDecrypt = BytesToString(ByteString, Size);
 
 		FString LeftPart;

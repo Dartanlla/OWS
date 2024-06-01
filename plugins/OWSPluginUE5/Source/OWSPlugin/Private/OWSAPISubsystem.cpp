@@ -40,8 +40,6 @@ void UOWSAPISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		OWS2GlobalDataAPIPath,
 		GGameIni
 	);
-
-	OWS2APIRequestTimeout = 30.f;
 }
 
 void UOWSAPISubsystem::Deinitialize()
@@ -76,7 +74,6 @@ void UOWSAPISubsystem::GetJsonObjectFromResponse(FHttpRequestPtr Request, FHttpR
 void UOWSAPISubsystem::ProcessOWS2POSTRequest(FString ApiModuleToCall, FString ApiToCall, FString PostParameters, void (UOWSAPISubsystem::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful))
 {
 	Http = &FHttpModule::Get();
-	Http->SetHttpTimeout(OWS2APIRequestTimeout); //Set timeout
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
 	Request->OnProcessRequestComplete().BindUObject(this, InMethodPtr);
 
@@ -115,7 +112,6 @@ void UOWSAPISubsystem::ProcessOWS2POSTRequest(FString ApiModuleToCall, FString A
 void UOWSAPISubsystem::ProcessOWS2GETRequest(FString ApiModuleToCall, FString ApiToCall, void (UOWSAPISubsystem::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful))
 {
 	Http = &FHttpModule::Get();
-	Http->SetHttpTimeout(OWS2APIRequestTimeout); //Set timeout
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
 	Request->OnProcessRequestComplete().BindUObject(this, InMethodPtr);
 

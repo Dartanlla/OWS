@@ -2,7 +2,6 @@
 
 #include "OWSGameplayAbilityTargetActor_P.h"
 #include "Engine/World.h"
-#include "OWSGameplayAbilityWorldReticle.h"
 #include "AbilitySystemComponent.h" 
 #include "Abilities/GameplayAbility.h"
 #include "AbilitySystemLog.h"
