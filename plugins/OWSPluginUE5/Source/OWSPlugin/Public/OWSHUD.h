@@ -9,6 +9,7 @@
 #include "OWSInventory.h"
 #include "Engine/Canvas.h"
 #include "Engine/Font.h"
+#include "Kismet/GameplayStatics.h"
 #include "OWSHUD.generated.h"
 
 

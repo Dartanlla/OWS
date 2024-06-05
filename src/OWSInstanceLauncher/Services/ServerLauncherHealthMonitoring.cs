@@ -1,22 +1,19 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using OWSData.Models;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
-using OWSShared.Messages;
 using OWSShared.RequestPayloads;
+using OWSShared.Options;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Text.Json;
 using Serilog;
-using MongoDB.Driver.Linq;
 
-namespace OWSShared.Objects
+namespace OWSInstanceLauncher.Services
 {
     public class ServerLauncherHealthMonitoring : IServerHealthMonitoringJob
     {
@@ -25,7 +22,7 @@ namespace OWSShared.Objects
         private readonly IZoneServerProcessesRepository _zoneServerProcessesRepository;
         private readonly IOWSInstanceLauncherDataRepository _owsInstanceLauncherDataRepository;
 
-        public ServerLauncherHealthMonitoring(IOptions<OWSInstanceLauncherOptions> OWSInstanceLauncherOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository, 
+        public ServerLauncherHealthMonitoring(IOptions<OWSInstanceLauncherOptions> OWSInstanceLauncherOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository,
             IOWSInstanceLauncherDataRepository owsInstanceLauncherDataRepository)
         {
             _OWSInstanceLauncherOptions = OWSInstanceLauncherOptions;
@@ -80,18 +77,18 @@ namespace OWSShared.Objects
                 }
             };
 
-            var shutDownInstanceLauncherRequest = new StringContent(JsonConvert.SerializeObject(worldServerIDRequestPayload), Encoding.UTF8, "application/json");
+            var getZoneInstancesForWorldServerRequest = new StringContent(JsonSerializer.Serialize(worldServerIDRequestPayload), Encoding.UTF8, "application/json");
 
-            var responseMessageTask = instanceManagementHttpClient.PostAsync("api/Instance/GetZoneInstancesForWorldServer", shutDownInstanceLauncherRequest);
+            var responseMessageTask = instanceManagementHttpClient.PostAsync("api/Instance/GetZoneInstancesForWorldServer", getZoneInstancesForWorldServerRequest);
             var responseMessage = responseMessageTask.Result;
 
             if (responseMessage.IsSuccessStatusCode)
             {
                 var responseContentAsync = responseMessage.Content.ReadAsStringAsync();
                 string responseContentString = responseContentAsync.Result;
-                output = JsonConvert.DeserializeObject<List<GetZoneInstancesForWorldServer>>(responseContentString);
-            } 
-            else 
+                output = JsonSerializer.Deserialize<List<GetZoneInstancesForWorldServer>>(responseContentString);
+            }
+            else
             {
                 output = new List<GetZoneInstancesForWorldServer>();
             }

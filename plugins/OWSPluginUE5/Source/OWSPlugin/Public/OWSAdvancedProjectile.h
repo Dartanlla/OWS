@@ -3,14 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "OWSPlugin.h"
 #include "GameFramework/Actor.h"
+#include "GameplayEffectTypes.h"
 #include "Runtime/Engine/Classes/Components/SphereComponent.h"
 #include "OWSProjectileMovementComponent.h"
 #include "OWSPlayerController.h"
 #include "OWSAdvancedProjectile.generated.h"
-
-struct FGameplayEffectSpecHandle;
-struct FPredictionKey;
 
 /** Replicated movement data of our RootComponent.
 * More efficient than engine's FRepMovement

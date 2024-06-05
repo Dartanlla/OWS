@@ -27,7 +27,6 @@ UOWSLoginWidget::UOWSLoginWidget(const class FObjectInitializer& ObjectInitializ
 void UOWSLoginWidget::ProcessOWS2POSTRequest(FString ApiToCall, FString PostParameters, void (UOWSLoginWidget::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful))
 {
 	Http = &FHttpModule::Get();
-	Http->SetHttpTimeout(LoginTimeout); //Set timeout
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
 	Request->OnProcessRequestComplete().BindUObject(this, InMethodPtr);
 
@@ -96,6 +95,12 @@ void UOWSLoginWidget::OnLoginAndCreateSessionResponseReceived(FHttpRequestPtr Re
 	if (!LoginAndCreateSession->ErrorMessage.IsEmpty())
 	{
 		ErrorLoginAndCreateSession(*LoginAndCreateSession->ErrorMessage);
+		return;
+	}
+
+	if (!LoginAndCreateSession->Authenticated || LoginAndCreateSession->UserSessionGUID.IsEmpty())
+	{
+		ErrorLoginAndCreateSession("Unknown Login Error!  Make sure OWS 2 is running in debug mode in VS 2022 with docker-compose.  Then make sure your OWSAPICustomerKey in DefaultGame.ini matches your CustomerGUID in your database.");
 		return;
 	}
 

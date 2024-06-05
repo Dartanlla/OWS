@@ -11,11 +11,11 @@ float UOWSAnimInstance::GetStartTimeByDistance(UAnimSequence* AnimSequence, floa
 
     for (int i = 0; i < Curves.Num(); i++)
     {
-        if (Curves[i].Name.DisplayName == "DistanceCurve")
+        if (Curves[i].GetName().GetPlainNameString() == "DistanceCurve")
         {
             DistanceCurve = Curves[i];
         }
-        else if (Curves[i].Name.DisplayName == "Speed") {
+        else if (Curves[i].GetName().GetPlainNameString() == "Speed") {
             SpeedCurve = Curves[i];
         }
     }

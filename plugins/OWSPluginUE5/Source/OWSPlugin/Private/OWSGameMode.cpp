@@ -91,7 +91,6 @@ void AOWSGameMode::AddOrUpdateGlobalDataItemError(const FString& ErrorMsg)
 void AOWSGameMode::ProcessOWS2POSTRequest(FString ApiModuleToCall, FString ApiToCall, FString PostParameters, void (AOWSGameMode::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful))
 {
 	Http = &FHttpModule::Get();
-	Http->SetHttpTimeout(30); //Set timeout
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
 	Request->OnProcessRequestComplete().BindUObject(this, InMethodPtr);
 
@@ -230,6 +229,12 @@ FString AOWSGameMode::InitNewPlayer(APlayerController* NewPlayerController, cons
 		TArray<FString> SplitArray;
 		DecodedIDData.ParseIntoArray(SplitArray, TEXT("|"), false);
 
+		if (SplitArray.Num() < 8)
+		{
+			UE_LOG(OWS, Error, TEXT("OWSGameMode::InitNewPlayer - Not enough parameters in IDData! - %s"), *DecodedIDData);
+			return retString;
+		}
+
 		PLX = SplitArray[0];
 		PLY = SplitArray[1];
 		PLZ = SplitArray[2];
@@ -239,8 +244,8 @@ FString AOWSGameMode::InitNewPlayer(APlayerController* NewPlayerController, cons
 		PlayerName1 = SplitArray[6];
 		UserSessionGUID = SplitArray[7];
 
-		UE_LOG(OWS, Warning, TEXT("PlayerName: %s"), *PlayerName1);
-		UE_LOG(OWS, Warning, TEXT("UserSessionGUID: %s"), *UserSessionGUID);
+		UE_LOG(OWS, Verbose, TEXT("PlayerName: %s"), *PlayerName1);
+		UE_LOG(OWS, Verbose, TEXT("UserSessionGUID: %s"), *UserSessionGUID);
 
 		//FString OWSDefaultPawnClass = UGameplayStatics::ParseOption(DecodedOptions, TEXT("DPC"));
 	}
@@ -757,7 +762,7 @@ void AOWSGameMode::OnGetCurrentWorldTimeResponseReceived(FHttpRequestPtr Request
 		{
 			float fCurrentWorldTime;
 
-			fCurrentWorldTime = JsonObject->GetNumberField("CurrentWorldTime");
+			fCurrentWorldTime = JsonObject->GetNumberField(TEXT("CurrentWorldTime"));
 
 			NotifyGetCurrentWorldTime(fCurrentWorldTime);
 		}

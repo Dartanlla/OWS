@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace OWSData.Models
+﻿namespace OWSShared.Options
 {
     public class ZoneServerProcess
     {

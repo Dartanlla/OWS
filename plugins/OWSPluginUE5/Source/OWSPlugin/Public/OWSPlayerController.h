@@ -5,23 +5,12 @@
 #include "GameFramework/PlayerController.h"
 #include "Runtime/Online/HTTP/Public/Http.h"
 //#include "OWSAPIStructs.h"
-#include "OWSCharacterWithAbilities.h"
+//#include "OWSCharacterWithAbilities.h"
 #include "OWSPlayerState.h"
-#include "OWSReplicationGraph.h"
 #include "OWSPlayerControllerComponent.h"
 #include "OWSPlayerController.generated.h"
 
-
-
-
-
-
-
-
-
-
-
-
+class AOWSCharacterWithAbilities;
 
 /**
  * 
@@ -89,18 +78,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Player State")
 		AOWSPlayerState* GetOWSPlayerState() const;
 
-	UFUNCTION(BlueprintCallable, Category = "Replication")
-		UOWSReplicationGraph* GetReplicationGraph() const;
-
 	UFUNCTION(BlueprintCallable, Category = "Travel")
 		void TravelToMap(const FString& URL, const bool SeamlessTravel);
 
 	UFUNCTION(BlueprintCallable, Category = "Travel")
 		void TravelToMap2(const FString& ServerAndPort, const float X, const float Y, const float Z, const float RX, const float RY,
 			const float RZ, const FString& PlayerName, const bool SeamlessTravel);
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Connection")
-		float TravelTimeout;
 
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const override;
 

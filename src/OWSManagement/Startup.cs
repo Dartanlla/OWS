@@ -86,7 +86,7 @@ namespace OWSManagement
                 c.DefaultRequestHeaders.Add("X-CustomerGUID", owsManagementOptions.OWSAPIKey);
             });
 
-            services.Configure<OWSData.Models.StorageOptions>(Configuration.GetSection(OWSData.Models.StorageOptions.SectionName));
+            services.Configure<OWSShared.Options.StorageOptions>(Configuration.GetSection(OWSShared.Options.StorageOptions.SectionName));
 
             InitializeContainer(services);
 

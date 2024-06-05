@@ -12,10 +12,9 @@
 #include "GameplayTagContainer.h"
 #include "GameplayTagsModule.h"
 #include "OWSAttributeSet.h"
+#include "OWSAdvancedProjectile.h"
 //#include "OWSGameplayAbility.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerState.h"
-
-class AOWSAdvancedProjectile;
 
 #define CONSTRUCT_CLASS(Class, Name) Class* Name = NewObject<Class>(GetTransientPackage(), FName(TEXT(#Name)))
 
@@ -472,71 +471,71 @@ void AOWSCharacterWithAbilities::OnGetCharacterStatsResponseReceived(FHttpReques
 
 void AOWSCharacterWithAbilities::LoadAttributesFromJSON(TSharedPtr<FJsonObject> JsonObject)
 {
-	OWSAttributes->SetThirst(JsonObject->GetNumberField("Thirst"));
-	OWSAttributes->SetHunger(JsonObject->GetNumberField("Hunger"));
+	OWSAttributes->SetThirst(JsonObject->GetNumberField(TEXT("Thirst")));
+	OWSAttributes->SetHunger(JsonObject->GetNumberField(TEXT("Hunger")));
 
-	OWSAttributes->SetMaxHealth(JsonObject->GetNumberField("MaxHealth"));
-	OWSAttributes->SetHealth(JsonObject->GetNumberField("Health"));
-	OWSAttributes->SetHealthRegenRate(JsonObject->GetNumberField("HealthRegenRate"));
+	OWSAttributes->SetMaxHealth(JsonObject->GetNumberField(TEXT("MaxHealth")));
+	OWSAttributes->SetHealth(JsonObject->GetNumberField(TEXT("Health")));
+	OWSAttributes->SetHealthRegenRate(JsonObject->GetNumberField(TEXT("HealthRegenRate")));
 
-	OWSAttributes->SetMaxMana(JsonObject->GetNumberField("MaxMana"));
-	OWSAttributes->SetMana(JsonObject->GetNumberField("Mana"));
-	OWSAttributes->SetManaRegenRate(JsonObject->GetNumberField("ManaRegenRate"));
+	OWSAttributes->SetMaxMana(JsonObject->GetNumberField(TEXT("MaxMana")));
+	OWSAttributes->SetMana(JsonObject->GetNumberField(TEXT("Mana")));
+	OWSAttributes->SetManaRegenRate(JsonObject->GetNumberField(TEXT("ManaRegenRate")));
 
-	OWSAttributes->SetMaxEnergy(JsonObject->GetNumberField("MaxEnergy"));
-	OWSAttributes->SetEnergy(JsonObject->GetNumberField("Energy"));
-	OWSAttributes->SetEnergyRegenRate(JsonObject->GetNumberField("EnergyRegenRate"));
+	OWSAttributes->SetMaxEnergy(JsonObject->GetNumberField(TEXT("MaxEnergy")));
+	OWSAttributes->SetEnergy(JsonObject->GetNumberField(TEXT("Energy")));
+	OWSAttributes->SetEnergyRegenRate(JsonObject->GetNumberField(TEXT("EnergyRegenRate")));
 
-	OWSAttributes->SetMaxFatigue(JsonObject->GetNumberField("MaxFatigue"));
-	OWSAttributes->SetFatigue(JsonObject->GetNumberField("Fatigue"));
-	OWSAttributes->SetFatigueRegenRate(JsonObject->GetNumberField("FatigueRegenRate"));
+	OWSAttributes->SetMaxFatigue(JsonObject->GetNumberField(TEXT("MaxFatigue")));
+	OWSAttributes->SetFatigue(JsonObject->GetNumberField(TEXT("Fatigue")));
+	OWSAttributes->SetFatigueRegenRate(JsonObject->GetNumberField(TEXT("FatigueRegenRate")));
 
-	OWSAttributes->SetMaxStamina(JsonObject->GetNumberField("MaxStamina"));
-	OWSAttributes->SetStamina(JsonObject->GetNumberField("Stamina"));
-	OWSAttributes->SetStaminaRegenRate(JsonObject->GetNumberField("StaminaRegenRate"));
+	OWSAttributes->SetMaxStamina(JsonObject->GetNumberField(TEXT("MaxStamina")));
+	OWSAttributes->SetStamina(JsonObject->GetNumberField(TEXT("Stamina")));
+	OWSAttributes->SetStaminaRegenRate(JsonObject->GetNumberField(TEXT("StaminaRegenRate")));
 
-	OWSAttributes->SetMaxEndurance(JsonObject->GetNumberField("MaxEndurance"));
-	OWSAttributes->SetEndurance(JsonObject->GetNumberField("Endurance"));
-	OWSAttributes->SetEnduranceRegenRate(JsonObject->GetNumberField("EnduranceRegenRate"));
+	OWSAttributes->SetMaxEndurance(JsonObject->GetNumberField(TEXT("MaxEndurance")));
+	OWSAttributes->SetEndurance(JsonObject->GetNumberField(TEXT("Endurance")));
+	OWSAttributes->SetEnduranceRegenRate(JsonObject->GetNumberField(TEXT("EnduranceRegenRate")));
 
-	OWSAttributes->SetStrength(JsonObject->GetNumberField("Strength"));
-	OWSAttributes->SetDexterity(JsonObject->GetNumberField("Dexterity"));
-	OWSAttributes->SetConstitution(JsonObject->GetNumberField("Constitution"));
-	OWSAttributes->SetIntellect(JsonObject->GetNumberField("Intellect"));
-	OWSAttributes->SetWisdom(JsonObject->GetNumberField("Wisdom"));
-	OWSAttributes->SetCharisma(JsonObject->GetNumberField("Charisma"));
-	OWSAttributes->SetAgility(JsonObject->GetNumberField("Agility"));
-	OWSAttributes->SetSpirit(JsonObject->GetNumberField("Spirit"));
-	OWSAttributes->SetMagic(JsonObject->GetNumberField("Magic"));
-	OWSAttributes->SetFortitude(JsonObject->GetNumberField("Fortitude"));
-	OWSAttributes->SetReflex(JsonObject->GetNumberField("Reflex"));
-	OWSAttributes->SetWillpower(JsonObject->GetNumberField("Willpower"));
+	OWSAttributes->SetStrength(JsonObject->GetNumberField(TEXT("Strength")));
+	OWSAttributes->SetDexterity(JsonObject->GetNumberField(TEXT("Dexterity")));
+	OWSAttributes->SetConstitution(JsonObject->GetNumberField(TEXT("Constitution")));
+	OWSAttributes->SetIntellect(JsonObject->GetNumberField(TEXT("Intellect")));
+	OWSAttributes->SetWisdom(JsonObject->GetNumberField(TEXT("Wisdom")));
+	OWSAttributes->SetCharisma(JsonObject->GetNumberField(TEXT("Charisma")));
+	OWSAttributes->SetAgility(JsonObject->GetNumberField(TEXT("Agility")));
+	OWSAttributes->SetSpirit(JsonObject->GetNumberField(TEXT("Spirit")));
+	OWSAttributes->SetMagic(JsonObject->GetNumberField(TEXT("Magic")));
+	OWSAttributes->SetFortitude(JsonObject->GetNumberField(TEXT("Fortitude")));
+	OWSAttributes->SetReflex(JsonObject->GetNumberField(TEXT("Reflex")));
+	OWSAttributes->SetWillpower(JsonObject->GetNumberField(TEXT("Willpower")));
 
-	OWSAttributes->SetBaseAttack(JsonObject->GetNumberField("BaseAttack"));
-	OWSAttributes->SetBaseAttackBonus(JsonObject->GetNumberField("BaseAttackBonus"));
-	OWSAttributes->SetAttackPower(JsonObject->GetNumberField("AttackPower"));
-	OWSAttributes->SetAttackSpeed(JsonObject->GetNumberField("AttackSpeed"));
-	OWSAttributes->SetCritChance(JsonObject->GetNumberField("CritChance"));
-	OWSAttributes->SetCritMultiplier(JsonObject->GetNumberField("CritMultiplier"));
-	OWSAttributes->SetHaste(JsonObject->GetNumberField("Haste"));
-	OWSAttributes->SetSpellPower(JsonObject->GetNumberField("SpellPower"));
-	OWSAttributes->SetSpellPenetration(JsonObject->GetNumberField("SpellPenetration"));
-	OWSAttributes->SetDefense(JsonObject->GetNumberField("Defense"));
-	OWSAttributes->SetDodge(JsonObject->GetNumberField("Dodge"));
-	OWSAttributes->SetParry(JsonObject->GetNumberField("Parry"));
-	OWSAttributes->SetAvoidance(JsonObject->GetNumberField("Avoidance"));
-	OWSAttributes->SetVersatility(JsonObject->GetNumberField("Versatility"));
-	OWSAttributes->SetMultishot(JsonObject->GetNumberField("Multishot"));
-	OWSAttributes->SetInitiative(JsonObject->GetNumberField("Initiative"));
-	OWSAttributes->SetNaturalArmor(JsonObject->GetNumberField("NaturalArmor"));
-	OWSAttributes->SetPhysicalArmor(JsonObject->GetNumberField("PhysicalArmor"));
-	OWSAttributes->SetBonusArmor(JsonObject->GetNumberField("BonusArmor"));
-	OWSAttributes->SetForceArmor(JsonObject->GetNumberField("ForceArmor"));
-	OWSAttributes->SetMagicArmor(JsonObject->GetNumberField("MagicArmor"));
-	OWSAttributes->SetResistance(JsonObject->GetNumberField("Resistance"));
-	OWSAttributes->SetReloadSpeed(JsonObject->GetNumberField("ReloadSpeed"));
-	OWSAttributes->SetRange(JsonObject->GetNumberField("Range"));
-	OWSAttributes->SetSpeed(JsonObject->GetNumberField("Speed"));
+	OWSAttributes->SetBaseAttack(JsonObject->GetNumberField(TEXT("BaseAttack")));
+	OWSAttributes->SetBaseAttackBonus(JsonObject->GetNumberField(TEXT("BaseAttackBonus")));
+	OWSAttributes->SetAttackPower(JsonObject->GetNumberField(TEXT("AttackPower")));
+	OWSAttributes->SetAttackSpeed(JsonObject->GetNumberField(TEXT("AttackSpeed")));
+	OWSAttributes->SetCritChance(JsonObject->GetNumberField(TEXT("CritChance")));
+	OWSAttributes->SetCritMultiplier(JsonObject->GetNumberField(TEXT("CritMultiplier")));
+	OWSAttributes->SetHaste(JsonObject->GetNumberField(TEXT("Haste")));
+	OWSAttributes->SetSpellPower(JsonObject->GetNumberField(TEXT("SpellPower")));
+	OWSAttributes->SetSpellPenetration(JsonObject->GetNumberField(TEXT("SpellPenetration")));
+	OWSAttributes->SetDefense(JsonObject->GetNumberField(TEXT("Defense")));
+	OWSAttributes->SetDodge(JsonObject->GetNumberField(TEXT("Dodge")));
+	OWSAttributes->SetParry(JsonObject->GetNumberField(TEXT("Parry")));
+	OWSAttributes->SetAvoidance(JsonObject->GetNumberField(TEXT("Avoidance")));
+	OWSAttributes->SetVersatility(JsonObject->GetNumberField(TEXT("Versatility")));
+	OWSAttributes->SetMultishot(JsonObject->GetNumberField(TEXT("Multishot")));
+	OWSAttributes->SetInitiative(JsonObject->GetNumberField(TEXT("Initiative")));
+	OWSAttributes->SetNaturalArmor(JsonObject->GetNumberField(TEXT("NaturalArmor")));
+	OWSAttributes->SetPhysicalArmor(JsonObject->GetNumberField(TEXT("PhysicalArmor")));
+	OWSAttributes->SetBonusArmor(JsonObject->GetNumberField(TEXT("BonusArmor")));
+	OWSAttributes->SetForceArmor(JsonObject->GetNumberField(TEXT("ForceArmor")));
+	OWSAttributes->SetMagicArmor(JsonObject->GetNumberField(TEXT("MagicArmor")));
+	OWSAttributes->SetResistance(JsonObject->GetNumberField(TEXT("Resistance")));
+	OWSAttributes->SetReloadSpeed(JsonObject->GetNumberField(TEXT("ReloadSpeed")));
+	OWSAttributes->SetRange(JsonObject->GetNumberField(TEXT("Range")));
+	OWSAttributes->SetSpeed(JsonObject->GetNumberField(TEXT("Speed")));
 }
 
 
@@ -737,6 +736,15 @@ void AOWSCharacterWithAbilities::UpdateCharacterStats()
 		CharacterStats.UpdateCharacterStats.ReloadSpeed = OWSAttributes->ReloadSpeed.GetBaseValue();
 		CharacterStats.UpdateCharacterStats.Range = OWSAttributes->Range.GetBaseValue();
 		CharacterStats.UpdateCharacterStats.Speed = OWSAttributes->Speed.GetBaseValue();
+		
+		// Save Location also
+		CharacterStats.UpdateCharacterStats.X = this->GetActorLocation().X;
+		CharacterStats.UpdateCharacterStats.Y = this->GetActorLocation().Y;
+		CharacterStats.UpdateCharacterStats.Z = this->GetActorLocation().Z;
+		CharacterStats.UpdateCharacterStats.RX = this->GetActorRotation().Roll;
+		CharacterStats.UpdateCharacterStats.RY = this->GetActorRotation().Pitch;
+		CharacterStats.UpdateCharacterStats.RZ = this->GetActorRotation().Yaw;
+		
 
 		FString PostParameters = "";
 		if (FJsonObjectConverter::UStructToJsonObjectString(CharacterStats, PostParameters))

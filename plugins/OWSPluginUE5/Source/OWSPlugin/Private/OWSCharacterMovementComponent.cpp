@@ -1,6 +1,7 @@
 // Copyright 2018 Sabre Dart Studios
 
 #include "OWSCharacterMovementComponent.h"
+#include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStaticsTypes.h"

@@ -7,6 +7,7 @@
 #include "OWS2API.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Runtime/Online/HTTP/Public/Http.h"
+#include "JsonObjectConverter.h"
 #include "OWSAPISubsystem.generated.h"
 
 //Get Global Data Item
@@ -53,9 +54,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Config")
 		FString OWSEncryptionKey = "";
-
-	UPROPERTY(BlueprintReadWrite, Category = "Config")
-		float OWS2APIRequestTimeout;
 
 protected:
 	FHttpModule* Http;

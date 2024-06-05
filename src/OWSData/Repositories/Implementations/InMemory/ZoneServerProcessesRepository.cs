@@ -3,6 +3,7 @@ using OWSData.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using OWSShared.Options;
 
 namespace OWSData.Repositories.Implementations.InMemory
 {

@@ -17,6 +17,7 @@ using OWSData.SQL;
 using PartyServiceApp.Protos;
 using GuildServiceApp.Protos;
 using Amazon.Runtime.Internal.Util;
+using OWSShared.Options;
 
 namespace OWSData.Repositories.Implementations.MSSQL
 {
@@ -539,10 +540,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
         }
         public async Task UpdatePosition(Guid customerGUID, string characterName, string mapName, float X, float Y, float Z, float RX, float RY, float RZ)
         {
-            IDbConnection conn = Connection;
-            conn.Open();
-            using IDbTransaction transaction = conn.BeginTransaction();
-            try
+            using (Connection)
             {
                 var p = new DynamicParameters();
                 p.Add("@CustomerGUID", customerGUID);
@@ -571,13 +569,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 await Connection.ExecuteAsync(MSSQLQueries.UpdateUserLastAccess,
                     p,
                     commandType: CommandType.Text);
-
-                transaction.Commit();
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw new Exception("Database Exception in UpdatePosition!");
             }
         }
         public async Task PlayerLogout(Guid customerGUID, string characterName)

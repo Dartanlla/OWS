@@ -1,18 +1,19 @@
 ---
 layout: default
-title: Docker Setup
+title: Visual Studio Code
 parent: Getting Started
-nav_order: 1
+nav_order: 2
 ---
 
 # Docker Setup
 
 ## Requirements  
 * Download or clone [OWS](https://github.com/Dartanlla/OWS)
-* Download and install [Visual Studio 2022 Community](https://visualstudio.microsoft.com/downloads/)
-  * The ASP.NET and Web Development, Node.js Development, and Game development with C++ workloads are required
+* Download and install [Visual Studio Code](https://code.visualstudio.com/)
+  * [C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit) extension is required
+  * [Docker for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker) extension is required
 * Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop) for Windows/macOS/Linux
-* [.Net 6.0 SDK]([another-page](https://dotnet.microsoft.com/download/dotnet/6.0))  (On Windows this is included in VS 2022 by default)
+* [.Net 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 * Enable "Virtualization Technology" in your BIOS
 <br />
 <br />
@@ -24,10 +25,11 @@ nav_order: 1
 
 1. Make sure Windows Subsystem for Linux is installed. ![Launch Docker Compose](images/windows-subsystem-for-linux01.png){: .mt-3}  
 2. Download and install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop)
-3. Open OWS Project in Visual Studio 2022 Community. The [ASP.NET and Web Development workload](../troubleshooting/visual-studio#installing-workloads) is required. The "Node.js development" workload is also required for the Vue.js build process.  If you plan to use Unreal Engine, you will also need to install the "Game development with C++" workload.
-4. Select Docker Compose startup project and Launch Docker Compose. ![Launch Docker Compose](images/docker-compose-windows.png){: .mt-3}
-5. <span class="label" style="margin-left: -3px">Optional</span>  
-   Running Docker Compose without Visual Studio Debugger, Enter the following Command Prompt from the OWS root directory.
+3. Open the src folder inside the OWS Project folder and open it with Visual Studio Code.
+4. Select View -> Command Palette, Type Docker Compose Up select docker-compose.xml as the compose file.
+5. Select Windows Template File ![Launch Docker Compose](images/docker-compose-vscode.png){: .mt-3}
+6. <span class="label" style="margin-left: -3px">Optional</span>  
+   Running Docker Compose without Visual Studio Code, Enter the following Command Prompt from the OWS root directory.
 
    ```bash
    docker-compose -f docker-compose.yml -f docker-compose.override.windows.yml -f docker-compose-additional.yml up -d 
@@ -46,16 +48,17 @@ nav_order: 1
   </summary>
 
 1. Download and install [Docker Desktop for Mac](https://docs.docker.com/desktop/install/mac-install/)
-2. Open OWS Project in [Visual Studio For Mac](https://visualstudio.microsoft.com/de/vs/mac/). The [ASP.NET and Web Development workload](../troubleshooting/visual-studio#installing-workloads) is required.
-3. Run the following command in a terminal to install the Development Certificates
+2. Run the following command in a terminal to install the Development Certificates
    
    ```bash
    dotnet dev-certs https --trust
    ```
 
-4. Select Docker Compose startup project and Launch Docker Compose. ![Launch Docker Compose](images/docker-compose-mac.png){: .mt-3}
+3. Open the src folder inside the OWS Project folder and open it with Visual Studio Code.
+4. Select View -> Command Palette, Type Docker Compose Up select docker-compose.xml as the compose file.
+5. Select macOS Template File ![Launch Docker Compose](images/docker-compose-vscode.png){: .mt-3}
 5. <span class="label" style="margin-left: -3px">Optional</span>  
-    Running Docker Compose without Visual Studio Debugger, Run the following command in an terminal from the OWS root directory.
+    Running Docker Compose without Visual Studio Code, Run the following command in an terminal from the OWS root directory.
 
    ```bash
    docker-compose -f docker-compose.yml -f docker-compose.override.osx.yml -f docker-compose-additional.yml up -d 
@@ -76,7 +79,10 @@ nav_order: 1
 1. Download and install [Docker Desktop for Linux](https://docs.docker.com/desktop/install/linux-install/)
 2. Close all web browsers
 3. Download and Run [dotnet-dev-certificate-linux](https://github.com/CodewareGames/dotnet-dev-certificate-linux) to install Development HTTPS Certificate.
-4. Run the following command in an terminal from the OWS src directory.
+4. Open the src folder inside the OWS Project folder and open it with Visual Studio Code.
+5. Select View -> Command Palette, Type Docker Compose Up select docker-compose.xml as the compose file.
+6. Select Linux Template File ![Launch Docker Compose](images/docker-compose-vscode.png){: .mt-3}
+7. Run the following command in an terminal from the OWS src directory.
 
    ```bash
    sudo docker-compose -f docker-compose.yml -f docker-compose.override.linux.yml -f docker-compose-additional.yml up -d 

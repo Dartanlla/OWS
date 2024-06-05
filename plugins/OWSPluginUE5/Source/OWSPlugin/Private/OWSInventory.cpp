@@ -1,6 +1,7 @@
 // Copyright 2018 Sabre Dart Studios
 
 #include "OWSInventory.h"
+#include "OWSPlugin.h"
 #include "OWSGameMode.h"
 
 UOWSInventory::UOWSInventory(const FObjectInitializer& ObjectInitializer)

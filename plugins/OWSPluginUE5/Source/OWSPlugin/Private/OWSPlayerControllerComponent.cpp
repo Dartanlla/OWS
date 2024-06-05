@@ -203,7 +203,6 @@ Valid values for ApiModuleToCall:
 void UOWSPlayerControllerComponent::ProcessOWS2POSTRequest(FString ApiModuleToCall, FString ApiToCall, FString PostParameters, void (UOWSPlayerControllerComponent::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful))
 {
 	Http = &FHttpModule::Get();
-	Http->SetHttpTimeout(TravelTimeout); //Set timeout
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
 	Request->OnProcessRequestComplete().BindUObject(this, InMethodPtr);
 
@@ -266,14 +265,14 @@ void UOWSPlayerControllerComponent::OnSetSelectedCharacterAndConnectToLastZoneRe
 
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			ServerTravelUserSessionGUID = JsonObject->GetStringField("UserSessionGUID");
-			ServerTravelCharacterName = JsonObject->GetStringField("CharName");
-			ServerTravelX = JsonObject->GetNumberField("X");
-			ServerTravelY = JsonObject->GetNumberField("Y");
-			ServerTravelZ = JsonObject->GetNumberField("Z");
-			ServerTravelRX = JsonObject->GetNumberField("RX");
-			ServerTravelRY = JsonObject->GetNumberField("RY");
-			ServerTravelRZ = JsonObject->GetNumberField("RZ");
+			ServerTravelUserSessionGUID = JsonObject->GetStringField(TEXT("UserSessionGUID"));
+			ServerTravelCharacterName = JsonObject->GetStringField(TEXT("CharName"));
+			ServerTravelX = JsonObject->GetNumberField(TEXT("X"));
+			ServerTravelY = JsonObject->GetNumberField(TEXT("Y"));
+			ServerTravelZ = JsonObject->GetNumberField(TEXT("Z"));
+			ServerTravelRX = JsonObject->GetNumberField(TEXT("RX"));
+			ServerTravelRY = JsonObject->GetNumberField(TEXT("RY"));
+			ServerTravelRZ = JsonObject->GetNumberField(TEXT("RZ"));
 
 			UE_LOG(OWS, Log, TEXT("OnSetSelectedCharacterAndConnectToLastZone location is %f, %f, %f"), ServerTravelX, ServerTravelY, ServerTravelZ);
 
@@ -338,8 +337,8 @@ void UOWSPlayerControllerComponent::OnTravelToLastZoneServerResponseReceived(FHt
 
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			FString ServerIP = JsonObject->GetStringField("serverip");
-			FString Port = JsonObject->GetStringField("port");
+			FString ServerIP = JsonObject->GetStringField(TEXT("serverip"));
+			FString Port = JsonObject->GetStringField(TEXT("port"));
 
 			if (ServerIP.IsEmpty() || Port.IsEmpty())
 			{
@@ -407,8 +406,8 @@ void UOWSPlayerControllerComponent::OnGetZoneServerToTravelToResponseReceived(FH
 
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			FString ServerIP = JsonObject->GetStringField("serverip");
-			FString Port = JsonObject->GetStringField("port");
+			FString ServerIP = JsonObject->GetStringField(TEXT("serverip"));
+			FString Port = JsonObject->GetStringField(TEXT("port"));
 
 			if (ServerIP.IsEmpty() || Port.IsEmpty())
 			{
@@ -688,17 +687,17 @@ void UOWSPlayerControllerComponent::OnGetChatGroupsForPlayerResponseReceived(FHt
 
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			if (JsonObject->GetStringField("success") == "true")
+			if (JsonObject->GetStringField(TEXT("success")) == "true")
 			{
-				TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField("rows");
+				TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField(TEXT("rows"));
 
 				TArray<FChatGroup> ChatGroups;
 
 				for (int RowNum = 0; RowNum != Rows.Num(); RowNum++) {
 					FChatGroup tempChatGroup;
 					TSharedPtr<FJsonObject> tempRow = Rows[RowNum]->AsObject();
-					tempChatGroup.ChatGroupID = tempRow->GetIntegerField("ChatGroupID");
-					tempChatGroup.ChatGroupName = tempRow->GetStringField("ChatGroupName");
+					tempChatGroup.ChatGroupID = tempRow->GetIntegerField(TEXT("ChatGroupID"));
+					tempChatGroup.ChatGroupName = tempRow->GetStringField(TEXT("ChatGroupName"));
 
 					ChatGroups.Add(tempChatGroup);
 				}
@@ -1110,26 +1109,26 @@ void UOWSPlayerControllerComponent::OnGetPlayerGroupsCharacterIsInResponseReceiv
 
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			FString Success = JsonObject->GetStringField("success");
+			FString Success = JsonObject->GetStringField(TEXT("success"));
 
 			if (Success == "true")
 			{
-				if (JsonObject->HasField("rows"))
+				if (JsonObject->HasField(TEXT("rows")))
 				{
-					TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField("rows");
+					TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField(TEXT("rows"));
 					TArray<FPlayerGroup> tempPlayerGroups;
 
 					for (int RowNum = 0; RowNum != Rows.Num(); RowNum++) {
 						FPlayerGroup tempPlayerGroup;
 						TSharedPtr<FJsonObject> tempRow = Rows[RowNum]->AsObject();
-						tempPlayerGroup.PlayerGroupID = tempRow->GetNumberField("PlayerGroupID");
-						tempPlayerGroup.PlayerGroupName = tempRow->GetStringField("PlayerGroupName");
-						tempPlayerGroup.PlayerGroupTypeID = tempRow->GetNumberField("PlayerGroupTypeID");
-						tempPlayerGroup.ReadyState = tempRow->GetNumberField("ReadyState");
-						tempPlayerGroup.TeamNumber = tempRow->GetNumberField("TeamNumber");
+						tempPlayerGroup.PlayerGroupID = tempRow->GetNumberField(TEXT("PlayerGroupID"));
+						tempPlayerGroup.PlayerGroupName = tempRow->GetStringField(TEXT("PlayerGroupName"));
+						tempPlayerGroup.PlayerGroupTypeID = tempRow->GetNumberField(TEXT("PlayerGroupTypeID"));
+						tempPlayerGroup.ReadyState = tempRow->GetNumberField(TEXT("ReadyState"));
+						tempPlayerGroup.TeamNumber = tempRow->GetNumberField(TEXT("TeamNumber"));
 
 						FDateTime OutDateTime;
-						FDateTime::Parse(tempRow->GetStringField("DateAdded"), OutDateTime);
+						FDateTime::Parse(tempRow->GetStringField(TEXT("DateAdded")), OutDateTime);
 						tempPlayerGroup.DateAdded = OutDateTime;
 
 						tempPlayerGroups.Add(tempPlayerGroup);
@@ -1141,7 +1140,7 @@ void UOWSPlayerControllerComponent::OnGetPlayerGroupsCharacterIsInResponseReceiv
 			}
 			else
 			{
-				FString ErrorMessage = JsonObject->GetStringField("errmsg");
+				FString ErrorMessage = JsonObject->GetStringField(TEXT("errmsg"));
 				OnErrorGetPlayerGroupsCharacterIsInDelegate.ExecuteIfBound(ErrorMessage);
 			}
 		}
@@ -1187,8 +1186,8 @@ void UOWSPlayerControllerComponent::OnLaunchZoneInstanceResponseReceived(FHttpRe
 
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			FString ServerIP = JsonObject->GetStringField("serverip");
-			FString Port = JsonObject->GetStringField("port");
+			FString ServerIP = JsonObject->GetStringField(TEXT("serverip"));
+			FString Port = JsonObject->GetStringField(TEXT("port"));
 
 			ServerAndPort = ServerIP + FString(TEXT(":")) + Port;
 
