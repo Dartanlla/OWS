@@ -52,7 +52,7 @@ nav_order: 1
    (Optional): A specific GUID can be entered as an optional final parameter, after password, in the format of '00000000-0000-0000-0000-000000000000'.
 
    ```sql
-    CALL AddNewCustomer ('CustomerName', 'FirstName', 'LastName', 'Email', 'Password', NULL);
+    CALL AddNewCustomer ('CustomerName', 'Email', NULL);
    ```
    
    Be sure to replace the values:
@@ -60,14 +60,8 @@ nav_order: 1
     <dl>
         <dt>CustomerName</dt>
         <dd>The nickname or profile name of the customer.</dd>
-        <dt>FirstName</dt>
-        <dd>The firstname of the customer.</dd>
-        <dt>LastName</dt>
-        <dd>The lastname of the customer.</dd>
         <dt>Email</dt>
         <dd>Enter the mail address of the customer.</dd>
-        <dt>Password</dt>
-        <dd>Enter a secure password.</dd>
     </dl>
     
 3. Run the following SQL statment against the Open World Server database to get your **API key**. Save the key for later.
@@ -77,9 +71,7 @@ nav_order: 1
    ```
 
 ## Additional
-If you are using an external MySQL/MariaDB, you need to ensure that the `ENCRYPT` function works as is available. Consult your database administrator if unsure.
-
-Secondly you need will need to run the following as a SUPER user, or grant your SUPER access to your user.
+If you are using an external MySQL/MariaDB, you need will need to run the following as a SUPER user, or grant your SUPER access to your user.
 
 ```sql
 SET GLOBAL log_bin_trust_function_creators = 1;

@@ -36,6 +36,15 @@ namespace OWSData.SQL
 	    public static readonly string AddCharacterCustomDataField = @"INSERT INTO CustomCharacterData (CustomerGUID, CharacterID, CustomFieldName, FieldValue)
 		VALUES (@CustomerGUID, @CharacterID, @CustomFieldName, @FieldValue)";
 
+	    public static readonly string AddCharacterInventoryFromClass = @"INSERT INTO CharInventory (CustomerGUID, CharacterID, InventoryName, InventorySize, InventoryWidth, InventoryHeight)
+					SELECT @CustomerGUID, @CharacterID, CI.InventoryName, CI.InventorySize, CI.InventoryWidth, CI.InventoryHeight
+					FROM ClassInventory CI
+					WHERE CI.CustomerGUID = @CustomerGUID
+					AND CI.ClassID = @ClassID";
+
+	    public static readonly string AddDefaultCharacterInventory = @"INSERT INTO CharInventory (CustomerGUID, CharacterID, InventoryName, InventorySize, InventoryWidth, InventoryHeight)
+					VALUES (@CustomerGUID, @CharacterID, 'Bag', 16, 4, 4)";
+
 	    public static readonly string AddDefaultCustomCharacterData = @"INSERT INTO CustomCharacterData (CustomerGUID, CharacterID, CustomFieldName, FieldValue)
 				SELECT DCR.CustomerGUID, @CharacterID, DCCD.CustomFieldName, DCCD.FieldValue
 				FROM DefaultCustomCharacterData DCCD
@@ -66,6 +75,12 @@ namespace OWSData.SQL
 				FROM Characters
 				WHERE CustomerGUID = @CustomerGUID
 				  AND CharName = @CharName";
+
+	    public static readonly string GetCharacterIDByNameAndUser = @"SELECT CharacterID
+				FROM Characters
+				WHERE CustomerGUID = @CustomerGUID
+				  AND CharName = @CharName
+				  AND UserGUID = @UserGUID";
 
 	    public static readonly string GetCharByCharName = @"SELECT C.*, MI.Port, WS.ServerIP, CMI.MapInstanceID, COALESCE(CL.ClassName,'') AS ClassName
 				FROM Characters C
@@ -123,12 +138,56 @@ namespace OWSData.SQL
 				WHERE CCD.CustomerGUID = @CustomerGUID
 				  AND C.CharName = @CharName";
 
+	    public static readonly string GetClassIdByName = @"SELECT ClassID
+				FROM Class
+				WHERE CustomerGUID = @CustomerGUID
+				  AND ClassName = ClassName";
+
+	    public static readonly string GetClassInventoryCount = @"SELECT COUNT(*)
+				FROM ClassInventory
+				WHERE CustomerGUID = @CustomerGUID
+				  AND ClassID = @ClassID";
+
+	    public static readonly string GetCreateCharacterByID = @"SELECT 'true', '', CharName AS CharacterName, CL.ClassName, C.CharacterLevel, C.MapName AS StartingMapName, C.X, C.Y, C.Z, C.RX, C.RY, C.RZ, C.TeamNumber, C.Gold, C.Silver, C.Copper,
+       			C.FreeCurrency, C.PremiumCurrency, C.Fame, C.Alignment, C.Score, C.Gender, C.XP, C.Size, C.Weight
+				FROM Characters C
+				JOIN Class CL ON C.ClassID = CL.ClassID
+				WHERE C.CustomerGUID = @CustomerGUID
+				  AND C.CharacterID = @CharacterID";
+
 	    public static readonly string GetPlayerGroupIDByType = @"SELECT COALESCE(PG.PlayerGroupID, 0)
 				FROM PlayerGroupCharacters PGC
 				INNER JOIN PlayerGroup PG ON PG.PlayerGroupID = PGC.PlayerGroupID
 				WHERE PGC.CustomerGUID = @CustomerGUID
 				  AND PGC.CharacterID = @CharacterID
 				  AND PG.PlayerGroupTypeID = @PlayerGroupType";
+
+	    public static readonly string GetPlayerGroupsCharacterIsIn = @"SELECT PG.PlayerGroupID,
+           PG.CustomerGUID,
+           PG.PlayerGroupName,
+           PG.PlayerGroupTypeID,
+           PG.ReadyState,
+           PG.CreateDate,
+           PGC.DateAdded,
+           PGC.TeamNumber
+    FROM PlayerGroupCharacters PGC
+             INNER JOIN PlayerGroup PG
+                        ON PG.PlayerGroupID = PGC.PlayerGroupID
+                            AND PG.CustomerGUID = PGC.CustomerGUID
+             INNER JOIN Characters C
+                        ON C.CharacterID = PGC.CharacterID
+             INNER JOIN UserSessions US
+                        ON US.UserGUID = C.UserGUID
+                            AND US.CustomerGUID = C.CustomerGUID
+    WHERE PGC.CustomerGUID = @CustomerGUID
+      AND (PG.PlayerGroupTypeID = @PlayerGroupTypeID OR COALESCE(@PlayerGroupTypeID, 0) = 0)
+      AND C.CharName = @CharName
+      AND C.CustomerGUID = @CustomerGUID";
+
+	    public static readonly string GetUser = @"SELECT *
+    FROM Users U
+    WHERE U.CustomerGUID = @CustomerGUID
+      AND U.UserGUID = @UserGUID;";
 
 		public static readonly string GetUsers = @"SELECT UserGUID, FirstName, LastName, Email, CreateDate, LastAccess, Role
 				FROM Users
@@ -155,6 +214,40 @@ namespace OWSData.SQL
 				  AND CharacterID = @CharacterID";
 
 	    public static readonly string RemoveCharacterFromInstances = @"DELETE FROM CharOnMapInstance WHERE CustomerGUID = @CustomerGUID AND MapInstanceID IN @MapInstances";
+
+	    public static readonly string RemoveCharacterAbilities = @"DELETE
+				FROM CharAbilityBarAbilities
+				WHERE CustomerGUID = @CustomerGUID
+				AND CharAbilityBarID
+					IN (SELECT CharAbilityBarID
+						FROM CharAbilityBars
+						WHERE CustomerGUID = @CustomerGUID
+						AND CharacterID = @CharacterID);";
+
+	    public static readonly string RemoveCharacterAbilityBars = @"DELETE FROM CharAbilityBars WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID;";
+
+	    public static readonly string RemoveCharacterHasAbilities = @"DELETE FROM CharHasAbilities WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID;";
+
+	    public static readonly string RemoveCharacterHasItems = @"DELETE FROM CharHasItems WHERE CharacterID = @CharacterID;";
+
+	    public static readonly string RemoveCharacterInventoryItems = @"DELETE
+				FROM CharInventoryItems
+				WHERE CustomerGUID = @CustomerGUID
+				AND CharInventoryID
+					IN (SELECT CharInventoryID
+						FROM CharInventory
+						WHERE CustomerGUID = @CustomerGUID
+						AND CharacterID = @CharacterID);";
+
+	    public static readonly string RemoveCharacterInventory = @"DELETE FROM CharInventory WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID;";
+
+	    public static readonly string RemoveCharacterGroupUsers = @"DELETE FROM ChatGroupUsers WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID;";
+
+	    public static readonly string RemoveCharacterCharacterData = @"DELETE FROM CustomCharacterData WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID;";
+
+	    public static readonly string RemoveCharacterFromPlayerGroupCharacters = @"DELETE FROM PlayerGroupCharacters WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID;";
+
+	    public static readonly string RemoveCharacter = @"DELETE FROM Characters WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID;";
 
 	    public static readonly string UpdateCharacterCustomDataField = @"UPDATE CustomCharacterData
 				SET FieldValue = @FieldValue
@@ -280,10 +373,18 @@ namespace OWSData.SQL
 
         #region World Queries
 
+        public static readonly string AddWorldServer = @"INSERT INTO WorldServers (CustomerGUID, ServerIP, MaxNumberOfInstances, Port, ServerStatus, InternalServerIP, StartingMapInstancePort, ZoneServerGUID)
+		VALUES (@CustomerGUID, @ServerIP, @MaxNumberOfInstances, 8081, 0, @InternalServerIP, @StartingMapInstancePort, @ZoneServerGUID)";
+
         public static readonly string GetWorldByID = @"SELECT *
 				FROM WorldServers
 				WHERE CustomerGUID = @CustomerGUID
 				  AND WorldServerID = @WorldServerID";
+
+        public static readonly string GetWorldByZoneGUID = @"SELECT *
+				FROM WorldServers
+				WHERE CustomerGUID = @CustomerGUID
+				  AND ZoneServerGUID = @ZoneServerGUID";
 
         public static readonly string GetActiveWorldServersByLoad = @"SELECT WS.WorldServerID, WS.ServerIP, WS.InternalServerIP, WS.Port, WS.MaxNumberOfInstances, WS.StartingMapInstancePort
 				FROM WorldServers WS
@@ -299,6 +400,15 @@ namespace OWSData.SQL
 				WHERE CustomerGUID = @CustomerGUID
 				  AND WorldServerID = @WorldServerID
 				ORDER BY Port";
+
+        public static readonly string UpdateWorldServer = @"UPDATE WorldServers
+			        SET MaxNumberOfInstances = @MaxNumberOfInstances,
+			            Port = 8081,
+			            ServerStatus = 0,
+			            InternalServerIP = @InternalServerIP,
+			            StartingMapInstancePort = @StartingMapInstancePort
+			        WHERE CustomerGUID = @CustomerGUID
+			          AND ZoneServerGUID = @ZoneServerGUID;";
 
         public static readonly string UpdateWorldServerStatus = @"UPDATE WorldServers
 					SET ActiveStartTime = NULL
@@ -371,7 +481,30 @@ namespace OWSData.SQL
 
         #region User Queries
 
+        public static readonly string DeleteUserSessionsForUser = @"DELETE FROM UserSessions WHERE CustomerGUID = @CustomerGuid AND UserGUID = @UserGUID";
+
+        public static readonly string GetUserByEmail = @"SELECT * FROM Users WHERE CustomerGUID = @CustomerGuid AND Email = @Email AND Role = @Role";
+
+        public static readonly string GetUserBySession = @"SELECT * FROM UserSessions WHERE CustomerGUID = @CustomerGuid AND UserSessionGUID = @UserSessionGUID";
+
+        public static readonly string GetUserSession = @"SELECT US.CustomerGUID, US.UserGUID, US.UserSessionGUID, US.LoginDate, US.SelectedCharacterName,
+	            U.Email, U.FirstName, U.LastName, U.CreateDate, U.LastAccess, U.Role,
+	            C.CharacterID, C.CharName, C.X, C.Y, C.Z, C.RX, C.RY, C.RZ, C.MapName as ZoneName
+	            FROM UserSessions US
+	            INNER JOIN Users U
+		            ON U.UserGUID = US.UserGUID
+	            LEFT JOIN Characters C
+		            ON C.CustomerGUID = US.CustomerGUID
+		            AND C.CharName = US.SelectedCharacterName
+	            WHERE US.CustomerGUID = @CustomerGUID
+	            AND US.UserSessionGUID = @UserSessionGUID";
+
         public static readonly string Logout = @"DELETE FROM UserSessions WHERE CustomerGUID=@CustomerGuid AND UserSessionGUID=@UserSessionGUID";
+
+        public static readonly string UpdateUserSessionSetSelectedCharacter = @"UPDATE UserSessions
+				SET SelectedCharacterName = @SelectedCharacterName
+				WHERE CustomerGUID = @CustomerGUID
+				  AND UserSessionGUID = @UserSessionGUID";
 
         #endregion
     }

@@ -2,12 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using OWSData.Models;
 using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
+using OWSData.Models.Tables;
 using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
 using OWSShared.Options;
@@ -253,17 +254,30 @@ namespace OWSData.Repositories.Implementations.MySQL
             {
                 using (Connection)
                 {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@ZoneServerGUID", launcherGuid);
-                    p.Add("@ServerIP", serverIp);
-                    p.Add("@MaxNumberOfInstances", maxNumberOfInstances);
-                    p.Add("@InternalServerIP", internalServerIp);
-                    p.Add("@StartingMapInstancePort", startingInstancePort);
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@CustomerGUID", customerGUID);
+                    parameters.Add("@ZoneServerGUID", launcherGuid);
+                    parameters.Add("@ServerIP", serverIp);
+                    parameters.Add("@MaxNumberOfInstances", maxNumberOfInstances);
+                    parameters.Add("@InternalServerIP", internalServerIp);
+                    parameters.Add("@StartingMapInstancePort", startingInstancePort);
 
-                    await Connection.ExecuteAsync(MySQLQueries.AddOrUpdateWorldServerSQL,
-                        p,
+                    var outputWorldServer = await Connection.QuerySingleOrDefaultAsync<WorldServers>(GenericQueries.GetWorldByZoneGUID,
+                        parameters,
                         commandType: CommandType.Text);
+
+                    if (outputWorldServer != null)
+                    {
+                        await Connection.ExecuteAsync(GenericQueries.UpdateWorldServer,
+                            parameters,
+                            commandType: CommandType.Text);
+                    }
+                    else
+                    {
+                        await Connection.ExecuteAsync(GenericQueries.AddWorldServer,
+                            parameters,
+                            commandType: CommandType.Text);
+                    }
                 }
 
                 SuccessAndErrorMessage output = new SuccessAndErrorMessage()

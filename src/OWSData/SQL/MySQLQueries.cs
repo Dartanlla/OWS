@@ -86,6 +86,25 @@ namespace OWSData.SQL
 					@AbilityLevel,
 					@CharHasAbilitiesCustomJSON";
 
+		public static readonly string AddCharacterUsingClassID = @"INSERT INTO Characters (CustomerGUID, ClassID, UserGUID, Email, CharName, MapName, X, Y, Z, Perception, Acrobatics, Climb, Stealth, ServerIP, LastActivity, 
+				RX, RY, RZ, Spirit, Magic, TeamNumber, Thirst, Hunger, Gold, Score, CharacterLevel, Gender, XP, HitDie, Wounds, Size, weight, MaxHealth, Health, 
+				HealthRegenRate, MaxMana, Mana, ManaRegenRate, MaxEnergy, Energy, EnergyRegenRate, MaxFatigue, Fatigue, FatigueRegenRate, MaxStamina, Stamina, 
+				StaminaRegenRate, MaxEndurance, Endurance, EnduranceRegenRate, Strength, Dexterity, Constitution, Intellect, Wisdom, Charisma, Agility, Fortitude, 
+				Reflex, Willpower, BaseAttack, BaseAttackBonus, AttackPower, AttackSpeed, CritChance, CritMultiplier, Haste, SpellPower, SpellPenetration, Defense, 
+				Dodge, Parry, Avoidance, Versatility, Multishot, Initiative, NaturalArmor, PhysicalArmor, BonusArmor, ForceArmor, MagicArmor, Resistance, ReloadSpeed, 
+				`Range`, Speed, Silver, Copper, FreeCurrency, PremiumCurrency, Fame, Alignment, Description)
+				SELECT @CustomerGUID, @ClassID, @UserGUID, '', @CharName, StartingMapName, X, Y, Z, Perception, Acrobatics, Climb, Stealth, '', NOW(), 
+				RX, RY, RZ, Spirit, Magic, TeamNumber, Thirst, Hunger, Gold, Score, CharacterLevel, Gender, XP, HitDie, Wounds, Size, weight, MaxHealth, Health, 
+				HealthRegenRate, MaxMana, Mana, ManaRegenRate, MaxEnergy, Energy, EnergyRegenRate, MaxFatigue, Fatigue, FatigueRegenRate, MaxStamina, Stamina, 
+				StaminaRegenRate, MaxEndurance, Endurance, EnduranceRegenRate, Strength, Dexterity, Constitution, Intellect, Wisdom, Charisma, Agility, Fortitude, 
+				Reflex, Willpower, BaseAttack, BaseAttackBonus, AttackPower, AttackSpeed, CritChance, CritMultiplier, Haste, SpellPower, SpellPenetration, Defense, 
+				Dodge, Parry, Avoidance, Versatility, Multishot, Initiative, NaturalArmor, PhysicalArmor, BonusArmor, ForceArmor, MagicArmor, Resistance, ReloadSpeed, 
+				`Range`, Speed, Silver, Copper, FreeCurrency, PremiumCurrency, Fame, Alignment, Description 
+				FROM Class 
+				WHERE ClassID = @ClassID
+				AND CustomerGUID = @CustomerGUID;
+				SELECT LAST_INSERT_ID();";
+
 		public static readonly string AddCharacterUsingDefaultCharacterValues = @"INSERT INTO Characters (CustomerGUID, UserGUID, Email, CharName, MapName, X, Y, Z, RX, RY, RZ, Perception, Acrobatics, Climb, Stealth, ClassID)
 				SELECT @CustomerGUID, @UserGUID, '', @CharacterName, DCR.StartingMapName, DCR.X, DCR.Y, DCR.Z, DCR.RX, DCR.RY, DCR.RZ, 0, 0, 0, 0, 0
 				FROM DefaultCharacterValues DCR 
@@ -116,6 +135,12 @@ namespace OWSData.SQL
 		#endregion
 
 		#region User Queries
+
+		public static readonly string AddUser = @"INSERT INTO Users (CustomerGUID, UserGUID, FirstName, LastName, Email, PasswordHash, Salt, CreateDate, LastAccess, Role)
+		VALUES (@CustomerGUID, @UserGUID, @FirstName, @LastName, @Email, @PasswordHash, @Salt, NOW(), NOW(), @Role)";
+
+		public static readonly string AddUserSession = @"INSERT INTO UserSessions (CustomerGUID, UserSessionGUID, UserGUID, LoginDate)
+		VALUES (@CustomerGUID, @UserSessionGUID, @UserGUID, NOW())";
 
 		public static readonly string UpdateUserLastAccess = @"UPDATE Users
 				SET LastAccess = NOW()

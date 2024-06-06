@@ -62,7 +62,7 @@ DATABASE='mssql'
    (Optional): A specific GUID can be entered as an optional final parameter, after password, in the format of '00000000-0000-0000-0000-000000000000'.
 
    ```sql
-   EXEC [dbo].[AddNewCustomer] 'CustomerName', 'FirstName', 'LastName', 'Email', 'Password'
+   EXEC [dbo].[AddNewCustomer] 'CustomerName', 'Email'
    ```
    
    Be sure to replace the values:
@@ -70,14 +70,8 @@ DATABASE='mssql'
     <dl>
         <dt>CustomerName</dt>
         <dd>The nickname or profile name of the customer.</dd>
-        <dt>FirstName</dt>
-        <dd>The firstname of the customer.</dd>
-        <dt>LastName</dt>
-        <dd>The lastname of the customer.</dd>
         <dt>Email</dt>
         <dd>Enter the mail address of the customer.</dd>
-        <dt>Password</dt>
-        <dd>Enter a secure password.</dd>
     </dl>
     
 3. Run the following SQL statment against the Open World Server database to get your **API key**. Save the key for later.

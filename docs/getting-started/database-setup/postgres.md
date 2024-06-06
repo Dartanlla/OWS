@@ -55,7 +55,7 @@ Notice that we ONLY change the first number to 15432 and not the second number. 
    (Optional): Replace NULL with a single-quoted UUID. For example '00000000-0000-0000-0000-000000000000'::uuid
 
    ```sql
-    CALL AddNewCustomer ('CustomerName', 'FirstName', 'LastName', 'Email', 'Password', NULL);
+    CALL AddNewCustomer ('CustomerName', 'Email', NULL);
    ```
    
    Be sure to replace the values:
@@ -63,14 +63,8 @@ Notice that we ONLY change the first number to 15432 and not the second number. 
     <dl>
         <dt>CustomerName</dt>
         <dd>The nickname or profile name of the customer.</dd>
-        <dt>FirstName</dt>
-        <dd>The firstname of the customer.</dd>
-        <dt>LastName</dt>
-        <dd>The lastname of the customer.</dd>
         <dt>Email</dt>
         <dd>Enter the mail address of the customer.</dd>
-        <dt>Password</dt>
-        <dd>Enter a secure password.</dd>
     </dl>
     
 3. Run the following SQL statment against the Open World Server database to get your **API key**. Save the key for later.

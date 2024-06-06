@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using Npgsql;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using OWSData.Models;
@@ -13,6 +11,7 @@ using OWSData.Models.StoredProcs;
 using OWSData.Models.Tables;
 using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
+using CryptSharp.Core;
 using OWSShared.Options;
 
 namespace OWSData.Repositories.Implementations.MSSQL
@@ -32,6 +31,18 @@ namespace OWSData.Repositories.Implementations.MSSQL
             {
                 return new SqlConnection(_storageOptions.Value.OWSDBConnectionString);
             }
+        }
+
+        static string Base64Encode(string plainText)
+        {
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            return System.Convert.ToBase64String(plainTextBytes);
+        }
+
+        static string Base64Decode(string base64EncodedData)
+        {
+            var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
+            return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
         }
 
         public async Task<IEnumerable<GetAllCharacters>> GetAllCharacters(Guid customerGUID, Guid userSessionGUID)
@@ -56,40 +67,89 @@ namespace OWSData.Repositories.Implementations.MSSQL
         {
             CreateCharacter outputObject = new CreateCharacter();
 
+            IDbConnection conn = Connection;
+            conn.Open();
+            using IDbTransaction transaction = conn.BeginTransaction();
             try
             {
-                using (Connection)
-                {
-                    var p = new DynamicParameters();
-                    p.Add("CustomerGUID", customerGUID);
-                    p.Add("UserSessionGUID", userSessionGUID);
-                    p.Add("CharacterName", characterName);
-                    p.Add("ClassName", className);
-                    p.Add("ErrorMessage", dbType: DbType.String, direction: ParameterDirection.Output, size: 50);
+                var parameters = new DynamicParameters();
+                parameters.Add("CustomerGUID", customerGUID);
+                parameters.Add("UserSessionGUID", userSessionGUID);
+                parameters.Add("CharName", characterName);
+                parameters.Add("ClassName", className);
 
-                    outputObject = await Connection.QuerySingleAsync<CreateCharacter>("AddCharacter",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                UserSessions outputUserSession = await Connection.QueryFirstOrDefaultAsync<UserSessions>(GenericQueries.GetUserBySession, parameters);
+
+                parameters.Add("@UserGUID", outputUserSession.UserGuid);
+
+                // Ensure a valid User Session
+                if (outputUserSession.UserGuid == Guid.Empty)
+                {
+                    outputObject.ErrorMessage = "Invalid Session.";
+                    outputObject.Success = false;
+                    return outputObject;
                 }
 
-                if (String.IsNullOrEmpty(outputObject.ErrorMessage))
+                Characters outputCharacter = await Connection.QueryFirstOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName, parameters);
+
+                // Prevent Duplicate Character Names
+                if (outputCharacter != null)
                 {
-                    outputObject.Success = true;
+                    outputObject.ErrorMessage = "Character Name already in use.";
+                    outputObject.Success = false;
+                    return outputObject;
+                }
+
+                int outputClassId = await Connection.QuerySingleOrDefaultAsync<int>(GenericQueries.GetClassIdByName,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                parameters.Add("ClassID", outputClassId);
+
+                int outputCharacterId = await Connection.QuerySingleOrDefaultAsync<int>(MSSQLQueries.AddCharacterUsingClassID,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                parameters.Add("CharacterID", outputCharacterId);
+
+                int outputClassInventorySize = await Connection.QuerySingleOrDefaultAsync<int>(GenericQueries.GetClassInventoryCount,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                if (outputClassInventorySize > 0)
+                {
+                    await Connection.ExecuteAsync(GenericQueries.AddCharacterInventoryFromClass,
+                        parameters,
+                        commandType: CommandType.Text);
                 }
                 else
                 {
-                    outputObject.Success = false;
+                    await Connection.ExecuteAsync(GenericQueries.AddDefaultCharacterInventory,
+                        parameters,
+                        commandType: CommandType.Text);
                 }
 
-                return outputObject;
+                outputObject = await Connection.QuerySingleOrDefaultAsync<CreateCharacter>(GenericQueries.GetCreateCharacterByID,
+                                parameters,
+                                commandType: CommandType.Text);
+                transaction.Commit();
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
+                transaction.Rollback();
+                outputObject = new CreateCharacter()
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
 
                 return outputObject;
             }
+
+            outputObject.Success = true;
+            outputObject.ErrorMessage = "";
+
+            return outputObject;
         }
 
         public async Task<SuccessAndErrorMessage> CreateCharacterUsingDefaultCharacterValues(Guid customerGUID, Guid userGUID, string characterName, string defaultSetName)
@@ -145,15 +205,15 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
-                p.Add("@UserSessionGUID", userSessionGUID);
-                p.Add("@PlayerGroupTypeID", playerGroupTypeID);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+                parameters.Add("@UserSessionGUID", userSessionGUID);
+                parameters.Add("@PlayerGroupTypeID", playerGroupTypeID);
 
-                outputObject = await Connection.QueryAsync<GetPlayerGroupsCharacterIsIn>("GetPlayerGroupsCharacterIsIn",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                outputObject = await Connection.QueryAsync<GetPlayerGroupsCharacterIsIn>(GenericQueries.GetPlayerGroupsCharacterIsIn,
+                    parameters,
+                    commandType: CommandType.Text);
             }
 
             return outputObject;
@@ -161,17 +221,17 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<User> GetUser(Guid customerGuid, Guid userGuid)
         {
-            User outputObject = new User();
+            User outputObject;
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGuid);
-                p.Add("@UserGUID", userGuid);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGuid);
+                parameters.Add("@UserGUID", userGuid);
 
-                outputObject = await Connection.QuerySingleOrDefaultAsync<User>("GetUser",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                outputObject = await Connection.QuerySingleOrDefaultAsync<User>(GenericQueries.GetUser,
+                    parameters,
+                    commandType: CommandType.Text);
             }
 
             return outputObject;
@@ -205,25 +265,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@UserSessionGUID", userSessionGUID);
-
-                outputObject = await Connection.QuerySingleOrDefaultAsync<GetUserSession>("GetUserSession",
-                    p,
-                    commandType: CommandType.StoredProcedure);
-            }
-
-            return outputObject;
-        }
-
-        public async Task<GetUserSession> GetUserSessionORM(Guid customerGUID, Guid userSessionGUID)
-        {
-            GetUserSession outputObject = new GetUserSession();
-
-            using (Connection)
-            {
-                outputObject = await Connection.QueryFirstOrDefaultAsync<GetUserSession>(MSSQLQueries.GetUserSessionSQL, new { CustomerGUID = customerGUID, UserSessionGUID = userSessionGUID });
+                outputObject = await Connection.QueryFirstOrDefaultAsync<GetUserSession>(GenericQueries.GetUserSession, new { @CustomerGUID = customerGUID, @UserSessionGUID = userSessionGUID });
             }
 
             return outputObject;
@@ -255,19 +297,30 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<PlayerLoginAndCreateSession> LoginAndCreateSession(Guid customerGUID, string email, string password, bool dontCheckPassword = false)
         {
-            PlayerLoginAndCreateSession outputObject;
+            PlayerLoginAndCreateSession outputObject = new PlayerLoginAndCreateSession();
+            User outputUser;
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@Email", email);
-                p.Add("@Password", password);
-                p.Add("@DontCheckPassword", dontCheckPassword);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@Email", email);
+                parameters.Add("@Role", "Player");
 
-                outputObject = await Connection.QuerySingleOrDefaultAsync<PlayerLoginAndCreateSession>("PlayerLoginAndCreateSession",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                outputUser = await Connection.QueryFirstOrDefaultAsync<User>(GenericQueries.GetUserByEmail, parameters);
+
+                parameters.Add("@UserGUID", outputUser.UserGuid);
+
+                outputObject.Authenticated = Crypter.CheckPassword(password,
+                    Base64Decode(outputUser.PasswordHash));
+
+                if (outputObject.Authenticated || dontCheckPassword)
+                {
+                    await Connection.ExecuteAsync(GenericQueries.DeleteUserSessionsForUser, parameters, commandType: CommandType.Text);
+                    outputObject.UserSessionGuid = Guid.NewGuid();
+                    parameters.Add("@UserSessionGUID", outputObject.UserSessionGuid);
+                    await Connection.QuerySingleOrDefaultAsync<Guid>(MSSQLQueries.AddUserSession, parameters, commandType: CommandType.Text);
+                }
             }
 
             return outputObject;
@@ -310,14 +363,14 @@ namespace OWSData.Repositories.Implementations.MSSQL
             {
                 using (Connection)
                 {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@UserSessionGUID", userSessionGUID);
-                    p.Add("@SelectedCharacterName", selectedCharacterName);
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@CustomerGUID", customerGUID);
+                    parameters.Add("@UserSessionGUID", userSessionGUID);
+                    parameters.Add("@SelectedCharacterName", selectedCharacterName);
 
-                    await Connection.ExecuteAsync("UserSessionSetSelectedCharacter",
-                        p,
-                        commandType: CommandType.StoredProcedure);
+                    await Connection.ExecuteAsync(GenericQueries.UpdateUserSessionSetSelectedCharacter,
+                        parameters,
+                        commandType: CommandType.Text);
                 }
 
                 outputObject.Success = true;
@@ -336,24 +389,28 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<SuccessAndErrorMessage> RegisterUser(Guid customerGUID, string email, string password, string firstName, string lastName)
         {
+            string salt = Crypter.Blowfish.GenerateSalt();
+            string cryptedPassword = Crypter.Blowfish.Crypt(password, salt);
+
             SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
 
             try
             {
                 using (Connection)
                 {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@Email", email);
-                    p.Add("@Password", password);
-                    p.Add("@FirstName", firstName);
-                    p.Add("@LastName", lastName);
-                    p.Add("@Role", "Player");
-                    p.Add("@UserGUID", dbType: DbType.Guid, direction: ParameterDirection.Output);
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@CustomerGUID", customerGUID);
+                    parameters.Add("@Email", email);
+                    parameters.Add("@Salt", Base64Encode(salt));
+                    parameters.Add("@PasswordHash", Base64Encode(cryptedPassword));
+                    parameters.Add("@FirstName", firstName);
+                    parameters.Add("@LastName", lastName);
+                    parameters.Add("@Role", "Player");
+                    parameters.Add("@UserGUID", Guid.NewGuid());
 
-                    await Connection.ExecuteAsync("AddUser",
-                        p,
-                        commandType: CommandType.StoredProcedure);
+                    await Connection.ExecuteAsync(MSSQLQueries.AddUser,
+                        parameters,
+                        commandType: CommandType.Text);
                 }
 
                 outputObject.Success = true;
@@ -386,32 +443,58 @@ namespace OWSData.Repositories.Implementations.MSSQL
         {
             SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
 
+            IDbConnection conn = Connection;
+            conn.Open();
+            using IDbTransaction transaction = conn.BeginTransaction();
             try
             {
-                using (Connection)
-                {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@UserSessionGUID", userSessionGUID);
-                    p.Add("@CharacterName", characterName);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@UserSessionGUID", userSessionGUID);
+                parameters.Add("@CharName", characterName);
 
-                    await Connection.ExecuteAsync("RemoveCharacter",
-                        p,
-                        commandType: CommandType.StoredProcedure);
-                }
+                UserSessions outputUserSession = await Connection.QueryFirstOrDefaultAsync<UserSessions>(GenericQueries.GetUserBySession, parameters);
 
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
+                parameters.Add("@UserGUID", outputUserSession.UserGuid);
 
-                return outputObject;
+                Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByNameAndUser,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                parameters.Add("@CharacterID", outputCharacter.CharacterId);
+
+                await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances, parameters, commandType: CommandType.Text);
+                await Connection.ExecuteAsync(GenericQueries.RemoveCharacterAbilities, parameters, commandType: CommandType.Text);
+                await Connection.ExecuteAsync(GenericQueries.RemoveCharacterAbilityBars, parameters, commandType: CommandType.Text);
+                await Connection.ExecuteAsync(GenericQueries.RemoveCharacterHasAbilities, parameters, commandType: CommandType.Text);
+                await Connection.ExecuteAsync(GenericQueries.RemoveCharacterHasItems, parameters, commandType: CommandType.Text);
+                await Connection.ExecuteAsync(GenericQueries.RemoveCharacterInventoryItems, parameters, commandType: CommandType.Text);
+                await Connection.ExecuteAsync(GenericQueries.RemoveCharacterInventory, parameters, commandType: CommandType.Text);
+                await Connection.ExecuteAsync(GenericQueries.RemoveCharacterGroupUsers, parameters, commandType: CommandType.Text);
+                await Connection.ExecuteAsync(GenericQueries.RemoveCharacterCharacterData, parameters, commandType: CommandType.Text);
+                await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromPlayerGroupCharacters, parameters, commandType: CommandType.Text);
+                await Connection.ExecuteAsync(GenericQueries.RemoveCharacter, parameters, commandType: CommandType.Text);
+                transaction.Commit();
             }
             catch (Exception ex)
             {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
+                transaction.Rollback();
+                outputObject = new SuccessAndErrorMessage()
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
 
                 return outputObject;
             }
+
+            outputObject = new SuccessAndErrorMessage()
+            {
+                Success = true,
+                ErrorMessage = ""
+            };
+
+            return outputObject;
         }
 
         public async Task<SuccessAndErrorMessage> UpdateUser(Guid customerGuid, Guid userGuid, string firstName, string lastName, string email)
