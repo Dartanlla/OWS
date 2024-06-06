@@ -162,6 +162,33 @@ namespace OWSData.SQL
 				  AND PGC.CharacterID = @CharacterID
 				  AND PG.PlayerGroupTypeID = @PlayerGroupType";
 
+	    public static readonly string GetPlayerGroupsCharacterIsIn = @"SELECT PG.PlayerGroupID,
+           PG.CustomerGUID,
+           PG.PlayerGroupName,
+           PG.PlayerGroupTypeID,
+           PG.ReadyState,
+           PG.CreateDate,
+           PGC.DateAdded,
+           PGC.TeamNumber
+    FROM PlayerGroupCharacters PGC
+             INNER JOIN PlayerGroup PG
+                        ON PG.PlayerGroupID = PGC.PlayerGroupID
+                            AND PG.CustomerGUID = PGC.CustomerGUID
+             INNER JOIN Characters C
+                        ON C.CharacterID = PGC.CharacterID
+             INNER JOIN UserSessions US
+                        ON US.UserGUID = C.UserGUID
+                            AND US.CustomerGUID = C.CustomerGUID
+    WHERE PGC.CustomerGUID = @CustomerGUID
+      AND (PG.PlayerGroupTypeID = @PlayerGroupTypeID OR COALESCE(@PlayerGroupTypeID, 0) = 0)
+      AND C.CharName = @CharName
+      AND C.CustomerGUID = @CustomerGUID";
+
+	    public static readonly string GetUser = @"SELECT *
+    FROM Users U
+    WHERE U.CustomerGUID = @CustomerGUID
+      AND U.UserGUID = @UserGUID;";
+
 		public static readonly string GetUsers = @"SELECT UserGUID, FirstName, LastName, Email, CreateDate, LastAccess, Role
 				FROM Users
 				WHERE CustomerGUID = @CustomerGUID";

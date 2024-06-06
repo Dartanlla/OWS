@@ -195,22 +195,22 @@ namespace OWSData.Repositories.Implementations.Postgres
         //_PlayerGroupTypeID 0 returns all group types
         public async Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid customerGUID, Guid userSessionGUID, string characterName, int playerGroupTypeID = 0)
         {
-            IEnumerable<GetPlayerGroupsCharacterIsIn> OutputObject;
+            IEnumerable<GetPlayerGroupsCharacterIsIn> outputObject;
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
-                p.Add("@UserSessionGUID", userSessionGUID);
-                p.Add("@PlayerGroupTypeID", playerGroupTypeID);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+                parameters.Add("@UserSessionGUID", userSessionGUID);
+                parameters.Add("@PlayerGroupTypeID", playerGroupTypeID);
 
-                OutputObject = await Connection.QueryAsync<GetPlayerGroupsCharacterIsIn>("select * from GetPlayerGroupsCharacterIsIn(@CustomerGUID,@CharName,@UserSessionGUID,@PlayerGroupTypeID)",
-                    p,
+                outputObject = await Connection.QueryAsync<GetPlayerGroupsCharacterIsIn>(GenericQueries.GetPlayerGroupsCharacterIsIn,
+                    parameters,
                     commandType: CommandType.Text);
             }
 
-            return OutputObject;
+            return outputObject;
         }
 
         public async Task<User> GetUser(Guid customerGuid, Guid userGuid)
@@ -219,12 +219,12 @@ namespace OWSData.Repositories.Implementations.Postgres
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGuid);
-                p.Add("@UserGUID", userGuid);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGuid);
+                parameters.Add("@UserGUID", userGuid);
 
-                outputObject = await Connection.QuerySingleOrDefaultAsync<User>("select * from GetUser(@CustomerGUID,@UserGUID)",
-                    p,
+                outputObject = await Connection.QuerySingleOrDefaultAsync<User>(GenericQueries.GetUser,
+                    parameters,
                     commandType: CommandType.Text);
             }
 

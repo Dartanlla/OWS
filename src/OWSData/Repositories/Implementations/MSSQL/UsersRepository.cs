@@ -205,15 +205,15 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
-                p.Add("@UserSessionGUID", userSessionGUID);
-                p.Add("@PlayerGroupTypeID", playerGroupTypeID);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@CharName", characterName);
+                parameters.Add("@UserSessionGUID", userSessionGUID);
+                parameters.Add("@PlayerGroupTypeID", playerGroupTypeID);
 
-                outputObject = await Connection.QueryAsync<GetPlayerGroupsCharacterIsIn>("GetPlayerGroupsCharacterIsIn",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                outputObject = await Connection.QueryAsync<GetPlayerGroupsCharacterIsIn>(GenericQueries.GetPlayerGroupsCharacterIsIn,
+                    parameters,
+                    commandType: CommandType.Text);
             }
 
             return outputObject;
@@ -221,17 +221,17 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<User> GetUser(Guid customerGuid, Guid userGuid)
         {
-            User outputObject = new User();
+            User outputObject;
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGuid);
-                p.Add("@UserGUID", userGuid);
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGuid);
+                parameters.Add("@UserGUID", userGuid);
 
-                outputObject = await Connection.QuerySingleOrDefaultAsync<User>("GetUser",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                outputObject = await Connection.QuerySingleOrDefaultAsync<User>(GenericQueries.GetUser,
+                    parameters,
+                    commandType: CommandType.Text);
             }
 
             return outputObject;
