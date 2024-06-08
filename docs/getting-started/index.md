@@ -45,5 +45,3 @@ Here is a brief overview of OWS 2.
 * A Zone Server Instance can represent an Unreal Engine map or a section of an Unreal Engine map
 * More than one Zone Server Instance can be run per Zone (shards) to allow more players in that Zone
 * A Zone Server Instance can be configured with a Soft Player Cap and a Hard Player Cap. New shards are spun up when the Soft Player Cap is met.
-
-[Next: Docker Setup](docker-setup){: .btn .btn-outline }
