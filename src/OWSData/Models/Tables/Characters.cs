@@ -32,5 +32,7 @@ namespace OWSData.Models.Tables
         public int ClassId { get; set; }
 
         public ICollection<CharHasItems> CharHasItems { get; set; }
+
+        public ICollection<CustomCharacterData> CustomCharacterData { get; set; }
     }
 }
