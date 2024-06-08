@@ -123,26 +123,26 @@ namespace OWSData.Repositories.Implementations.Postgres
             return outputObject;
         }
 
-        //_PlayerGroupTypeID 0 returns all group types
-        public async Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid customerGUID, Guid userSessionGUID, string characterName, int playerGroupTypeID = 0)
-        {
-            IEnumerable<GetPlayerGroupsCharacterIsIn> OutputObject;
+        // //_PlayerGroupTypeID 0 returns all group types
+        // public async Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid customerGUID, Guid userSessionGUID, string characterName, int playerGroupTypeID = 0)
+        // {
+        //     IEnumerable<GetPlayerGroupsCharacterIsIn> OutputObject;
 
-            using (Connection)
-            {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
-                p.Add("@UserSessionGUID", userSessionGUID);
-                p.Add("@PlayerGroupTypeID", playerGroupTypeID);
+        //     using (Connection)
+        //     {
+        //         var p = new DynamicParameters();
+        //         p.Add("@CustomerGUID", customerGUID);
+        //         p.Add("@CharName", characterName);
+        //         p.Add("@UserSessionGUID", userSessionGUID);
+        //         p.Add("@PlayerGroupTypeID", playerGroupTypeID);
 
-                OutputObject = await Connection.QueryAsync<GetPlayerGroupsCharacterIsIn>("select * from GetPlayerGroupsCharacterIsIn(@CustomerGUID,@CharName,@UserSessionGUID,@PlayerGroupTypeID)",
-                    p,
-                    commandType: CommandType.Text);
-            }
+        //         OutputObject = await Connection.QueryAsync<GetPlayerGroupsCharacterIsIn>("select * from GetPlayerGroupsCharacterIsIn(@CustomerGUID,@CharName,@UserSessionGUID,@PlayerGroupTypeID)",
+        //             p,
+        //             commandType: CommandType.Text);
+        //     }
 
-            return OutputObject;
-        }
+        //     return OutputObject;
+        // }
 
         public async Task<User> GetUser(Guid customerGuid, Guid userGuid)
         {
