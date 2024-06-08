@@ -66,7 +66,7 @@ builder.Services.AddSwaggerGen(c =>
 var apiPathOptions = new OWSShared.Options.APIPathOptions();
 builder.Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName).Bind(apiPathOptions);
 
-builder.Services.Configure<OWSData.Models.StorageOptions>(builder.Configuration.GetSection(OWSData.Models.StorageOptions.SectionName));
+builder.Services.Configure<OWSShared.Options.StorageOptions>(builder.Configuration.GetSection(OWSShared.Options.StorageOptions.SectionName));
 builder.Services.Configure<OWSShared.Options.APIPathOptions>(builder.Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName));
 builder.Services.Configure<OWSShared.Options.RabbitMQOptions>(builder.Configuration.GetSection(OWSShared.Options.RabbitMQOptions.SectionName));
 
