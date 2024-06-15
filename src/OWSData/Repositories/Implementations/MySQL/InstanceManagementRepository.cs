@@ -218,12 +218,12 @@ namespace OWSData.Repositories.Implementations.MySQL
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@ZoneName", ZoneName);
+                var paremeters = new DynamicParameters();
+                paremeters.Add("@CustomerGUID", customerGUID);
+                paremeters.Add("@ZoneName", ZoneName);
 
-                output = await Connection.QueryAsync<GetZoneInstancesForZone>("call GetZoneInstancesOfZone(@CustomerGUID,@ZoneName)",
-                    p,
+                output = await Connection.QueryAsync<GetZoneInstancesForZone>(GenericQueries.GetZoneInstancesOfZone,
+                    paremeters,
                     commandType: CommandType.Text);
             }
 

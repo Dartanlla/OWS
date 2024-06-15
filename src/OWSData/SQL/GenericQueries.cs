@@ -451,6 +451,12 @@ namespace OWSData.SQL
 				WHERE M.CustomerGUID = @CustomerGUID
 				  AND MI.MapInstanceID = @MapInstanceID";
 
+		public static readonly string GetZoneInstancesOfZone = @"SELECT * FROM Maps M
+				INNER JOIN MapInstances MI
+					ON MI.MapID = M.MapID
+				WHERE M.CustomerGUID = @CustomerGUID
+				AND M.ZoneName = @ZoneName";
+
 	    public static readonly string RemoveMapInstances = @"DELETE FROM MapInstances WHERE CustomerGUID = @CustomerGUID AND MapInstanceID IN @MapInstances";
 
         public static readonly string RemoveAllMapInstancesForWorldServer = @"DELETE FROM MapInstances WHERE CustomerGUID = @CustomerGUID AND WorldServerId = @WorldServerId";

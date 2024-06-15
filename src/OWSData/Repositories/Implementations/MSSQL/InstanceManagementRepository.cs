@@ -247,13 +247,13 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             using (Connection)
             {
-                var p = new DynamicParameters();
-                p.Add("@CustomerGUID", customerGUID);
-                p.Add("@ZoneName", ZoneName);
+                var paremeters = new DynamicParameters();
+                paremeters.Add("@CustomerGUID", customerGUID);
+                paremeters.Add("@ZoneName", ZoneName);
 
-                output = await Connection.QueryAsync<GetZoneInstancesForZone>("GetZoneInstancesOfZone",
-                    p,
-                    commandType: CommandType.StoredProcedure);
+                output = await Connection.QueryAsync<GetZoneInstancesForZone>(GenericQueries.GetZoneInstancesOfZone,
+                    paremeters,
+                    commandType: CommandType.Text);
             }
 
 
