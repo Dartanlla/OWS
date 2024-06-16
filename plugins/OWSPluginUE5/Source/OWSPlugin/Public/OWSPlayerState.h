@@ -3,7 +3,6 @@
 #pragma once
 
 #include "GameFramework/PlayerState.h"
-#include "OWSCharacter.h"
 #include "OWSPlayerState.generated.h"
 
 /**
@@ -16,23 +15,21 @@ class OWSPLUGIN_API AOWSPlayerState : public APlayerState
 	
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Player")
-		FVector PlayerStartLocation;
+	FVector PlayerStartLocation;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Player")
-		FRotator PlayerStartRotation;
+	FRotator PlayerStartRotation;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Player")
-		FString DefaultPawnClass;
+	FString DefaultPawnClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Player")
-		FString UserSessionGUID;
+	FString UserSessionGUID;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Player")
-		int32 AlwaysRelevantPartyID;
+	int32 AlwaysRelevantPartyID;
 
 	UFUNCTION(BlueprintCallable, Category = "Player")
-		void SetCharacterName(FString CharacterName);
+	void SetCharacterName(FString CharacterName);
 
-	UFUNCTION(BlueprintCallable, Category = "Player")
-		AOWSCharacter* GetCurrentPawn();
 };

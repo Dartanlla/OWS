@@ -25,13 +25,13 @@ public:
 	UOWSLoginWidget(const class FObjectInitializer& ObjectInitializer);
 
 	UPROPERTY(BlueprintReadWrite)
-		FString OWSAPICustomerKey;
+	FString OWSAPICustomerKey;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Config")
-		FString OWS2APIPath = "";
+	FString OWS2APIPath = "";
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Login")
-		float LoginTimeout = 30.f;
+	float LoginTimeout = 30.f;
 
 	//LoginAndCreateSession
 	UFUNCTION(BlueprintCallable, Category = "Login")
@@ -59,7 +59,7 @@ public:
 
 	//Register
 	UFUNCTION(BlueprintCallable, Category = "Login")
-		void Register(FString Email, FString Password, FString FirstName, FString LastName);
+	void Register(FString Email, FString Password, FString FirstName, FString LastName);
 
 	void OnRegisterResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 

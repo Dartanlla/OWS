@@ -1,16 +1,38 @@
-// Copyright 2024 Open World Server
-// https://github.com/Dartanlla/OWS
+// Copyright 2022 Sabre Dart Studios
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "Engine/DataTable.h"
+//#include "Interfaces/IHttpResponse.h"
 #include "OWS2API.generated.h"
+
+
+//static FHttpModule* Http;
+//static void ProcessOWS2POSTRequest(FString ApiModuleToCall, FString ApiToCall, FString PostParameters, TFunction<void(FHttpRequestPtr, FHttpResponsePtr, bool)> OnRequestCompleteCallback);
+//static void UpdateAPIConfig(FString OWSAPICustomerKey, FString OWS2APIPath, FString OWS2InstanceManagementAPIPath, FString OWS2CharacterPersistenceAPIPath, FString OWSEncryptionKey);
+
+//UPROPERTY(BlueprintReadWrite, Category = "Config")
+//static FString OWSAPICustomerKey;
+
+//UPROPERTY(BlueprintReadWrite, Category = "Config")
+// static FString OWS2APIPath = "";
+
+//UPROPERTY(BlueprintReadWrite, Category = "Config")
+//static FString OWS2InstanceManagementAPIPath = "";
+
+//UPROPERTY(BlueprintReadWrite, Category = "Config")
+//static FString	OWS2CharacterPersistenceAPIPath = "";
+
+//UPROPERTY(BlueprintReadWrite, Category = "Config")
+//static FString OWSEncryptionKey = "";
 
 USTRUCT()
 struct FSetSelectedCharacterAndConnectToLastZoneJSONPost
 {
 	GENERATED_BODY()
+
 
 public:
 	FSetSelectedCharacterAndConnectToLastZoneJSONPost() {
@@ -19,9 +41,9 @@ public:
 	}
 
 	UPROPERTY()
-		FString UserSessionGUID;
+	FString UserSessionGUID;
 	UPROPERTY()
-		FString SelectedCharacterName;
+	FString SelectedCharacterName;
 };
 
 USTRUCT()
@@ -37,11 +59,11 @@ public:
 	}
 
 	UPROPERTY()
-		FString CharacterName;
+	FString CharacterName;
 	UPROPERTY()
-		FString ZoneName;
+	FString ZoneName;
 	UPROPERTY()
-		int32 PlayerGroupType;
+	int32 PlayerGroupType;
 };
 
 USTRUCT()
@@ -55,7 +77,7 @@ public:
 	}
 
 	UPROPERTY()
-		FString CharacterName;
+	FString CharacterName;
 };
 
 USTRUCT()
@@ -68,7 +90,7 @@ public:
 	}
 
 	UPROPERTY()
-		FString CharacterName;
+	FString CharacterName;
 };
 
 USTRUCT()
@@ -83,11 +105,11 @@ public:
 	}
 
 	UPROPERTY()
-		FString CharacterName;
+	FString CharacterName;
 	UPROPERTY()
-		FString CustomFieldName;
+	FString CustomFieldName;
 	UPROPERTY()
-		FString FieldValue;
+	FString FieldValue;
 };
 
 USTRUCT()
@@ -101,9 +123,9 @@ public:
 	}
 
 	UPROPERTY()
-		FString UserSessionGUID;
+	FString UserSessionGUID;
 	UPROPERTY()
-		FString CharacterName;
+	FString CharacterName;
 };
 
 USTRUCT()
@@ -116,7 +138,7 @@ public:
 	}
 
 	UPROPERTY()
-		FCustomCharacterData AddOrUpdateCustomCharacterData;
+	FCustomCharacterData AddOrUpdateCustomCharacterData;
 };
 
 USTRUCT()
@@ -130,7 +152,115 @@ public:
 	}
 
 	UPROPERTY()
-		FString UserSessionGUID;
+	FString UserSessionGUID;
+};
+
+USTRUCT(BlueprintType, Blueprintable)
+struct FUserCharacterStat
+{
+	GENERATED_BODY();
+
+public:
+	FUserCharacterStat() {
+		StatIdentifier = "";
+		Value = 0;
+	}
+
+	FUserCharacterStat(FString AttributeName, float CurrentValue)
+	{
+		StatIdentifier = AttributeName;
+		Value = CurrentValue;
+	}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	FString StatIdentifier;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	float Value;
+};
+
+USTRUCT(BlueprintType, Blueprintable)
+struct FUserCharacterAbility
+{
+	GENERATED_BODY();
+
+public:
+	FUserCharacterAbility() {
+		AbilityIDTag = "";
+		CurrentAbilityLevel = 0;
+		ActualAbilityLevel = 0;
+		CustomData = "";
+		AbilityClassName = "";
+	}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	FString AbilityIDTag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	int CurrentAbilityLevel;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	int ActualAbilityLevel;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	FString CustomData;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	FString AbilityClassName;
+
+};
+
+USTRUCT(BlueprintType, Blueprintable)
+struct FUserCharacterInventory
+{
+	GENERATED_BODY();
+
+public:
+	FUserCharacterInventory() {
+		ItemIDTag = "";
+		Quantity = 0;
+		InSlotNumber = 0;
+		CustomData = "";
+	}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	FString ItemIDTag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	int Quantity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	int InSlotNumber;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	FString CustomData;
+};
+
+USTRUCT(BlueprintType, Blueprintable)
+struct FUserCharacterQuest
+{
+	GENERATED_BODY();
+
+public:
+
+	FUserCharacterQuest()
+	{
+		QuestIDTag = "";
+		QuestJournalTagContainer = "";
+		CustomData = "";
+		QuestClassName = "";
+	}
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	FString QuestIDTag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	FString QuestJournalTagContainer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	FString CustomData;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	FString QuestClassName;
 };
 
 USTRUCT(BlueprintType, Blueprintable)
@@ -142,47 +272,22 @@ public:
 	FUserCharacter() {
 		CharacterName = "";
 		ClassName = "";
-		Level = 0;
 		Gender = 0;
 		ZoneName = "";
-		Gold = 0;
-		Silver = 0;
-		Copper = 0;
-		FreeCurrency = 0;
-		PremiumCurrency = 0;
-		Score = 0;
-		XP = 0;
 	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		FString CharacterName;
+	FString CharacterName;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		FString ClassName;
+	FString ClassName;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 Level;
+	int32 Gender;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 Gender;
+	FString ZoneName;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		FString ZoneName;
+	FDateTime LastActivity;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 Gold;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 Silver;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 Copper;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 FreeCurrency;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 PremiumCurrency;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 Score;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 XP;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		FDateTime LastActivity;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		FDateTime CreateDate;
-
+	FDateTime CreateDate;
 };
 
 USTRUCT()
@@ -197,9 +302,9 @@ public:
 	}
 
 	UPROPERTY()
-		FString Email;
+	FString Email;
 	UPROPERTY()
-		FString Password;
+	FString Password;
 
 	FLoginAndCreateSessionJSONPost(FString InEmail, FString InPassword)
 	{
@@ -223,11 +328,11 @@ public:
 	}
 
 	UPROPERTY()
-		bool Authenticated;
+	bool Authenticated;
 	UPROPERTY()
-		FString ErrorMessage;
+	FString ErrorMessage;
 	UPROPERTY()
-		FString UserSessionGUID;
+	FString UserSessionGUID;
 };
 
 USTRUCT()
@@ -244,13 +349,13 @@ public:
 	}
 
 	UPROPERTY()
-		FString Email;
+	FString Email;
 	UPROPERTY()
-		FString Password;
+	FString Password;
 	UPROPERTY()
-		FString FirstName;
+	FString FirstName;
 	UPROPERTY()
-		FString LastName;
+	FString LastName;
 
 	FRegisterJSONPost(FString InEmail, FString InPassword, FString InFirstName, FString InLastName)
 	{
@@ -278,9 +383,9 @@ public:
 	}
 
 	UPROPERTY()
-		bool Success;
+	bool Success;
 	UPROPERTY()
-		FString ErrorMessage;
+	FString ErrorMessage;
 };
 
 USTRUCT()
@@ -294,7 +399,7 @@ public:
 	}
 
 	UPROPERTY()
-		FString CharacterName;
+	FString CharacterName;
 };
 
 USTRUCT()
@@ -311,13 +416,13 @@ public:
 	}
 
 	UPROPERTY()
-		FString CharacterName;
+	FString CharacterName;
 	UPROPERTY()
-		FString AbilityName;
+	FString AbilityName;
 	UPROPERTY()
-		int32 AbilityLevel;
+	int32 AbilityLevel;
 	UPROPERTY()
-		FString CharHasAbilitiesCustomJSON;
+	FString CharHasAbilitiesCustomJSON;
 };
 
 USTRUCT()
@@ -334,13 +439,13 @@ public:
 	}
 
 	UPROPERTY()
-		FString CharacterName;
+	FString CharacterName;
 	UPROPERTY()
-		FString AbilityName;
+	FString AbilityName;
 	UPROPERTY()
-		int32 AbilityLevel;
+	int32 AbilityLevel;
 	UPROPERTY()
-		FString CharHasAbilitiesCustomJSON;
+	FString CharHasAbilitiesCustomJSON;
 };
 
 USTRUCT()
@@ -355,13 +460,13 @@ public:
 	}
 
 	UPROPERTY()
-		FString CharacterName;
+	FString CharacterName;
 	UPROPERTY()
-		FString AbilityName;
+	FString AbilityName;
 };
 
 USTRUCT(BlueprintType)
-struct FAbility
+struct FAbility : public FTableRowBase
 {
 	GENERATED_BODY()
 
@@ -386,50 +491,50 @@ public:
 	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		int32 AbilityID;
+	int32 AbilityID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		FString AbilityCustomJSON;
+	FString AbilityCustomJSON;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		FString AbilityName;
+	FString AbilityName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		int32 AbilityTypeID;
+	int32 AbilityTypeID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		FString Class;
+	FString Class;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		FString CustomerGUID;
+	FString CustomerGUID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		FString Race;
+	FString Race;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		FString TextureToUseForIcon;
+	FString TextureToUseForIcon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		FString GameplayAbilityClassName;
+	FString GameplayAbilityClassName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		int32 CharHasAbilitiesID;
+	int32 CharHasAbilitiesID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		int32 AbilityLevel;
+	int32 AbilityLevel;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		FString CharHasAbilitiesCustomJSON;
+	FString CharHasAbilitiesCustomJSON;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		int32 CharacterID;
+	int32 CharacterID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		FString CharName;
+	FString CharName;
 
 	//This one is not used if we are just looking at all abilities a character has
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Struct")
-		int32 AbilityInSlotNumber;
+	int32 AbilityInSlotNumber;
 };
 
 USTRUCT(BlueprintType)
@@ -448,22 +553,22 @@ public:
 	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Bar Struct")
-		int32 CharAbilityBarID;
+	int32 CharAbilityBarID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Bar Struct")
-		FString AbilityBarName;
+	FString AbilityBarName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Bar Struct")
-		int32 CharacterID;
+	int32 CharacterID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Bar Struct")
-		int32 MaxNumberOfSlots;
+	int32 MaxNumberOfSlots;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Bar Struct")
-		int32 NumberOfUnlockedSlots;
+	int32 NumberOfUnlockedSlots;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Bar Struct")
-		FString CharAbilityBarsCustomJSON;
+	FString CharAbilityBarsCustomJSON;
 
 };
 
@@ -483,25 +588,25 @@ public:
 	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Bar Struct")
-		int32 CharAbilityBarID;
+	int32 CharAbilityBarID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Bar Struct")
-		FString AbilityBarName;
+	FString AbilityBarName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Bar Struct")
-		int32 CharacterID;
+	int32 CharacterID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Bar Struct")
-		int32 MaxNumberOfSlots;
+	int32 MaxNumberOfSlots;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Bar Struct")
-		int32 NumberOfUnlockedSlots;
+	int32 NumberOfUnlockedSlots;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Bar Struct")
-		FString CharAbilityBarsCustomJSON;
+	FString CharAbilityBarsCustomJSON;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability Bar Struct")
-		TArray<FAbility> Abilities;
+	TArray<FAbility> Abilities;
 };
 
 
@@ -517,9 +622,9 @@ public:
 	}
 
 	UPROPERTY()
-		FString SerializedPlayerLocationData;
+	FString SerializedPlayerLocationData;
 	UPROPERTY()
-		FString MapName;
+	FString MapName;
 };
 
 
@@ -535,9 +640,9 @@ public:
 	}
 
 	UPROPERTY()
-		int32 ZoneInstanceId;
+	int32 ZoneInstanceId;
 	UPROPERTY()
-		FString NumberOfConnectedPlayers;
+	FString NumberOfConnectedPlayers;
 };
 
 USTRUCT()
@@ -551,7 +656,7 @@ public:
 	}
 
 	UPROPERTY()
-		FString ZoneName;
+	FString ZoneName;
 };
 
 USTRUCT()
@@ -565,7 +670,7 @@ public:
 	}
 
 	UPROPERTY()
-		FZoneNameJSONPost Request;
+	FZoneNameJSONPost Request;
 };
 
 USTRUCT(BlueprintType)
@@ -595,55 +700,55 @@ public:
 	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		int32 MapID;
+	int32 MapID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		FString MapName;
+	FString MapName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		FString ZoneName;
+	FString ZoneName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		FString WorldCompContainsFilter;
+	FString WorldCompContainsFilter;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		FString MapMode;
+	FString MapMode;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		int32 SoftPlayerCap;
+	int32 SoftPlayerCap;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		int32 HardPlayerCap;
+	int32 HardPlayerCap;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		int32 MinutesToShutdownAfterEmpty;
+	int32 MinutesToShutdownAfterEmpty;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		int32 MapInstanceID;
+	int32 MapInstanceID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		int32 WorldServerID;
+	int32 WorldServerID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		int32 Port;
+	int32 Port;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		int32 Status;
+	int32 Status;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		int32 PlayerGroupID;
+	int32 PlayerGroupID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		int32 NumberOfReportedPlayers;
+	int32 NumberOfReportedPlayers;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		FDateTime LastUpdateFromServer;
+	FDateTime LastUpdateFromServer;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		FDateTime LastServerEmptyDate;
+	FDateTime LastServerEmptyDate;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Struct")
-		FDateTime CreateDate;
+	FDateTime CreateDate;
 
 };
 
@@ -660,13 +765,13 @@ public:
 	}
 
 	UPROPERTY()
-		FString UserSessionGUID;
+	FString UserSessionGUID;
 
 	UPROPERTY()
-		FString CharacterName;
+	FString CharacterName;
 
 	UPROPERTY()
-		FString ClassName;
+	FString ClassName;
 };
 
 USTRUCT(BlueprintType, Blueprintable)
@@ -706,59 +811,59 @@ public:
 	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		bool Success;
+	bool Success;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		FString ErrorMessage;
+	FString ErrorMessage;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		FString CharacterName;
+	FString CharacterName;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		FString ClassName;
+	FString ClassName;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 CharacterLevel;
+	int32 CharacterLevel;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		FString StartingMapName;
+	FString StartingMapName;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		float X;
+	float X;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		float Y;
+	float Y;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		float Z;
+	float Z;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		float RX;
+	float RX;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		float RY;
+	float RY;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		float RZ;
+	float RZ;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 TeamNumber;
+	int32 TeamNumber;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 Gold;
+	int32 Gold;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 Silver;
+	int32 Silver;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 Copper;
+	int32 Copper;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 FreeCurrency;
+	int32 FreeCurrency;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 PremiumCurrency;
+	int32 PremiumCurrency;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 Fame;
+	int32 Fame;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 Alignment;
+	int32 Alignment;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 Score;
+	int32 Score;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 Gender;
+	int32 Gender;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 XP;
+	int32 XP;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		int32 Size;
+	int32 Size;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		float Weight;
+	float Weight;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		FString LastActivity;
+	FString LastActivity;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-		FString CreateDate;
+	FString CreateDate;
 
 };
 
@@ -774,10 +879,10 @@ public:
 	}
 
 	UPROPERTY()
-		FString UserSessionGUID;
+	FString UserSessionGUID;
 
 	UPROPERTY()
-		FString CharacterName;
+	FString CharacterName;
 
 };
 
@@ -794,13 +899,13 @@ public:
 	}
 
 	UPROPERTY()
-		FString UserSessionGUID;
+	FString UserSessionGUID;
 
 	UPROPERTY()
-		FString CharacterName;
+	FString CharacterName;
 
 	UPROPERTY()
-		int32 PlayerGroupTypeID;
+	int32 PlayerGroupTypeID;
 };
 
 USTRUCT(BlueprintType, Blueprintable)
@@ -808,7 +913,7 @@ struct FPlayerGroup
 {
 	GENERATED_USTRUCT_BODY()
 
-		FPlayerGroup() {
+	FPlayerGroup() {
 		PlayerGroupID = 0;
 		PlayerGroupName = "";
 		PlayerGroupTypeID = 0;
@@ -818,17 +923,17 @@ struct FPlayerGroup
 	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Group")
-		int32 PlayerGroupID;
+	int32 PlayerGroupID;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Group")
-		FString PlayerGroupName;
+	FString PlayerGroupName;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Group")
-		int32 PlayerGroupTypeID;
+	int32 PlayerGroupTypeID;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Group")
-		FDateTime DateAdded;
+	FDateTime DateAdded;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Group")
-		int32 ReadyState;
+	int32 ReadyState;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Group")
-		int32 TeamNumber;
+	int32 TeamNumber;
 };
 
 USTRUCT()
@@ -844,13 +949,13 @@ public:
 	}
 
 	UPROPERTY()
-		FString CharacterName;
+	FString CharacterName;
 
 	UPROPERTY()
-		FString ZoneName;
+	FString ZoneName;
 
 	UPROPERTY()
-		int32 PlayerGroupTypeID;
+	int32 PlayerGroupTypeID;
 };
 
 
@@ -872,28 +977,28 @@ public:
 	}
 
 	UPROPERTY()
-		int32 MapID;
+	int32 MapID;
 
 	UPROPERTY()
-		FString ZoneName;
+	FString ZoneName;
 
 	UPROPERTY()
-		FString MapName;
+	FString MapName;
 
 	UPROPERTY()
-		FString WorldCompContainsFilter;
+	FString WorldCompContainsFilter;
 
 	UPROPERTY()
-		FString WorldCompListFilter;
+	FString WorldCompListFilter;
 
 	UPROPERTY()
-		int32 SoftPlayerCap;
+	int32 SoftPlayerCap;
 
 	UPROPERTY()
-		int32 HardPlayerCap;
+	int32 HardPlayerCap;
 
 	UPROPERTY()
-		int32 MapMode;
+	int32 MapMode;
 };
 
 USTRUCT()
@@ -907,7 +1012,7 @@ public:
 	}
 
 	UPROPERTY()
-		FAddOrUpdateZone AddOrUpdateZone;
+	FAddOrUpdateZone AddOrUpdateZone;
 };
 
 USTRUCT()
@@ -921,7 +1026,7 @@ public:
 	}
 
 	UPROPERTY()
-		FAddOrUpdateZone AddOrUpdateZone;
+	FAddOrUpdateZone AddOrUpdateZone;
 };
 
 USTRUCT()
@@ -944,34 +1049,34 @@ public:
 	}
 
 	UPROPERTY()
-		FString MapName;
+	FString MapName;
 
 	UPROPERTY()
-		FString ZoneName;
+	FString ZoneName;
 
 	UPROPERTY()
-		FString WorldCompContainsFilter;
+	FString WorldCompContainsFilter;
 
 	UPROPERTY()
-		FString WorldCompListFilter;
+	FString WorldCompListFilter;
 
 	UPROPERTY()
-		int32 MapInstanceID;
+	int32 MapInstanceID;
 
 	UPROPERTY()
-		int32 Status;
+	int32 Status;
 
 	UPROPERTY()
-		int32 MaxNumberOfInstances;
+	int32 MaxNumberOfInstances;
 
 	UPROPERTY()
-		FDateTime ActiveStartTime;
+	FDateTime ActiveStartTime;
 
 	UPROPERTY()
-		int8 ServerStatus;
+	int8 ServerStatus;
 
 	UPROPERTY()
-		FString InternalServerIP;
+	FString InternalServerIP;
 
 };
 
@@ -987,9 +1092,9 @@ public:
 	}
 
 	UPROPERTY()
-		FString GlobalDataKey;
+	FString GlobalDataKey;
 	UPROPERTY()
-		FString GlobalDataValue;
+	FString GlobalDataValue;
 };
 
 UENUM(BlueprintType)
@@ -1036,11 +1141,11 @@ public:
 	}
 
 	UPROPERTY()
-		FString UserSessionGUID;
+	FString UserSessionGUID;
 	UPROPERTY()
-		FString CharacterName;
+	FString CharacterName;
 	UPROPERTY()
-		FString DefaultSetName;
+	FString DefaultSetName;
 };
 
 USTRUCT()
@@ -1054,7 +1159,7 @@ public:
 	}
 
 	UPROPERTY()
-		FString UserSessionGUID;
+	FString UserSessionGUID;
 };
 
 USTRUCT(BlueprintType, Blueprintable)
@@ -1062,23 +1167,23 @@ struct FChatGroup
 {
 	GENERATED_USTRUCT_BODY()
 
-		FChatGroup() {
+	FChatGroup() {
 		ChatGroupID = 0;
 		ChatGroupName = "";
 	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Chat")
-		int32 ChatGroupID;
+	int32 ChatGroupID;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Chat")
-		FString ChatGroupName;
+	FString ChatGroupName;
 };
 
 /**
- * 
+ *
  */
 UCLASS()
 class OWSPLUGIN_API UOWS2API : public UObject
 {
 	GENERATED_BODY()
-	
+
 };

@@ -9,8 +9,3 @@ void AOWSPlayerState::SetCharacterName(FString CharacterName)
 {
 	SetPlayerName(CharacterName);
 }
-
-AOWSCharacter* AOWSPlayerState::GetCurrentPawn()
-{
-	return Cast<AOWSCharacter>(GetPawn());
-}

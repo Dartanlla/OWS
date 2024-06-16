@@ -1,11 +1,12 @@
 // Copyright 2020 Sabre Dart Studios
 
 #include "OWSPlayerControllerComponent.h"
-#include "OWSTravelToMapActor.h"
 #include "OWSGameInstance.h"
-#include "OWSAPISubsystem.h"
 #include "OWS2API.h"
-#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "OWSPlugin.h"
+#include "Interfaces/IHttpResponse.h"
+#include "Kismet/GameplayStatics.h"
+#include "GenericPlatform/GenericPlatformHttp.h"
 
 
 // Sets default values for this component's properties
@@ -50,42 +51,6 @@ UOWSPlayerControllerComponent::UOWSPlayerControllerComponent()
 		OWSEncryptionKey,
 		GGameIni
 	);
-
-	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
-	//GameInstance will be null on Editor startup, but will have a valid refernce when playing the game
-	if (GameInstance)
-	{
-		InitializeOWSAPISubsystemOnPlayerControllerComponent();
-	}
-}
-
-void UOWSPlayerControllerComponent::InitializeOWSAPISubsystemOnPlayerControllerComponent()
-{
-	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
-	GameInstance->GetSubsystem<UOWSAPISubsystem>()->OnNotifyCreateCharacterUsingDefaultCharacterValuesDelegate.BindUObject(this, &UOWSPlayerControllerComponent::CreateCharacterUsingDefaultCharacterValuesSuccess);
-	GameInstance->GetSubsystem<UOWSAPISubsystem>()->OnErrorCreateCharacterUsingDefaultCharacterValuesDelegate.BindUObject(this, &UOWSPlayerControllerComponent::CreateCharacterUsingDefaultCharacterValuesError);
-	GameInstance->GetSubsystem<UOWSAPISubsystem>()->OnNotifyLogoutDelegate.BindUObject(this, &UOWSPlayerControllerComponent::LogoutSuccess);
-	GameInstance->GetSubsystem<UOWSAPISubsystem>()->OnErrorLogoutDelegate.BindUObject(this, &UOWSPlayerControllerComponent::LogoutError);
-}
-
-void UOWSPlayerControllerComponent::CreateCharacterUsingDefaultCharacterValuesSuccess()
-{
-	OnNotifyCreateCharacterUsingDefaultCharacterValuesDelegate.ExecuteIfBound();
-}
-
-void UOWSPlayerControllerComponent::CreateCharacterUsingDefaultCharacterValuesError(const FString& ErrorMsg)
-{
-	OnErrorCreateCharacterUsingDefaultCharacterValuesDelegate.ExecuteIfBound(ErrorMsg);
-}
-
-void UOWSPlayerControllerComponent::LogoutSuccess()
-{
-	OnNotifyLogoutDelegate.ExecuteIfBound();
-}
-
-void UOWSPlayerControllerComponent::LogoutError(const FString& ErrorMsg)
-{
-	OnErrorLogoutDelegate.ExecuteIfBound(ErrorMsg);
 }
 
 // Called when the game starts
@@ -111,7 +76,7 @@ void UOWSPlayerControllerComponent::GetJsonObjectFromResponse(FHttpRequestPtr Re
 		else
 		{
 			UE_LOG(OWS, Error, TEXT("%s - Error Deserializing JsonObject!"), *CallingMethodName);
-			ErrorMsg = CallingMethodName + " - Error Deserializing JsonObject!";
+			ErrorMsg = CallingMethodName + " - Error De serializing JsonObject!";
 		}
 	}
 	else
@@ -119,18 +84,6 @@ void UOWSPlayerControllerComponent::GetJsonObjectFromResponse(FHttpRequestPtr Re
 		UE_LOG(OWS, Error, TEXT("%s - Response was unsuccessful or invalid!"), *CallingMethodName);
 		ErrorMsg = CallingMethodName + " - Response was unsuccessful or invalid!";
 	}
-}
-
-void UOWSPlayerControllerComponent::GetPlayerNameAndOWSCharacter(AOWSCharacter* OWSCharacter, FString& PlayerName)
-{
-	APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
-
-	//Get the player name from the Player State
-	PlayerName = PlayerController->PlayerState->GetPlayerName();
-	//Trim whitespace from the start and end
-	PlayerName = PlayerName.TrimStartAndEnd();
-
-	OWSCharacter = Cast<AOWSCharacter>(PlayerController->GetPawn());
 }
 
 AOWSPlayerState* UOWSPlayerControllerComponent::GetOWSPlayerState() const
@@ -182,7 +135,7 @@ void UOWSPlayerControllerComponent::TravelToMap2(const FString& ServerAndPort, c
 		+ "|" + FGenericPlatformHttp::UrlEncode(GetOWSPlayerState()->GetPlayerName())
 		+ "|" + GetOWSPlayerState()->UserSessionGUID;
 
-	//Encrypte the connection string using the key found in DefaultGame.ini called OWSEncryptionKey
+	//Encrypt the connection string using the key found in DefaultGame.ini called OWSEncryptionKey
 	FString EncryptedIDData = GameInstance->EncryptWithAES(IDData, OWSEncryptionKey);
 
 	//The encrypted connection string is sent to the UE server as the ID parameter
@@ -203,6 +156,7 @@ Valid values for ApiModuleToCall:
 void UOWSPlayerControllerComponent::ProcessOWS2POSTRequest(FString ApiModuleToCall, FString ApiToCall, FString PostParameters, void (UOWSPlayerControllerComponent::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful))
 {
 	Http = &FHttpModule::Get();
+	Http->SetHttpTimeout(TravelTimeout); //Set timeout
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
 	Request->OnProcessRequestComplete().BindUObject(this, InMethodPtr);
 
@@ -265,14 +219,14 @@ void UOWSPlayerControllerComponent::OnSetSelectedCharacterAndConnectToLastZoneRe
 
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			ServerTravelUserSessionGUID = JsonObject->GetStringField(TEXT("UserSessionGUID"));
-			ServerTravelCharacterName = JsonObject->GetStringField(TEXT("CharName"));
-			ServerTravelX = JsonObject->GetNumberField(TEXT("X"));
-			ServerTravelY = JsonObject->GetNumberField(TEXT("Y"));
-			ServerTravelZ = JsonObject->GetNumberField(TEXT("Z"));
-			ServerTravelRX = JsonObject->GetNumberField(TEXT("RX"));
-			ServerTravelRY = JsonObject->GetNumberField(TEXT("RY"));
-			ServerTravelRZ = JsonObject->GetNumberField(TEXT("RZ"));
+			ServerTravelUserSessionGUID = JsonObject->GetStringField("UserSessionGUID");
+			ServerTravelCharacterName = JsonObject->GetStringField("CharName");
+			ServerTravelX = JsonObject->GetNumberField("X");
+			ServerTravelY = JsonObject->GetNumberField("Y");
+			ServerTravelZ = JsonObject->GetNumberField("Z");
+			ServerTravelRX = JsonObject->GetNumberField("RX");
+			ServerTravelRY = JsonObject->GetNumberField("RY");
+			ServerTravelRZ = JsonObject->GetNumberField("RZ");
 
 			UE_LOG(OWS, Log, TEXT("OnSetSelectedCharacterAndConnectToLastZone location is %f, %f, %f"), ServerTravelX, ServerTravelY, ServerTravelZ);
 
@@ -337,8 +291,8 @@ void UOWSPlayerControllerComponent::OnTravelToLastZoneServerResponseReceived(FHt
 
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			FString ServerIP = JsonObject->GetStringField(TEXT("serverip"));
-			FString Port = JsonObject->GetStringField(TEXT("port"));
+			FString ServerIP = JsonObject->GetStringField("serverip");
+			FString Port = JsonObject->GetStringField("port");
 
 			if (ServerIP.IsEmpty() || Port.IsEmpty())
 			{
@@ -406,8 +360,8 @@ void UOWSPlayerControllerComponent::OnGetZoneServerToTravelToResponseReceived(FH
 
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			FString ServerIP = JsonObject->GetStringField(TEXT("serverip"));
-			FString Port = JsonObject->GetStringField(TEXT("port"));
+			FString ServerIP = JsonObject->GetStringField("serverip");
+			FString Port = JsonObject->GetStringField("port");
 
 			if (ServerIP.IsEmpty() || Port.IsEmpty())
 			{
@@ -431,23 +385,6 @@ void UOWSPlayerControllerComponent::OnGetZoneServerToTravelToResponseReceived(FH
 	{
 		UE_LOG(LogTemp, Error, TEXT("OnGetZoneServerToTravelToResponseReceived Error accessing server!"));
 		OnErrorGetZoneServerToTravelToDelegate.ExecuteIfBound(TEXT("Unknown error connecting to server!"));
-	}
-}
-
-void UOWSPlayerControllerComponent::SavePlayerLocation()
-{
-	//Not implemented
-}
-
-void UOWSPlayerControllerComponent::OnSavePlayerLocationResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
-{
-	if (bWasSuccessful)
-	{
-		UE_LOG(OWS, Verbose, TEXT("OnSavePlayerLocationResponseReceived Success!"));
-	}
-	else
-	{
-		UE_LOG(OWS, Error, TEXT("OnSavePlayerLocationResponseReceived Error accessing server!"));
 	}
 }
 
@@ -496,7 +433,7 @@ void UOWSPlayerControllerComponent::GetCharacterStats(FString CharName)
 	FString PostParameters = "";
 	if (FJsonObjectConverter::UStructToJsonObjectString(GetCharacterStatsJSONPost, PostParameters))
 	{
-		ProcessOWS2POSTRequest("CharacterPersistenceAPI", "api/Characters/GetByName", PostParameters, &UOWSPlayerControllerComponent::OnGetCharacterStatsResponseReceived);
+		ProcessOWS2POSTRequest("CharacterPersistenceAPI", "api/Characters/GetStatsByName", PostParameters, &UOWSPlayerControllerComponent::OnGetCharacterStatsResponseReceived);
 	}
 	else
 	{
@@ -508,18 +445,137 @@ void UOWSPlayerControllerComponent::OnGetCharacterStatsResponseReceived(FHttpReq
 {
 	if (bWasSuccessful)
 	{
-		TSharedPtr<FJsonObject> JsonObject;
-		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
-
-		if (FJsonSerializer::Deserialize(Reader, JsonObject))
+		TArray<FUserCharacterStat> UsersCharacterStatsData;
+		if (FJsonObjectConverter::JsonArrayStringToUStruct(Response->GetContentAsString(), &UsersCharacterStatsData, 0, 0))
 		{
-			OnNotifyGetCharacterStatsDelegate.ExecuteIfBound(JsonObject);
+			OnNotifyGetCharacterStatsDelegate.ExecuteIfBound(UsersCharacterStatsData);
+		}
+		else
+		{
+			OnErrorGetCharacterStatsDelegate.ExecuteIfBound(TEXT("OnGetAllCharactersResponseReceived Error Parsing JSON!"));
 		}
 	}
 	else
 	{
-		UE_LOG(OWS, Error, TEXT("OnGetAllCharactersResponseReceived Error accessing server!"));
+		UE_LOG(OWS, Error, TEXT("OnGetAllCharactersResponseReceived Error accessing login server!"));
 		OnErrorGetCharacterStatsDelegate.ExecuteIfBound(TEXT("Unknown error connecting to server!"));
+	}
+}
+
+void UOWSPlayerControllerComponent::GetCharacterQuests(FString CharName)
+{
+	FGetCharacterStatsJSONPost GetCharacterStatsJSONPost;
+	GetCharacterStatsJSONPost.CharacterName = CharName;
+	FString PostParameters = "";
+	if (FJsonObjectConverter::UStructToJsonObjectString(GetCharacterStatsJSONPost, PostParameters))
+	{
+		ProcessOWS2POSTRequest("CharacterPersistenceAPI", "api/Characters/GetQuestsByName", PostParameters, &UOWSPlayerControllerComponent::OnGetCharacterQuestsResponseReceived);
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("GetCharacterStats Error serializing GetCharacterStatsJSONPost!"));
+	}
+}
+	
+void UOWSPlayerControllerComponent::OnGetCharacterQuestsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		TArray<FUserCharacterQuest> UsersCharacterQuestData;
+		if (FJsonObjectConverter::JsonArrayStringToUStruct(Response->GetContentAsString(), &UsersCharacterQuestData, 0, 0))
+		{
+			OnNotifyGetCharacterQuestsDelegate.ExecuteIfBound(UsersCharacterQuestData);
+		}
+		else
+		{
+			OnErrorGetCharacterQuestsDelegate.ExecuteIfBound(TEXT("OnGetAllCharactersResponseReceived Error Parsing JSON!"));
+		}
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("OnGetAllCharactersResponseReceived Error accessing login server!"));
+		OnErrorGetCharacterQuestsDelegate.ExecuteIfBound(TEXT("Unknown error connecting to server!"));
+	}
+}
+
+//GetCharacterInventory
+void UOWSPlayerControllerComponent::GetCharacterInventory(FString CharName)
+{
+	FGetCharacterStatsJSONPost GetCharacterStatsJSONPost;
+	GetCharacterStatsJSONPost.CharacterName = CharName;
+	FString PostParameters = "";
+	if (FJsonObjectConverter::UStructToJsonObjectString(GetCharacterStatsJSONPost, PostParameters))
+	{
+		ProcessOWS2POSTRequest("CharacterPersistenceAPI", "api/Characters/GetInventoryByName", PostParameters, &UOWSPlayerControllerComponent::OnGetCharacterInventoryResponseReceived);
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("GetCharacterStats Error serializing GetCharacterStatsJSONPost!"));
+	}
+}
+
+void UOWSPlayerControllerComponent::OnGetCharacterInventoryResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		TArray<FUserCharacterInventory> UsersCharacterInventoryData;
+		if (FJsonObjectConverter::JsonArrayStringToUStruct(Response->GetContentAsString(), &UsersCharacterInventoryData, 0, 0))
+		{
+			OnNotifyGetCharacterInventoryDelegate.ExecuteIfBound(UsersCharacterInventoryData);
+		}
+		else
+		{
+			OnErrorGetAllCharactersDelegate.ExecuteIfBound(TEXT("OnGetAllCharactersResponseReceived Error Parsing JSON!"));
+		}
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("OnGetAllCharactersResponseReceived Error accessing login server!"));
+		OnErrorGetAllCharactersDelegate.ExecuteIfBound(TEXT("Unknown error connecting to server!"));
+	}
+}
+
+//GetCharacterAbilities
+void UOWSPlayerControllerComponent::GetCharacterAbilities(FString CharName)
+{
+	FCharacterNameJSONPost CharacterNameJSONPost;
+	CharacterNameJSONPost.CharacterName = CharName;
+	FString PostParameters = "";
+	if (FJsonObjectConverter::UStructToJsonObjectString(CharacterNameJSONPost, PostParameters))
+	{
+		ProcessOWS2POSTRequest("CharacterPersistenceAPI", "api/Abilities/GetCharacterAbilities", PostParameters, &UOWSPlayerControllerComponent::OnGetCharacterAbilitiesResponseReceived);
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("GetCharacterAbilities Error serializing GetCharacterStatsJSONPost!"));
+	}
+}
+
+void UOWSPlayerControllerComponent::OnGetCharacterAbilitiesResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		TArray<TSharedPtr<FJsonValue>> JsonArray;
+		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
+
+		if (FJsonSerializer::Deserialize(Reader, JsonArray))
+		{
+			TArray<FUserCharacterAbility> Abilities;
+
+			FJsonObjectConverter::JsonArrayToUStruct(JsonArray, &Abilities, 0, 0);
+
+			OnNotifyGetCharacterAbilitiesDelegate.ExecuteIfBound(Abilities);
+		}
+		else
+		{
+			UE_LOG(OWS, Error, TEXT("OnGetCharacterAbilitiesResponseReceived Server returned no data!"));
+			OnErrorGetCharacterAbilitiesDelegate.ExecuteIfBound(TEXT("OnGetCharacterAbilitiesResponseReceived Server returned no data!"));
+		}
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("OnGetCharacterAbilitiesResponseReceived Error accessing server!"));
+		OnErrorGetCharacterAbilitiesDelegate.ExecuteIfBound(TEXT("OnGetCharacterAbilitiesResponseReceived Error accessing server!"));
 	}
 }
 
@@ -570,6 +626,79 @@ void UOWSPlayerControllerComponent::OnUpdateCharacterStatsResponseReceived(FHttp
 	FString ErrorMsg;
 	TSharedPtr<FJsonObject> JsonObject;
 	GetJsonObjectFromResponse(Request, Response, bWasSuccessful, "OnUpdateCharacterStatsResponseReceived", ErrorMsg, JsonObject);
+	if (!ErrorMsg.IsEmpty())
+	{
+		OnErrorUpdateCharacterStatsDelegate.ExecuteIfBound(ErrorMsg);
+		return;
+	}
+
+	TSharedPtr<FSuccessAndErrorMessage> SuccessAndErrorMessage = GetStructFromJsonObject<FSuccessAndErrorMessage>(JsonObject);
+
+	if (!SuccessAndErrorMessage->ErrorMessage.IsEmpty())
+	{
+		OnErrorUpdateCharacterStatsDelegate.ExecuteIfBound(*SuccessAndErrorMessage->ErrorMessage);
+		return;
+	}
+
+	OnNotifyUpdateCharacterStatsDelegate.ExecuteIfBound();
+}
+
+//UpdateAbilityOnCharacter
+void UOWSPlayerControllerComponent::UpdateCharacterAbilities(FString JSONString)
+{
+	ProcessOWS2POSTRequest("CharacterPersistenceAPI", "api/Abilities/UpdateCharacterAbilities", JSONString, &UOWSPlayerControllerComponent::OnUpdateCharacterAbilitiesOnCharacterResponseReceived);
+}
+
+void UOWSPlayerControllerComponent::OnUpdateCharacterAbilitiesOnCharacterResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		OnNotifyAddAbilityToCharacterDelegate.ExecuteIfBound();
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("OnUpdateAbilityOnCharacterResponseReceived Error accessing server!"));
+		OnErrorAddAbilityToCharacterDelegate.ExecuteIfBound(TEXT("Unknown error accessing API server!"));
+	}
+}
+
+void UOWSPlayerControllerComponent::UpdateCharacterQuests(FString JSONString)
+{
+	ProcessOWS2POSTRequest("CharacterPersistenceAPI", "api/Characters/UpdateCharacterQuests", JSONString, &UOWSPlayerControllerComponent::OnUpdateCharacterAbilitiesOnCharacterResponseReceived);
+}
+
+void UOWSPlayerControllerComponent::OnUpdateCharacterQuestsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	FString ErrorMsg;
+	TSharedPtr<FJsonObject> JsonObject;
+	GetJsonObjectFromResponse(Request, Response, bWasSuccessful, "OnUpdateCharacterQuestResponseReceived", ErrorMsg, JsonObject);
+	if (!ErrorMsg.IsEmpty())
+	{
+		OnErrorUpdateCharacterQuestDelegate.ExecuteIfBound(ErrorMsg);
+		return;
+	}
+
+	TSharedPtr<FSuccessAndErrorMessage> SuccessAndErrorMessage = GetStructFromJsonObject<FSuccessAndErrorMessage>(JsonObject);
+
+	if (!SuccessAndErrorMessage->ErrorMessage.IsEmpty())
+	{
+		OnErrorUpdateCharacterQuestDelegate.ExecuteIfBound(*SuccessAndErrorMessage->ErrorMessage);
+		return;
+	}
+
+	OnNotifyUpdateCharacterQuestDelegate.ExecuteIfBound();
+}
+
+void UOWSPlayerControllerComponent::UpdateCharacterInventory(FString JSONString)
+{
+	ProcessOWS2POSTRequest("CharacterPersistenceAPI", "api/Characters/UpdateCharacterInventory", JSONString, &UOWSPlayerControllerComponent::OnUpdateCharacterInventoryResponseReceived);
+}
+
+void UOWSPlayerControllerComponent::OnUpdateCharacterInventoryResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	FString ErrorMsg;
+	TSharedPtr<FJsonObject> JsonObject;
+	GetJsonObjectFromResponse(Request, Response, bWasSuccessful, "OnUpdateCharacterInventoryResponseReceived", ErrorMsg, JsonObject);
 	if (!ErrorMsg.IsEmpty())
 	{
 		OnErrorUpdateCharacterStatsDelegate.ExecuteIfBound(ErrorMsg);
@@ -653,97 +782,6 @@ void UOWSPlayerControllerComponent::OnAddOrUpdateCustomCharacterDataResponseRece
 	}
 }
 
-
-void UOWSPlayerControllerComponent::SaveAllPlayerData()
-{
-	//Not implemented
-}
-
-void UOWSPlayerControllerComponent::OnSaveAllPlayerDataResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
-{
-	if (bWasSuccessful)
-	{
-		UE_LOG(OWS, Verbose, TEXT("OnSaveAllPlayerDataResponseReceived Success!"));
-	}
-	else
-	{
-		UE_LOG(OWS, Error, TEXT("OnSaveAllPlayerDataResponseReceived Error accessing server!"));
-	}
-}
-
-void UOWSPlayerControllerComponent::GetChatGroupsForPlayer()
-{
-	//Not implemented
-}
-
-void UOWSPlayerControllerComponent::OnGetChatGroupsForPlayerResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
-{
-	if (bWasSuccessful)
-	{
-		UE_LOG(OWS, Verbose, TEXT("OnGetChatGroupsForPlayerResponseReceived Success!"));
-
-		TSharedPtr<FJsonObject> JsonObject;
-		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
-
-		if (FJsonSerializer::Deserialize(Reader, JsonObject))
-		{
-			if (JsonObject->GetStringField(TEXT("success")) == "true")
-			{
-				TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField(TEXT("rows"));
-
-				TArray<FChatGroup> ChatGroups;
-
-				for (int RowNum = 0; RowNum != Rows.Num(); RowNum++) {
-					FChatGroup tempChatGroup;
-					TSharedPtr<FJsonObject> tempRow = Rows[RowNum]->AsObject();
-					tempChatGroup.ChatGroupID = tempRow->GetIntegerField(TEXT("ChatGroupID"));
-					tempChatGroup.ChatGroupName = tempRow->GetStringField(TEXT("ChatGroupName"));
-
-					ChatGroups.Add(tempChatGroup);
-				}
-
-				OnNotifyGetChatGroupsForPlayerDelegate.ExecuteIfBound(ChatGroups);
-			}
-		}
-		else
-		{
-			UE_LOG(OWS, Warning, TEXT("OnGetChatGroupsForPlayerResponseReceived:  Either there were no chat groups or the JSON failed to Deserialize!"));
-		}
-	}
-	else
-	{
-		UE_LOG(OWS, Error, TEXT("OnGetChatGroupsForPlayerResponseReceived Error accessing server!"));
-		OnErrorGetChatGroupsForPlayerDelegate.ExecuteIfBound(TEXT("OnGetChatGroupsForPlayerResponseReceived Error accessing server!"));
-	}
-}
-
-void UOWSPlayerControllerComponent::GetCharacterStatuses()
-{
-	//Not Implemented
-}
-
-void UOWSPlayerControllerComponent::OnGetCharacterStatusesResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
-{
-	if (bWasSuccessful)
-	{
-		TSharedPtr<FJsonObject> JsonObject;
-		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
-
-		if (FJsonSerializer::Deserialize(Reader, JsonObject))
-		{
-			//CharacterName = JsonObject->GetStringField("CharacterName");
-		}
-		else
-		{
-			UE_LOG(OWS, Error, TEXT("OnGetCharacterStatusesResponseReceived Server returned no data!"));
-		}
-	}
-	else
-	{
-		UE_LOG(OWS, Error, TEXT("OnGetCharacterStatusesResponseReceived Error accessing server!"));
-	}
-}
-
 /***** Abilities *****/
 
 //AddAbilityToCharacter
@@ -775,50 +813,6 @@ void UOWSPlayerControllerComponent::OnAddAbilityToCharacterResponseReceived(FHtt
 	{
 		UE_LOG(OWS, Error, TEXT("OnAddAbilityToCharacterResponseReceived Error accessing server!"));
 		OnErrorAddAbilityToCharacterDelegate.ExecuteIfBound(TEXT("Unknown error connecting to server!"));
-	}
-}
-
-//GetCharacterAbilities
-void UOWSPlayerControllerComponent::GetCharacterAbilities(FString CharName)
-{
-	FCharacterNameJSONPost CharacterNameJSONPost;
-	CharacterNameJSONPost.CharacterName = CharName;
-	FString PostParameters = "";
-	if (FJsonObjectConverter::UStructToJsonObjectString(CharacterNameJSONPost, PostParameters))
-	{
-		ProcessOWS2POSTRequest("CharacterPersistenceAPI", "api/Abilities/GetCharacterAbilities", PostParameters, &UOWSPlayerControllerComponent::OnGetCharacterAbilitiesResponseReceived);
-	}
-	else
-	{
-		UE_LOG(OWS, Error, TEXT("GetCharacterAbilities Error serializing GetCharacterStatsJSONPost!"));
-	}
-}
-
-void UOWSPlayerControllerComponent::OnGetCharacterAbilitiesResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
-{
-	if (bWasSuccessful)
-	{
-		TArray<TSharedPtr<FJsonValue>> JsonArray;
-		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
-
-		if (FJsonSerializer::Deserialize(Reader, JsonArray))
-		{
-			TArray<FAbility> Abilities;
-
-			FJsonObjectConverter::JsonArrayToUStruct(JsonArray, &Abilities, 0, 0);
-
-			OnNotifyGetCharacterAbilitiesDelegate.ExecuteIfBound(Abilities);
-		}
-		else
-		{
-			UE_LOG(OWS, Error, TEXT("OnGetCharacterAbilitiesResponseReceived Server returned no data!"));
-			OnErrorGetCharacterAbilitiesDelegate.ExecuteIfBound(TEXT("OnGetCharacterAbilitiesResponseReceived Server returned no data!"));
-		}
-	}
-	else
-	{
-		UE_LOG(OWS, Error, TEXT("OnGetCharacterAbilitiesResponseReceived Error accessing server!"));
-		OnErrorGetCharacterAbilitiesDelegate.ExecuteIfBound(TEXT("OnGetCharacterAbilitiesResponseReceived Error accessing server!"));
 	}
 }
 
@@ -863,38 +857,6 @@ void UOWSPlayerControllerComponent::OnGetAbilityBarsResponseReceived(FHttpReques
 	{
 		UE_LOG(OWS, Error, TEXT("OnGetAbilityBarsResponseReceived Error accessing server!"));
 		OnErrorGetAbilityBarsDelegate.ExecuteIfBound(TEXT("OnGetAbilityBarsResponseReceived Error accessing API server!"));
-	}
-}
-
-//UpdateAbilityOnCharacter
-void UOWSPlayerControllerComponent::UpdateAbilityOnCharacter(FString CharName, FString AbilityName, int32 AbilityLevel, FString CustomJSON)
-{
-	FUpdateAbilityOnCharacterJSONPost UpdateAbilityOnCharacterJSONPost;
-	UpdateAbilityOnCharacterJSONPost.CharacterName = CharName;
-	UpdateAbilityOnCharacterJSONPost.AbilityName = AbilityName;
-	UpdateAbilityOnCharacterJSONPost.AbilityLevel = AbilityLevel;
-	UpdateAbilityOnCharacterJSONPost.CharHasAbilitiesCustomJSON = CustomJSON;
-	FString PostParameters = "";
-	if (FJsonObjectConverter::UStructToJsonObjectString(UpdateAbilityOnCharacterJSONPost, PostParameters))
-	{
-		ProcessOWS2POSTRequest("CharacterPersistenceAPI", "api/Abilities/UpdateAbilityOnCharacter", PostParameters, &UOWSPlayerControllerComponent::OnUpdateAbilityOnCharacterResponseReceived);
-	}
-	else
-	{
-		UE_LOG(OWS, Error, TEXT("UpdateAbilityOnCharacter Error serializing UpdateAbilityOnCharacterJSONPost!"));
-	}
-}
-
-void UOWSPlayerControllerComponent::OnUpdateAbilityOnCharacterResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
-{
-	if (bWasSuccessful)
-	{
-		OnNotifyAddAbilityToCharacterDelegate.ExecuteIfBound();
-	}
-	else
-	{
-		UE_LOG(OWS, Error, TEXT("OnUpdateAbilityOnCharacterResponseReceived Error accessing server!"));
-		OnErrorAddAbilityToCharacterDelegate.ExecuteIfBound(TEXT("Unknown error accessing API server!"));
 	}
 }
 
@@ -1023,20 +985,6 @@ void UOWSPlayerControllerComponent::OnCreateCharacterResponseReceived(FHttpReque
 	}
 }
 
-//Create Character Using Default Character Values
-void UOWSPlayerControllerComponent::CreateCharacterUsingDefaultCharacterValues(FString UserSessionGUID, FString CharacterName, FString DefaultSetName)
-{
-	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
-	GameInstance->GetSubsystem<UOWSAPISubsystem>()->CreateCharacterUsingDefaultCharacterValues(UserSessionGUID, CharacterName, DefaultSetName);
-}
-
-//Logout
-void UOWSPlayerControllerComponent::Logout(FString UserSessionGUID)
-{
-	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
-	GameInstance->GetSubsystem<UOWSAPISubsystem>()->Logout(UserSessionGUID);
-}
-
 //Remove Character
 void UOWSPlayerControllerComponent::RemoveCharacter(FString UserSessionGUID, FString CharacterName)
 {
@@ -1082,81 +1030,6 @@ void UOWSPlayerControllerComponent::OnRemoveCharacterResponseReceived(FHttpReque
 	}
 }
 
-//GetPlayerGroupsCharacterIsIn
-void UOWSPlayerControllerComponent::GetPlayerGroupsCharacterIsIn(FString UserSessionGUID, FString CharacterName, int32 PlayerGroupTypeID)
-{
-	FGetPlayerGroupsCharacterIsInJSONPost GetPlayerGroupsCharacterIsInJSONPost;
-	GetPlayerGroupsCharacterIsInJSONPost.UserSessionGUID = UserSessionGUID;
-	GetPlayerGroupsCharacterIsInJSONPost.CharacterName = CharacterName;
-	GetPlayerGroupsCharacterIsInJSONPost.PlayerGroupTypeID = PlayerGroupTypeID;
-	FString PostParameters = "";
-	if (FJsonObjectConverter::UStructToJsonObjectString(GetPlayerGroupsCharacterIsInJSONPost, PostParameters))
-	{
-		ProcessOWS2POSTRequest("PublicAPI", "api/Users/GetPlayerGroupsCharacterIsIn", PostParameters, &UOWSPlayerControllerComponent::OnGetPlayerGroupsCharacterIsInResponseReceived);
-	}
-	else
-	{
-		UE_LOG(OWS, Error, TEXT("GetPlayerGroupsCharacterIsIn Error serializing GetPlayerGroupsCharacterIsInJSONPost!"));
-	}
-}
-
-void UOWSPlayerControllerComponent::OnGetPlayerGroupsCharacterIsInResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
-{
-	if (bWasSuccessful)
-	{
-		TSharedPtr<FJsonObject> JsonObject;
-		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
-
-		if (FJsonSerializer::Deserialize(Reader, JsonObject))
-		{
-			FString Success = JsonObject->GetStringField(TEXT("success"));
-
-			if (Success == "true")
-			{
-				if (JsonObject->HasField(TEXT("rows")))
-				{
-					TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField(TEXT("rows"));
-					TArray<FPlayerGroup> tempPlayerGroups;
-
-					for (int RowNum = 0; RowNum != Rows.Num(); RowNum++) {
-						FPlayerGroup tempPlayerGroup;
-						TSharedPtr<FJsonObject> tempRow = Rows[RowNum]->AsObject();
-						tempPlayerGroup.PlayerGroupID = tempRow->GetNumberField(TEXT("PlayerGroupID"));
-						tempPlayerGroup.PlayerGroupName = tempRow->GetStringField(TEXT("PlayerGroupName"));
-						tempPlayerGroup.PlayerGroupTypeID = tempRow->GetNumberField(TEXT("PlayerGroupTypeID"));
-						tempPlayerGroup.ReadyState = tempRow->GetNumberField(TEXT("ReadyState"));
-						tempPlayerGroup.TeamNumber = tempRow->GetNumberField(TEXT("TeamNumber"));
-
-						FDateTime OutDateTime;
-						FDateTime::Parse(tempRow->GetStringField(TEXT("DateAdded")), OutDateTime);
-						tempPlayerGroup.DateAdded = OutDateTime;
-
-						tempPlayerGroups.Add(tempPlayerGroup);
-					}
-
-					OnNotifyGetPlayerGroupsCharacterIsInDelegate.ExecuteIfBound(tempPlayerGroups);
-				}
-				OnErrorGetPlayerGroupsCharacterIsInDelegate.ExecuteIfBound(TEXT("OnGetPlayerGroupsCharacterIsInResponseReceived No rows in JSON!"));
-			}
-			else
-			{
-				FString ErrorMessage = JsonObject->GetStringField(TEXT("errmsg"));
-				OnErrorGetPlayerGroupsCharacterIsInDelegate.ExecuteIfBound(ErrorMessage);
-			}
-		}
-		else
-		{
-			UE_LOG(OWS, Error, TEXT("OnGetPlayerGroupsCharacterIsInResponseReceived Server returned no data!"));
-			OnErrorGetPlayerGroupsCharacterIsInDelegate.ExecuteIfBound(TEXT("OnGetPlayerGroupsCharacterIsInResponseReceived Server returned no data!"));
-		}
-	}
-	else
-	{
-		UE_LOG(OWS, Error, TEXT("OnGetPlayerGroupsCharacterIsInResponseReceived Error accessing server!"));
-		OnErrorGetPlayerGroupsCharacterIsInDelegate.ExecuteIfBound(TEXT("OnGetPlayerGroupsCharacterIsInResponseReceived Error accessing server!"));
-	}
-}
-
 //LaunchZoneInstance
 void UOWSPlayerControllerComponent::LaunchZoneInstance(FString CharacterName, FString ZoneName, ERPGPlayerGroupType::PlayerGroupType GroupType)
 {
@@ -1186,8 +1059,8 @@ void UOWSPlayerControllerComponent::OnLaunchZoneInstanceResponseReceived(FHttpRe
 
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			FString ServerIP = JsonObject->GetStringField(TEXT("serverip"));
-			FString Port = JsonObject->GetStringField(TEXT("port"));
+			FString ServerIP = JsonObject->GetStringField("serverip");
+			FString Port = JsonObject->GetStringField("port");
 
 			ServerAndPort = ServerIP + FString(TEXT(":")) + Port;
 
@@ -1206,4 +1079,14 @@ void UOWSPlayerControllerComponent::OnLaunchZoneInstanceResponseReceived(FHttpRe
 		UE_LOG(OWS, Error, TEXT("OnLaunchZoneInstanceResponseReceived Error accessing server!"));
 		OnErrorLaunchZoneInstanceDelegate.ExecuteIfBound(TEXT("Error accessing server!"));
 	}
+}
+
+void UOWSPlayerControllerComponent::AddQuestListToDatabase(FString JSONString)
+{
+	ProcessOWS2POSTRequest("CharacterPersistenceAPI", "api/Characters/AddQuestListToDatabase", JSONString, &UOWSPlayerControllerComponent::OnAddQuestListToDatabaseResponseReceived);
+}
+
+void UOWSPlayerControllerComponent::OnAddQuestListToDatabaseResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+
 }

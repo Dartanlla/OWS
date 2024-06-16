@@ -7,13 +7,6 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(OWS, Log, All);
 
-#define COLLISION_PROJECTILE ECC_GameTraceChannel1
-#define COLLISION_TRACE_WEAPON ECC_GameTraceChannel2
-#define COLLISION_PROJECTILE_SHOOTABLE ECC_GameTraceChannel3
-#define COLLISION_TELEPORTING_OBJECT ECC_GameTraceChannel4
-#define COLLISION_PAWNOVERLAP ECC_GameTraceChannel5
-#define COLLISION_TRACE_WEAPONNOCHARACTER ECC_GameTraceChannel6
-
 class FOWSPluginModule : public IModuleInterface
 {
 public:
