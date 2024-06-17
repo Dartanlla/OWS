@@ -3,6 +3,7 @@
 #include "OWSPlayerControllerComponent.h"
 #include "OWSGameInstance.h"
 #include "OWS2API.h"
+#include "Character/Player/PlayerCharacterBase.h"
 #include "OWSPlugin.h"
 #include "Interfaces/IHttpResponse.h"
 #include "Kismet/GameplayStatics.h"
@@ -51,6 +52,26 @@ UOWSPlayerControllerComponent::UOWSPlayerControllerComponent()
 		OWSEncryptionKey,
 		GGameIni
 	);
+
+	void UOWSPlayerControllerComponent::CreateCharacterUsingDefaultCharacterValuesSuccess()
+{
+	//OnNotifyCreateCharacterUsingDefaultCharacterValuesDelegate.ExecuteIfBound();
+}
+
+void UOWSPlayerControllerComponent::CreateCharacterUsingDefaultCharacterValuesError(const FString& ErrorMsg)
+{
+	//OnErrorCreateCharacterUsingDefaultCharacterValuesDelegate.ExecuteIfBound(ErrorMsg);
+}
+
+void UOWSPlayerControllerComponent::LogoutSuccess()
+{
+	//OnNotifyLogoutDelegate.ExecuteIfBound();
+}
+
+void UOWSPlayerControllerComponent::LogoutError(const FString& ErrorMsg)
+{
+	//OnErrorLogoutDelegate.ExecuteIfBound(ErrorMsg);
+}
 }
 
 // Called when the game starts
@@ -84,6 +105,18 @@ void UOWSPlayerControllerComponent::GetJsonObjectFromResponse(FHttpRequestPtr Re
 		UE_LOG(OWS, Error, TEXT("%s - Response was unsuccessful or invalid!"), *CallingMethodName);
 		ErrorMsg = CallingMethodName + " - Response was unsuccessful or invalid!";
 	}
+}
+
+void UOWSPlayerControllerComponent::GetPlayerNameAndOWSCharacter(APlayerCharacterBase* PlayerChar, FString& PlayerName)
+{
+	APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
+
+	//Get the player name from the Player State
+	PlayerName = PlayerController->PlayerState->GetPlayerName();
+	//Trim whitespace from the start and end
+	PlayerName = PlayerName.TrimStartAndEnd();
+
+	PlayerChar = Cast<APlayerCharacterBase>(PlayerController->GetPawn());
 }
 
 AOWSPlayerState* UOWSPlayerControllerComponent::GetOWSPlayerState() const
@@ -156,7 +189,7 @@ Valid values for ApiModuleToCall:
 void UOWSPlayerControllerComponent::ProcessOWS2POSTRequest(FString ApiModuleToCall, FString ApiToCall, FString PostParameters, void (UOWSPlayerControllerComponent::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful))
 {
 	Http = &FHttpModule::Get();
-	Http->SetHttpTimeout(TravelTimeout); //Set timeout
+
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
 	Request->OnProcessRequestComplete().BindUObject(this, InMethodPtr);
 
@@ -219,14 +252,14 @@ void UOWSPlayerControllerComponent::OnSetSelectedCharacterAndConnectToLastZoneRe
 
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			ServerTravelUserSessionGUID = JsonObject->GetStringField("UserSessionGUID");
-			ServerTravelCharacterName = JsonObject->GetStringField("CharName");
-			ServerTravelX = JsonObject->GetNumberField("X");
-			ServerTravelY = JsonObject->GetNumberField("Y");
-			ServerTravelZ = JsonObject->GetNumberField("Z");
-			ServerTravelRX = JsonObject->GetNumberField("RX");
-			ServerTravelRY = JsonObject->GetNumberField("RY");
-			ServerTravelRZ = JsonObject->GetNumberField("RZ");
+			ServerTravelUserSessionGUID = JsonObject->GetStringField(TEXT("UserSessionGUID"));
+			ServerTravelCharacterName = JsonObject->GetStringField(TEXT("CharName"));
+			ServerTravelX = JsonObject->GetNumberField(TEXT("X"));
+			ServerTravelY = JsonObject->GetNumberField(TEXT("Y"));
+			ServerTravelZ = JsonObject->GetNumberField(TEXT("Z"));
+			ServerTravelRX = JsonObject->GetNumberField(TEXT("RX"));
+			ServerTravelRY = JsonObject->GetNumberField(TEXT("RY"));
+			ServerTravelRZ = JsonObject->GetNumberField(TEXT("RZ"));
 
 			UE_LOG(OWS, Log, TEXT("OnSetSelectedCharacterAndConnectToLastZone location is %f, %f, %f"), ServerTravelX, ServerTravelY, ServerTravelZ);
 
@@ -291,8 +324,8 @@ void UOWSPlayerControllerComponent::OnTravelToLastZoneServerResponseReceived(FHt
 
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			FString ServerIP = JsonObject->GetStringField("serverip");
-			FString Port = JsonObject->GetStringField("port");
+			FString ServerIP = JsonObject->GetStringField(TEXT("serverip"));
+			FString Port = JsonObject->GetStringField(TEXT("port"));
 
 			if (ServerIP.IsEmpty() || Port.IsEmpty())
 			{
@@ -360,8 +393,8 @@ void UOWSPlayerControllerComponent::OnGetZoneServerToTravelToResponseReceived(FH
 
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			FString ServerIP = JsonObject->GetStringField("serverip");
-			FString Port = JsonObject->GetStringField("port");
+			FString ServerIP = JsonObject->GetStringField(TEXT("serverip"));
+			FString Port = JsonObject->GetStringField(TEXT("port"));
 
 			if (ServerIP.IsEmpty() || Port.IsEmpty())
 			{
@@ -385,6 +418,23 @@ void UOWSPlayerControllerComponent::OnGetZoneServerToTravelToResponseReceived(FH
 	{
 		UE_LOG(LogTemp, Error, TEXT("OnGetZoneServerToTravelToResponseReceived Error accessing server!"));
 		OnErrorGetZoneServerToTravelToDelegate.ExecuteIfBound(TEXT("Unknown error connecting to server!"));
+	}
+}
+
+void UOWSPlayerControllerComponent::SavePlayerLocation()
+{
+	//Not implemented
+}
+
+void UOWSPlayerControllerComponent::OnSavePlayerLocationResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		UE_LOG(OWS, Verbose, TEXT("OnSavePlayerLocationResponseReceived Success!"));
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("OnSavePlayerLocationResponseReceived Error accessing server!"));
 	}
 }
 
@@ -782,6 +832,23 @@ void UOWSPlayerControllerComponent::OnAddOrUpdateCustomCharacterDataResponseRece
 	}
 }
 
+void UOWSPlayerControllerComponent::SaveAllPlayerData()
+{
+	//Not implemented
+}
+
+void UOWSPlayerControllerComponent::OnSaveAllPlayerDataResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		UE_LOG(OWS, Verbose, TEXT("OnSaveAllPlayerDataResponseReceived Success!"));
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("OnSaveAllPlayerDataResponseReceived Error accessing server!"));
+	}
+}
+
 /***** Abilities *****/
 
 //AddAbilityToCharacter
@@ -985,6 +1052,20 @@ void UOWSPlayerControllerComponent::OnCreateCharacterResponseReceived(FHttpReque
 	}
 }
 
+//Create Character Using Default Character Values
+void UOWSPlayerControllerComponent::CreateCharacterUsingDefaultCharacterValues(FString UserSessionGUID, FString CharacterName, FString DefaultSetName)
+{
+	// UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
+	// GameInstance->GetSubsystem<UOWSAPISubsystem>()->CreateCharacterUsingDefaultCharacterValues(UserSessionGUID, CharacterName, DefaultSetName);
+}
+
+//Logout
+void UOWSPlayerControllerComponent::Logout(FString UserSessionGUID)
+{
+	// UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
+	// GameInstance->GetSubsystem<UOWSAPISubsystem>()->Logout(UserSessionGUID);
+}
+
 //Remove Character
 void UOWSPlayerControllerComponent::RemoveCharacter(FString UserSessionGUID, FString CharacterName)
 {
@@ -1059,8 +1140,8 @@ void UOWSPlayerControllerComponent::OnLaunchZoneInstanceResponseReceived(FHttpRe
 
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			FString ServerIP = JsonObject->GetStringField("serverip");
-			FString Port = JsonObject->GetStringField("port");
+			FString ServerIP = JsonObject->GetStringField(TEXT("serverip"));
+			FString Port = JsonObject->GetStringField(TEXT("port"));
 
 			ServerAndPort = ServerIP + FString(TEXT(":")) + Port;
 

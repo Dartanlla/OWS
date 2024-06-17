@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameFramework/PlayerState.h"
+#include "Character/Player/PlayerCharacterGASController"
 #include "OWSPlayerState.generated.h"
 
 /**
@@ -32,4 +33,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Player")
 	void SetCharacterName(FString CharacterName);
 
+	UFUNCTION(BlueprintCallable, Category = "Player")
+		APlayerCharacter* GetCurrentPawn();
 };

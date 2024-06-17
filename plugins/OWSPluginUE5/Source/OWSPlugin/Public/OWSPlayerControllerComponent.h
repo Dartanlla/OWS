@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "HttpModule.h"
+#include "Runtime/Online/HTTP/Public/Http.h"
 #include "OWS2API.h"
 #include "OWSPlayerState.h"
 #include <JsonObjectConverter.h>
@@ -92,6 +92,10 @@ DECLARE_DELEGATE_OneParam(FErrorPlayerLogoutDelegate, const FString&)
 DECLARE_DELEGATE_OneParam(FNotifyCreateCharacterDelegate, const FCreateCharacter&)
 DECLARE_DELEGATE_OneParam(FErrorCreateCharacterDelegate, const FString&)
 
+//TODO: Create Character Using Default Character Values
+// DECLARE_DELEGATE(FNotifyCreateCharacterUsingDefaultCharacterValuesDelegate)
+// DECLARE_DELEGATE_OneParam(FErrorCreateCharacterUsingDefaultCharacterValuesDelegate, const FString&)
+
 //Remove Character
 DECLARE_DELEGATE(FNotifyRemoveCharacterDelegate)
 DECLARE_DELEGATE_OneParam(FErrorRemoveCharacterDelegate, const FString&)
@@ -147,6 +151,18 @@ public:
 	void OnGetZoneServerToTravelToResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	FNotifyGetZoneServerToTravelToDelegate OnNotifyGetZoneServerToTravelToDelegate;
 	FErrorGetZoneServerToTravelToDelegate OnErrorGetZoneServerToTravelToDelegate;
+
+	// TODO: Save Player Location
+	// UFUNCTION(BlueprintCallable, Category = "Save")
+	// 	void SavePlayerLocation();
+
+	// void OnSavePlayerLocationResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	// //Save All Player Data
+	// UFUNCTION(BlueprintCallable, Category = "Save")
+	// 	void SaveAllPlayerData();
+
+	// void OnSaveAllPlayerDataResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 	//Get All Characters
 	UFUNCTION(BlueprintCallable, Category = "Character")
@@ -280,6 +296,15 @@ public:
 	FNotifyCreateCharacterDelegate OnNotifyCreateCharacterDelegate;
 	FErrorCreateCharacterDelegate OnErrorCreateCharacterDelegate;
 
+	// TODO: Create Character Using Default Character Values
+	// UFUNCTION(BlueprintCallable, Category = "Character")
+	// 	void CreateCharacterUsingDefaultCharacterValues(FString UserSessionGUID, FString CharacterName, FString DefaultSetName);
+
+	// void CreateCharacterUsingDefaultCharacterValuesSuccess();
+	// void CreateCharacterUsingDefaultCharacterValuesError(const FString& ErrorMsg);
+
+	// FNotifyCreateCharacterUsingDefaultCharacterValuesDelegate OnNotifyCreateCharacterUsingDefaultCharacterValuesDelegate;
+
 	//Remove Character
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	void RemoveCharacter(FString UserSessionGUID, FString CharacterName);
@@ -299,6 +324,14 @@ public:
 	void AddQuestListToDatabase(FString JSONString);
 	void OnAddQuestListToDatabaseResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
+	// TODO: Lougout
+	// void Logout(FString UserSessionGUID);
+
+	// void LogoutSuccess();
+	// void LogoutError(const FString& ErrorMsg);
+
+	// FNotifyLogoutDelegate OnNotifyLogoutDelegate;
+	// FErrorLogoutDelegate OnErrorLogoutDelegate;
 
 protected:
 	// Called when the game starts

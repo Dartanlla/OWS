@@ -55,7 +55,7 @@ AOWSGameMode::AOWSGameMode()
 void AOWSGameMode::ProcessOWS2POSTRequest(FString ApiModuleToCall, FString ApiToCall, FString PostParameters, void (AOWSGameMode::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful))
 {
 	Http = &FHttpModule::Get();
-	Http->SetHttpTimeout(30); //Set timeout
+
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
 	Request->OnProcessRequestComplete().BindUObject(this, InMethodPtr);
 
@@ -194,6 +194,12 @@ FString AOWSGameMode::InitNewPlayer(APlayerController* NewPlayerController, cons
 		TArray<FString> SplitArray;
 		DecodedIDData.ParseIntoArray(SplitArray, TEXT("|"), false);
 
+		if (SplitArray.Num() < 8)
+		{
+			UE_LOG(OWS, Error, TEXT("OWSGameMode::InitNewPlayer - Not enough parameters in IDData! - %s"), *DecodedIDData);
+			return retString;
+		}
+
 		PLX = SplitArray[0];
 		PLY = SplitArray[1];
 		PLZ = SplitArray[2];
@@ -203,8 +209,8 @@ FString AOWSGameMode::InitNewPlayer(APlayerController* NewPlayerController, cons
 		PlayerName1 = SplitArray[6];
 		UserSessionGUID = SplitArray[7];
 
-		UE_LOG(OWS, Warning, TEXT("PlayerName: %s"), *PlayerName1);
-		UE_LOG(OWS, Warning, TEXT("UserSessionGUID: %s"), *UserSessionGUID);
+		UE_LOG(OWS, Verbose, TEXT("PlayerName: %s"), *PlayerName1);
+		UE_LOG(OWS, Verbose, TEXT("UserSessionGUID: %s"), *UserSessionGUID);
 
 		//FString OWSDefaultPawnClass = UGameplayStatics::ParseOption(DecodedOptions, TEXT("DPC"));
 	}
@@ -279,6 +285,122 @@ APawn * AOWSGameMode::SpawnDefaultPawnFor_Implementation(AController * NewPlayer
 	return retPawn;
 }
 
+void AOWSGameMode::GetAllInventoryItems()
+{
+	//Not implemented
+	/*
+	Http = &FHttpModule::Get();
+
+	if (!RPGAPICustomerKey.IsEmpty())
+	{
+		TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
+		Request->OnProcessRequestComplete().BindUObject(this, &AOWSGameMode::OnGetAllInventoryItemsResponseReceived);
+		//This is the url on which to process the request
+		FString url = FString(TEXT("http://" +  + "/RPGInventory/GetAllInventoryItems/"));
+
+		FString PostParameters = FString(TEXT("CustomerGUID=")) + RPGAPICustomerKey;
+
+		Request->SetURL(url);
+		Request->SetVerb("POST");
+		Request->SetHeader(TEXT("User-Agent"), "X-UnrealEngine-Agent");
+		Request->SetHeader("Content-Type", TEXT("application/x-www-form-urlencoded"));
+		Request->SetContentAsString(PostParameters);
+		Request->ProcessRequest();
+	}*/
+}
+
+void AOWSGameMode::OnGetAllInventoryItemsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	/*
+	if (bWasSuccessful)
+	{
+		TSharedPtr<FJsonObject> JsonObject;
+		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
+
+		if (FJsonSerializer::Deserialize(Reader, JsonObject))
+		{
+			if (JsonObject->HasField("rows"))
+			{
+				TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField("rows");
+
+				for (int RowNum = 0; RowNum != Rows.Num(); RowNum++) {
+					FInventoryItemStruct tempInventoryItem;
+					TSharedPtr<FJsonObject> tempRow = Rows[RowNum]->AsObject();
+					tempInventoryItem.ItemName = tempRow->GetStringField("ItemName");
+					tempInventoryItem.ItemDescription = tempRow->GetStringField("ItemDescription");
+					tempInventoryItem.ItemValue = tempRow->GetIntegerField("ItemValue");
+					tempInventoryItem.ItemCanStack = tempRow->GetBoolField("ItemCanStack");
+					tempInventoryItem.ItemStackSize = tempRow->GetIntegerField("ItemStackSize");
+					tempInventoryItem.IsUsable = tempRow->GetBoolField("ItemIsUsable");
+					tempInventoryItem.IsConsumedOnUse = tempRow->GetBoolField("ItemIsConsumedOnUse");
+					//tempInventoryItem.DefaultNumberOfUses = tempRow->GetIntegerField("DefaultNumberOfUses");
+					tempInventoryItem.ItemWeight = (float)tempRow->GetNumberField("ItemWeight");
+
+					tempInventoryItem.ItemTypeID = tempRow->GetIntegerField("ItemTypeID");
+					tempInventoryItem.ItemTypeDescription = tempRow->GetStringField("ItemTypeDesc");
+					tempInventoryItem.ItemTypeQuality = tempRow->GetIntegerField("ItemTypeQuality");
+
+					tempInventoryItem.UserItemType = tempRow->GetIntegerField("UserItemType");
+					tempInventoryItem.EquipmentType = tempRow->GetIntegerField("EquipmentType");
+					tempInventoryItem.EquipmentSlotType = tempRow->GetIntegerField("EquipmentSlotType");
+					tempInventoryItem.ItemTier = tempRow->GetIntegerField("ItemTier");
+					tempInventoryItem.ItemQuality = tempRow->GetIntegerField("ItemQuality");
+					tempInventoryItem.ItemDuration = tempRow->GetIntegerField("ItemDuration");
+					tempInventoryItem.CanBeDropped = tempRow->GetBoolField("CanBeDropped");
+					tempInventoryItem.CanBeDestroyed = tempRow->GetBoolField("CanBeDestroyed");
+
+					tempInventoryItem.CustomData = tempRow->GetStringField("CustomData");
+					//tempInventoryItem.ItemMesh = tempRow->GetStringField("ItemMesh");
+					//tempInventoryItem.MeshToUseForPickup = tempRow->GetStringField("MeshToUseForPickup");					
+					tempInventoryItem.PremiumCurrencyPrice = tempRow->GetIntegerField("PremiumCurrencyPrice");
+					tempInventoryItem.FreeCurrencyPrice = tempRow->GetIntegerField("FreeCurrencyPrice");
+
+					tempInventoryItem.ItemMeshID = tempRow->GetIntegerField("ItemMeshID");
+					tempInventoryItem.WeaponActorClassPath = tempRow->GetStringField("WeaponActorClass");
+					tempInventoryItem.StaticMeshPath = tempRow->GetStringField("StaticMesh");
+					tempInventoryItem.SkeletalMeshPath = tempRow->GetStringField("SkeletalMesh");
+					tempInventoryItem.TextureToUseForIcon = tempRow->GetStringField("TextureToUseForIcon");
+
+					tempInventoryItem.IconSlotWidth = tempRow->GetIntegerField("IconSlotWidth");
+					tempInventoryItem.IconSlotHeight = tempRow->GetIntegerField("IconSlotHeight");
+
+					if (tempInventoryItem.IconSlotWidth < 1)
+						tempInventoryItem.IconSlotWidth = 1;
+
+					if (tempInventoryItem.IconSlotHeight < 1)
+						tempInventoryItem.IconSlotHeight = 1;
+
+					AllInventoryItems.Add(tempInventoryItem);
+					NotifyGetAllInventoryItems();
+					BroadcastItemLibraryLoaded();
+				}
+			}
+		}
+		else
+		{
+			UE_LOG(OWS, Error, TEXT("OnGetAllInventoryItemsResponseReceived Server returned no data!"));
+			ErrorGetAllInventoryItems(TEXT("OnGetAllInventoryItemsResponseReceived Server returned no data!"));
+		}
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("OnGetAllInventoryItemsResponseReceived Error accessing server!"));
+		ErrorGetAllInventoryItems(TEXT("OnGetAllInventoryItemsResponseReceived Error accessing server!"));
+	}*/
+}
+
+void AOWSGameMode::GetGlobalDataItem(FString GlobalDataKey)
+{
+	// UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
+	// GameInstance->GetSubsystem<UOWSAPISubsystem>()->GetGlobalDataItem(GlobalDataKey);
+}
+
+void AOWSGameMode::AddOrUpdateGlobalDataItem(FString GlobalDataKey, FString GlobalDataValue)
+{
+	// UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
+	// GameInstance->GetSubsystem<UOWSAPISubsystem>()->AddOrUpdateGlobalDataItem(GlobalDataKey, GlobalDataValue);
+}
+
 void AOWSGameMode::SaveAllPlayerLocations()
 {
 	UE_LOG(OWS, Verbose, TEXT("SaveAllPlayerLocations Started"));
@@ -305,9 +427,14 @@ void AOWSGameMode::SaveAllPlayerLocations()
 			{
 				APawn* MyPawn = Iterator->Get()->GetPawn();
 
+				if (MyPawn)
+				{
+					PlayerControllerToSave->LastCharacterLocation = MyPawn->GetActorLocation();
+					PlayerControllerToSave->LastCharacterRotation = MyPawn->GetActorRotation();
+				}
 
-				FVector PawnLocation = MyPawn->GetActorLocation();
-				FRotator PawnRotation = MyPawn->GetActorRotation();
+				FVector PawnLocation = PlayerControllerToSave->LastCharacterLocation;
+				FRotator PawnRotation = PlayerControllerToSave->LastCharacterRotation;
 
 				DataToSave.Append(PlayerControllerToSave->PlayerState->GetPlayerName());
 				DataToSave.Append(":");
@@ -362,6 +489,76 @@ void AOWSGameMode::OnSaveAllPlayerLocationsResponseReceived(FHttpRequestPtr Requ
 	{
 		UE_LOG(OWS, Error, TEXT("OnSaveAllPlayerLocationsResponseReceived Error accessing server!"));
 	}
+}
+
+void AOWSGameMode::GetAllCharactersOnline()
+{
+	/*
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
+	Request->OnProcessRequestComplete().BindUObject(this, &AOWSGameMode::OnGetAllCharactersOnlineResponseReceived);
+	//This is the url on which to process the request
+	FString url = FString(TEXT("http://" +  + "/RPGServer/GetAllCharactersOnline/"));
+
+	FString PostParameters = FString(TEXT("CustomerGUID=")) + OWSAPICustomerKey;
+
+	Request->SetURL(url);
+	Request->SetVerb("POST");
+	Request->SetHeader(TEXT("User-Agent"), "X-UnrealEngine-Agent");
+	Request->SetHeader("Content-Type", TEXT("application/x-www-form-urlencoded"));
+	Request->SetContentAsString(PostParameters);
+	Request->ProcessRequest();
+	*/
+}
+
+void AOWSGameMode::OnGetAllCharactersOnlineResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	/*
+	if (bWasSuccessful)
+	{
+		TSharedPtr<FJsonObject> JsonObject;
+		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
+
+		if (FJsonSerializer::Deserialize(Reader, JsonObject))
+		{
+			//TArray<FCharactersOnlineStruct> tempCharactersOnline;
+
+			CharactersOnline.Empty(CharactersOnline.Num());
+
+			if (JsonObject->HasField("rows"))
+			{
+				TArray<TSharedPtr<FJsonValue>> Rows = JsonObject->GetArrayField("rows");
+
+				for (int RowNum = 0; RowNum != Rows.Num(); RowNum++) {
+					FCharactersOnlineStruct tempCharacterOnline;
+					TSharedPtr<FJsonObject> tempRow = Rows[RowNum]->AsObject();
+
+					tempCharacterOnline.CharacterID = tempRow->GetIntegerField("CharacterID");
+					tempCharacterOnline.CharName = tempRow->GetStringField("CharName");
+					tempCharacterOnline.CharacterLevel = tempRow->GetIntegerField("CharacterLevel");
+					tempCharacterOnline.Gender = tempRow->GetIntegerField("Gender");
+					tempCharacterOnline.Alignment = tempRow->GetIntegerField("Alignment");
+					tempCharacterOnline.Fame = tempRow->GetIntegerField("Fame");
+					tempCharacterOnline.TeamNumber = tempRow->GetIntegerField("TeamNumber");
+				
+					CharactersOnline.Add(tempCharacterOnline);
+				}
+			}
+			//NotifyGetAllCharactersOnline(CharactersOnline);
+
+			//UE_LOG(OWS, Error, TEXT("Total number of players online: %d"), CharactersOnline.Num());
+		}
+		else
+		{
+			UE_LOG(OWS, Error, TEXT("OnGetAllCharactersOnlineResponseReceived Server returned no data!"));
+			ErrorGetAllCharactersOnline(TEXT("OnGetAllCharactersOnlineResponseReceived Server returned no data!"));
+		}
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("OnGetAllCharactersOnlineResponseReceived Error accessing server!"));
+		ErrorGetAllCharactersOnline(TEXT("OnGetAllCharactersOnlineResponseReceived Error accessing server!"));
+	}
+	*/
 }
 
 bool AOWSGameMode::IsPlayerOnline(FString CharacterName)
@@ -516,7 +713,7 @@ void AOWSGameMode::OnGetCurrentWorldTimeResponseReceived(FHttpRequestPtr Request
 		{
 			float fCurrentWorldTime;
 
-			fCurrentWorldTime = JsonObject->GetNumberField("CurrentWorldTime");
+			fCurrentWorldTime = JsonObject->GetNumberField(TEXT("CurrentWorldTime"));
 
 			NotifyGetCurrentWorldTime(fCurrentWorldTime);
 		}
@@ -575,9 +772,68 @@ void AOWSGameMode::OnAddZoneResponseReceived(FHttpRequestPtr Request, FHttpRespo
 	NotifyAddZone();
 }
 
+//Update Zone
+/*
+void AOWSGameMode::UpdateZone(int32 MapID, FString ZoneName, FString MapName, int SoftPlayerCap, int HardPlayerCap, int MapMode)
+{
+	FUpdateZoneJSONPost UpdateZoneJSONPost;
+	UpdateZoneJSONPost.AddOrUpdateZone.MapID = MapID;
+	UpdateZoneJSONPost.AddOrUpdateZone.ZoneName = ZoneName;
+	UpdateZoneJSONPost.AddOrUpdateZone.MapName = MapName;
+	UpdateZoneJSONPost.AddOrUpdateZone.SoftPlayerCap = SoftPlayerCap;
+	UpdateZoneJSONPost.AddOrUpdateZone.HardPlayerCap = HardPlayerCap;
+	UpdateZoneJSONPost.AddOrUpdateZone.MapMode = MapMode;
+	FString PostParameters = "";
+	if (FJsonObjectConverter::UStructToJsonObjectString(UpdateZoneJSONPost, PostParameters))
+	{
+		ProcessOWS2POSTRequest("InstanceManagementAPI", "api/Zones/UpdateZone", PostParameters, &AOWSGameMode::OnUpdateZoneResponseReceived);
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("UpdateZone Error serializing UpdateZoneJSONPost!"));
+	}
+}
+
+void AOWSGameMode::OnUpdateZoneResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	FString ErrorMsg;
+	TSharedPtr<FJsonObject> JsonObject;
+	GetJsonObjectFromResponse(Request, Response, bWasSuccessful, "OnUpdateZoneResponseReceived", ErrorMsg, JsonObject);
+	if (!ErrorMsg.IsEmpty())
+	{
+		ErrorUpdateZone(ErrorMsg);
+		return;
+	}
+
+	TSharedPtr<FSuccessAndErrorMessage> SuccessAndErrorMessage = GetStructFromJsonObject<FSuccessAndErrorMessage>(JsonObject);
+
+	if (!SuccessAndErrorMessage->ErrorMessage.IsEmpty())
+	{
+		ErrorUpdateZone(*SuccessAndErrorMessage->ErrorMessage);
+		return;
+	}
+
+	NotifyUpdateZone();
+}
+*/
+
 FString AOWSGameMode::GetAddressURLAndPort()
 {
 	return GetWorld()->GetAddressURL();
 }
 
+AOWSPlayerController* AOWSGameMode::GetPlayerControllerFromCharacterName(const FString CharacterName)
+{
+	// for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	// {
+	// 	AOWSPlayerController* MyPlayerController = Cast<AOWSPlayerController>(Iterator->Get());
 
+	// 	if (MyPlayerController)
+	// 	{
+	// 		if (MyPlayerController->GetOWSPlayerState()->GetPlayerName() == CharacterName)
+	// 			return MyPlayerController;
+	// 	}
+	// }
+
+	// return nullptr;
+}

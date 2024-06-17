@@ -6,6 +6,7 @@
 #include "HttpModule.h"
 #include "OWS2API.h"
 #include <JsonObjectConverter.h>
+#include "Gameplay/PlayerCharacterGASController"
 #include "OWSGameMode.generated.h"
 
 USTRUCT(BlueprintType)
@@ -118,6 +119,9 @@ public:
 
 	UPROPERTY()
 	TMap<FString, int32> MeshItemsMap;
+
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Items")
+	// 	TArray<FInventoryItemStruct> AllInventoryItems;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zones")
 	TArray<FCharactersOnlineStruct> CharactersOnline;
@@ -147,6 +151,19 @@ public:
 
 	FTimerHandle SaveAllPlayerLocationsTimerHandle;
 
+	// TODO: Time of Day
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeOfDay")
+	// 	float LocalSecondsOffset; //The time offset when this instance started
+
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeOfDay")
+	// 	float DayLengthInSeconds;
+
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeOfDay")
+	// 	float DaysPerLunarCycle;
+
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeOfDay")
+	// 	float DaysPerSolarCycle;
+
 	UPROPERTY(BlueprintReadWrite, Category = "Config")
 	FString OWSAPICustomerKey;
 
@@ -172,6 +189,29 @@ public:
 		FJsonObjectConverter::JsonObjectToUStruct(JsonObject.ToSharedRef(), T::StaticStruct(), Result.Get(), 0, 0);
 		return Result;
 	}
+
+	// TODO: Get All Inventory Items
+	// UFUNCTION(BlueprintCallable, Category = "Inventory")
+	// 	void GetAllInventoryItems();
+
+	// void OnGetAllInventoryItemsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	// UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
+	// 	void NotifyGetAllInventoryItems();
+	// UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
+
+	// TODO: Get Global Data Item
+	// UFUNCTION(BlueprintCallable, Category = "Global Data")
+	// 	void GetGlobalDataItem(FString GlobalDataKey);
+
+	// void GetGlobalDataItemSuccess(TSharedPtr<FGlobalDataItem> GlobalDataItem);
+	// void GetGlobalDataItemError(const FString& ErrorMsg);
+
+	// UFUNCTION(BlueprintImplementableEvent, Category = "Global Data")
+	// 	void NotifyGetGlobalDataItem(const FString& GlobalDataKey, const FString& GlobalDataValue);
+	// UFUNCTION(BlueprintImplementableEvent, Category = "Global Data")
+	// 	void ErrorGetGlobalDataItem(const FString &ErrorMsg);
+	// 	void ErrorGetAllInventoryItems(const FString &ErrorMsg);
 	
 
 	//Save all player locations
@@ -179,6 +219,16 @@ public:
 	void SaveAllPlayerLocations();
 	void OnSaveAllPlayerLocationsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
+	// TODO: Get all players online
+	// UFUNCTION(BlueprintCallable, Category = "Character")
+	// 	void GetAllCharactersOnline();
+
+	// void OnGetAllCharactersOnlineResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	// /*UFUNCTION(BlueprintImplementableEvent, Category = "Character")
+	// 	void NotifyGetAllCharactersOnline(const TArray<FCharactersOnlineStruct> &CharactersOnline);*/
+	// UFUNCTION(BlueprintImplementableEvent, Category = "Character")
+	// 	void ErrorGetAllCharactersOnline(const FString &ErrorMsg);
 	//Is player online
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	bool IsPlayerOnline(FString CharacterName);
@@ -238,8 +288,22 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Zones")
 	void ErrorAddZone(const FString& ErrorMsg);
 
+	//Update Zone
+	/*
+	UFUNCTION(BlueprintCallable, Category = "Zones")
+		void UpdateZone(int32 MapID, FString ZoneName, FString MapName, int32 SoftPlayerCap, int32 HardPlayerCap, int32 MapMode);
+
+	void OnUpdateZoneResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Zones")
+		void NotifyUpdateZone();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Zones")
+		void ErrorUpdateZone(const FString& ErrorMsg);
+	*/
 
 	void InitializeOWSAPISubsystemOnGameMode();
+
+	APlayerCharacterGASController* GetPlayerControllerFromCharacterName(const FString CharacterName);
 
 	void ProcessOWS2POSTRequest(FString ApiModuleToCall, FString ApiToCall, FString PostParameters, void (AOWSGameMode::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful));
 	
