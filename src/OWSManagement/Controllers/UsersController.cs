@@ -82,5 +82,21 @@ namespace OWSManagement.Controllers
 
             return await editUserRequest.Handle();
         }
+
+        /// <summary>
+        /// Remove a User
+        /// </summary>
+        /// <remarks>
+        /// Removes a new user
+        /// </remarks>
+        [HttpPost]
+        [Route("RemoveUser")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<SuccessAndErrorMessage> RemoveUser([FromBody] RemoveUserDTO removeUserDTO)
+        {
+            RemoveUserRequest removeUserRequest = new RemoveUserRequest(_customerGuid.CustomerGUID, removeUserDTO, _usersRepository);
+
+            return await removeUserRequest.Handle();
+        }
     }
 }

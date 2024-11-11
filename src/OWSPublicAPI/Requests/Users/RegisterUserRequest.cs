@@ -24,6 +24,7 @@ namespace OWSPublicAPI.Requests.Users
         private readonly Guid _customerGUID;
         private readonly IUsersRepository _usersRepository;
         private readonly IExternalLoginProviderFactory _externalLoginProviderFactory;
+        private readonly IPublicAPIInputValidation _publicAPIInputValidation;
 
         /// <summary>
         /// RegisterUserRequest Constructor
@@ -31,12 +32,14 @@ namespace OWSPublicAPI.Requests.Users
         /// <remarks>
         /// Initialize the RegisterUserRequest object with dependencies
         /// </remarks>
-        public RegisterUserRequest(RegisterUserDTO registerUserDTO, IUsersRepository usersRepository, IExternalLoginProviderFactory externalLoginProviderFactory, IHeaderCustomerGUID customerGuid)
+        public RegisterUserRequest(RegisterUserDTO registerUserDTO, IUsersRepository usersRepository, IExternalLoginProviderFactory externalLoginProviderFactory, IHeaderCustomerGUID customerGuid,
+            IPublicAPIInputValidation publicAPIInputValidation)
         {
             _registerUserDTO = registerUserDTO;
             _customerGUID = customerGuid.CustomerGUID;
             _usersRepository = usersRepository;
             _externalLoginProviderFactory = externalLoginProviderFactory;
+            _publicAPIInputValidation = publicAPIInputValidation;
         }
 
         /// <summary>
@@ -47,7 +50,10 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public async Task<PlayerLoginAndCreateSession> Handle()
         {
-            //Check for duplicate account before creating a new one:
+            //Validate Email Address
+            string errorMessage = _publicAPIInputValidation.ValidateEmail(_registerUserDTO.Email);
+
+            //Check for duplicate email address before creating a new account:
             var foundUser = await _usersRepository.GetUserFromEmail(_customerGUID, _registerUserDTO.Email);
 
             //This user already exists
@@ -55,9 +61,20 @@ namespace OWSPublicAPI.Requests.Users
             {
                 PlayerLoginAndCreateSession errorOutput = new PlayerLoginAndCreateSession()
                 {
-                    ErrorMessage = "Duplicate Account!"
+                    ErrorMessage = "Duplicate Email Address!"
                 };
 
+                return errorOutput;
+            }
+
+            //Validate password
+            errorMessage = _publicAPIInputValidation.ValidatePassword(_registerUserDTO.Password);
+
+            //If any of the validation checks found issues
+            if (!String.IsNullOrEmpty(errorMessage))
+            {
+                PlayerLoginAndCreateSession errorOutput = new PlayerLoginAndCreateSession();
+                errorOutput.ErrorMessage = errorMessage;
                 return errorOutput;
             }
 
