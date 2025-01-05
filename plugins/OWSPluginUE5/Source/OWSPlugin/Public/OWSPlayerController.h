@@ -54,9 +54,6 @@ public:
 		float ServerTravelRY;
 		float ServerTravelRZ;
 
-	FVector LastCharacterLocation;
-	FRotator LastCharacterRotation;
-
 	UPROPERTY()
 		TMap<FString, int32> LocalMeshItemsMap;
 

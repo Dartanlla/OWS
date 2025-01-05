@@ -26,8 +26,8 @@ AOWSCharacterWithAbilities::AOWSCharacterWithAbilities(const class FObjectInitia
 	AbilitySystem->SetIsReplicated(true);
 	AbilitySystem->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	SpellAbilityHandles.SetNum(22, false);
-	WeaponAbilityHandles.SetNum(22, false);
+	SpellAbilityHandles.SetNum(22, EAllowShrinking::No);
+	WeaponAbilityHandles.SetNum(22, EAllowShrinking::No);
 
 	OWSAttributes = CreateDefaultSubobject<UOWSAttributeSet>(TEXT("AttributeSet"));
 }

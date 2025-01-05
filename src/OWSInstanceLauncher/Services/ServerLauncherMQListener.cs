@@ -282,7 +282,7 @@ namespace OWSInstanceLauncher.Services
                 ProcessName = proc.ProcessName
             });
 
-            Log.Information($"{customerGUID} : {worldServerID} : {mapName} : {port} has started.");
+            Log.Information($"{customerGUID} : {worldServerID} : {mapName} : {port} has started.  ProcessId: {proc.Id}, ProcessName: {proc.ProcessName}");
 
             //The server has finished spinning up.  Set the status to 2.
             //_ = UpdateZoneServerStatusReady(zoneInstanceID);
