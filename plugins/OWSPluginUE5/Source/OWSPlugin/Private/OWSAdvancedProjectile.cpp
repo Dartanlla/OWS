@@ -75,7 +75,7 @@ AOWSAdvancedProjectile::AOWSAdvancedProjectile(const class FObjectInitializer& O
 	bHasSpawnedFully = false;
 
 	NetPriority = 2.f;
-	MinNetUpdateFrequency = 100.0f;
+	SetMinNetUpdateFrequency(100.0f);
 }
 
 void AOWSAdvancedProjectile::PreInitializeComponents()
@@ -129,7 +129,7 @@ void AOWSAdvancedProjectile::OnRep_Instigator()
 		//InstigatorTeamNum = GetTeamNum(); // this checks Instigator first
 
 		InstigatorController = GetInstigator()->Controller;
-		if (Cast<AOWSAdvancedProjectile>(GetInstigator()))
+		if (Cast<AOWSCharacterWithAbilities>(GetInstigator()))
 		{
 			((AOWSCharacterWithAbilities*)(GetInstigator()))->LastFiredProjectile = this;
 		}

@@ -25,7 +25,7 @@ services:
     environment:
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
     ports:
-      - "5432:5432"
+      - "15432:5432"
     volumes:
       - database:/var/lib/postgresql/data
     container_name: PostgreSQL

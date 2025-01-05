@@ -372,3 +372,4 @@ plugins/OWSPlugin/Saved/
 plugins/OWSPluginUE5/Binaries/
 plugins/OWSPluginUE5/Intermediate/
 plugins/OWSPluginUE5/Saved/
+/plugins/OWSPluginUE5/Source/OWSPlugin/Public/OWSPlayerController.h.bak

@@ -968,7 +968,6 @@ void AOWSHUD::RenderInteractiveInventoryGrid(UOWSInventory* Inventory, UTexture*
 
 	//UInventory* const Inventory = (UInventory*)InventoryObject;
 
-	FColor FontColor;
 	FVector2D* FontScale = new FVector2D(1.0f, 1.0f);
 
 	for (int32 curRow = 0; curRow < NumberOfRows; curRow++)
@@ -1067,7 +1066,6 @@ void AOWSHUD::RenderInteractiveInventoryGrid(UOWSInventory* Inventory, UTexture*
 void AOWSHUD::RenderInteractiveInventoryGridUsingLockedSlotGroups(UOWSInventory* Inventory, UTexture* EmptySlotTexture, UTexture* LockedRowTexture, int32 X, int32 Y,
 	int32 XSpacing, int32 YSpacing, int32 iconWidth, int32 iconHeight, int32 NumberOfRows, int32 NumberOfCols, int32 SlotGroupRows, int32 SlotGroupCols, int32 SlotGroupXSpacing, int32 SlotGroupYSpacing)
 {
-	FColor FontColor;
 	FVector2D* FontScale = new FVector2D(1.0f, 1.0f);
 	int32 SlotGroupWidth = NumberOfCols * (iconWidth + XSpacing) - XSpacing;
 	int32 SlotGroupHeight = NumberOfRows * (iconHeight + YSpacing) - YSpacing;
