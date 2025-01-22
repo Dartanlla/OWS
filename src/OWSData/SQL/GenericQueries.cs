@@ -123,7 +123,21 @@ namespace OWSData.SQL
 				WHERE CCD.CustomerGUID = @CustomerGUID
 				  AND C.CharName = @CharName";
 
-	    public static readonly string GetPlayerGroupIDByType = @"SELECT COALESCE(PG.PlayerGroupID, 0)
+        public static readonly string GetDefaultCharacterCustomDataByName = @"SELECT *
+				FROM CustomCharacterData CCD
+				INNER JOIN Characters C ON C.CharacterID = CCD.CharacterID
+				WHERE CCD.CustomerGUID = @CustomerGUID
+				  AND C.CharName = @DefaultSetName";
+
+        public static readonly string GetDefaultCustomCharacterDataByDefaultSetName = @"SELECT *
+				FROM DefaultCustomCharacterData DCCD
+				INNER JOIN DefaultCharacterValues DCV 
+					ON DCCD.DefaultCharacterValuesId = DCV.DefaultCharacterValuesId
+				WHERE DCV.DefaultSetName = @DefaultSetName
+				AND DCCD.CustomerGUID = @CustomerGUID";
+
+
+        public static readonly string GetPlayerGroupIDByType = @"SELECT COALESCE(PG.PlayerGroupID, 0)
 				FROM PlayerGroupCharacters PGC
 				INNER JOIN PlayerGroup PG ON PG.PlayerGroupID = PGC.PlayerGroupID
 				WHERE PGC.CustomerGUID = @CustomerGUID

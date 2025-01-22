@@ -210,6 +210,23 @@ namespace OWSData.Repositories.Implementations.MySQL
 
             return outputCustomCharacterDataRows;
         }
+        public async Task<IEnumerable<DefaultCustomData>> GetDefaultCustomCharacterData(Guid customerGUID, string defaultSetName)
+        {
+            IEnumerable<DefaultCustomData> outputDefaultCustomCharacterDataRows;
+
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@DefaultSetName", defaultSetName);
+
+                outputDefaultCustomCharacterDataRows = await Connection.QueryAsync<DefaultCustomData>(GenericQueries.GetDefaultCharacterCustomDataByName,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return outputDefaultCustomCharacterDataRows;
+        }
 
         public async Task<JoinMapByCharName> JoinMapByCharName(Guid customerGUID, string characterName, string zoneName, int playerGroupType)
         {

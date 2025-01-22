@@ -16,6 +16,7 @@ using OWSShared.Interfaces;
 using OWSPublicAPI.Requests.Characters;
 using OWSData.Repositories.Interfaces;
 using OWSPublicAPI.DTOs;
+using OWSData.Models.Composites;
 
 namespace OWSPublicAPI.Controllers
 {
@@ -34,6 +35,7 @@ namespace OWSPublicAPI.Controllers
         private readonly ICharactersRepository _charactersRepository;
         private readonly IHeaderCustomerGUID _customerGuid;
         private readonly ICustomCharacterDataSelector _customCharacterDataSelector;
+        private readonly ICustomDataSelector _customDataSelector;
         private readonly IGetReadOnlyPublicCharacterData _getReadOnlyPublicCharacterData;
 
         /// <summary>
@@ -43,13 +45,14 @@ namespace OWSPublicAPI.Controllers
         /// All dependencies are injected.
         /// </remarks>
         public CharactersController(Container container, IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, 
-            ICustomCharacterDataSelector customCharacterDataSelector, IGetReadOnlyPublicCharacterData getReadOnlyPublicCharacterData)
+            ICustomCharacterDataSelector customCharacterDataSelector, ICustomDataSelector customDataSelector, IGetReadOnlyPublicCharacterData getReadOnlyPublicCharacterData)
         {
             _container = container;
             _usersRepository = usersRepository;
             _charactersRepository = charactersRepository;
             _customerGuid = customerGuid;
             _customCharacterDataSelector = customCharacterDataSelector;
+            _customDataSelector = customDataSelector;
             _getReadOnlyPublicCharacterData = getReadOnlyPublicCharacterData;
         }
 
@@ -85,5 +88,20 @@ namespace OWSPublicAPI.Controllers
             return await getByNameRequest.Handle();
         }
 
+        /// <summary>
+        /// Get Default Custom Character Data by defaultSetName.
+        /// </summary>
+        /// <remarks>
+        /// Get Default Custom Character Data by defaultSetName
+        /// </remarks>
+        [HttpPost]
+        [Route("GetDefaultCustomData")]
+        [Produces(typeof(DefaultCustomDataRows))]
+
+        public async Task<IActionResult> GetDefaultCustomData([FromBody] GetDefaultCustomrDataDTO request)
+        {
+            GetDefaultCustomDataRequest getDefaultCustomData = new GetDefaultCustomDataRequest(request, _usersRepository, _charactersRepository, _customerGuid, _customDataSelector, _getReadOnlyPublicCharacterData);
+            return await getDefaultCustomData.Handle();
+        }
     }
 }
