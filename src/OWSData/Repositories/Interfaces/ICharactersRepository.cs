@@ -15,6 +15,7 @@ namespace OWSData.Repositories.Interfaces
         Task CleanUpInstances(Guid customerGUID);
         Task<GetCharByCharName> GetCharByCharName(Guid customerGUID, string characterName);
         Task<IEnumerable<CustomCharacterData>> GetCustomCharacterData(Guid customerGUID, string characterName);
+        Task<IEnumerable<DefaultCustomData>> GetDefaultCustomCharacterData(Guid customerGUID, string defaultSetName);
         Task<JoinMapByCharName> JoinMapByCharName(Guid customerGUID, string characterName, string zoneName, int playerGroupType);
         Task UpdateCharacterStats(UpdateCharacterStats updateCharacterStats);
         Task UpdatePosition(Guid customerGUID, string characterName, string mapName, float X, float Y, float Z, float RX, float RY, float RZ);

@@ -12,7 +12,7 @@
             Contains character related API calls that are all publicly accessible.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Controllers.CharactersController.#ctor(SimpleInjector.Container,OWSData.Repositories.Interfaces.IUsersRepository,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,OWSShared.Interfaces.ICustomCharacterDataSelector,OWSShared.Interfaces.IGetReadOnlyPublicCharacterData)">
+        <member name="M:OWSPublicAPI.Controllers.CharactersController.#ctor(SimpleInjector.Container,OWSData.Repositories.Interfaces.IUsersRepository,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,OWSShared.Interfaces.ICustomCharacterDataSelector,OWSShared.Interfaces.ICustomDataSelector,OWSShared.Interfaces.IGetReadOnlyPublicCharacterData)">
             <summary>
             Constructor for Public Character related API calls.
             </summary>
@@ -34,6 +34,14 @@
             </summary>
             <remarks>
             Gets a Characters by Name.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.CharactersController.GetDefaultCustomData(OWSPublicAPI.DTOs.GetDefaultCustomrDataDTO)">
+            <summary>
+            Get Default Custom Character Data by defaultSetName.
+            </summary>
+            <remarks>
+            Get Default Custom Character Data by defaultSetName
             </remarks>
         </member>
         <member name="T:OWSPublicAPI.Controllers.SystemController">
@@ -230,6 +238,30 @@
             Contains the Character Name from the request
             </remarks>
         </member>
+        <member name="T:OWSPublicAPI.DTOs.GetDefaultCustomrDataDTO">
+            <summary>
+            GetByNameDTO data transfer object
+            </summary>
+            <remarks>
+            GetByNameDTO is data transfer object for GetByNameRequest
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.DTOs.GetDefaultCustomrDataDTO.UserSessionGUID">
+            <summary>
+            UserSessionGUID Request Parameter
+            </summary>
+            <remarks>
+            Contains the User Session GUID from the request
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.DTOs.GetDefaultCustomrDataDTO.DefaultSetName">
+            <summary>
+            CharacterName Request Paramater
+            </summary>
+            <remarks>
+            Contains the Character Name from the request
+            </remarks>
+        </member>
         <member name="T:OWSPublicAPI.DTOs.RegisterUserDTO">
             <summary>
             RegisterUser Data Transfer Object
@@ -313,6 +345,30 @@
         <member name="M:OWSPublicAPI.Requests.Characters.GetByNameRequest.Handle">
             <summary>
             Handles the GetByNameRequest
+            </summary>
+            <remarks>
+            Overrides IRequestHandler Handle().
+            </remarks>
+        </member>
+        <member name="T:OWSPublicAPI.Requests.Characters.GetDefaultCustomDataRequest">
+            <summary>
+            GetByNameRequest Handler
+            </summary>
+            <remarks>
+            Handles api/Characters/GetByName requests.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Characters.GetDefaultCustomDataRequest.#ctor(OWSPublicAPI.DTOs.GetDefaultCustomrDataDTO,OWSData.Repositories.Interfaces.IUsersRepository,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,OWSShared.Interfaces.ICustomDataSelector,OWSShared.Interfaces.IGetReadOnlyPublicCharacterData)">
+            <summary>
+            Constructor for GetDefaultCustomerCharacterDataRequest
+            </summary>
+            <remarks>
+            Injects the dependencies for the GetDefaultCustomerCharacterDataRequest.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Characters.GetDefaultCustomDataRequest.Handle">
+            <summary>
+            Handles the GetDefaultCustomerCharacterDataRequest
             </summary>
             <remarks>
             Overrides IRequestHandler Handle().
