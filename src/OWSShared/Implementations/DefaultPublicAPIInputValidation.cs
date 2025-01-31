@@ -28,7 +28,12 @@ namespace OWSShared.Implementations
 
         public string ValidateEmail(string email)
         {
-            throw new NotImplementedException();
+            //Test for empty email address
+            if (String.IsNullOrEmpty(email))
+            {
+                return "Please enter a valid email address.";
+            }
+            return "";
         }
 
         public string ValidateFirstName(string firstName)
@@ -43,7 +48,13 @@ namespace OWSShared.Implementations
 
         public string ValidatePassword(string password)
         {
-            throw new NotImplementedException();
+            //Test for empty passwords or passwords that are shorter than the minimum Character name Length
+            if (String.IsNullOrEmpty(password) || password.Length < 8)
+            {
+                return "Please enter a password that is at least 8 characters in length.";
+            }
+
+            return "";
         }
     }
 }

@@ -29,7 +29,7 @@
         ],
         passwordRules: [
             (v: string) => !!v || 'Password is required',
-            (v: HTMLFormElement) => (v && v.length >= 6) || 'Password must be 6 or more characters in length',
+            (v: HTMLFormElement) => (v && v.length >= 8) || 'Password must be 8 or more characters in length',
         ],
     });
 
