@@ -123,12 +123,6 @@ namespace OWSData.SQL
 				WHERE CCD.CustomerGUID = @CustomerGUID
 				  AND C.CharName = @CharName";
 
-        public static readonly string GetDefaultCharacterCustomDataByName = @"SELECT *
-				FROM CustomCharacterData CCD
-				INNER JOIN Characters C ON C.CharacterID = CCD.CharacterID
-				WHERE CCD.CustomerGUID = @CustomerGUID
-				  AND C.CharName = @DefaultSetName";
-
         public static readonly string GetDefaultCustomCharacterDataByDefaultSetName = @"SELECT *
 				FROM DefaultCustomCharacterData DCCD
 				INNER JOIN DefaultCharacterValues DCV 

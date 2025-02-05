@@ -30,47 +30,52 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task AddCharacterToMapInstanceByCharName(Guid customerGUID, string characterName, int mapInstanceID)
         {
-            IDbConnection conn = Connection;
-            conn.Open();
-            using IDbTransaction transaction = conn.BeginTransaction();
-            try
+            using (Connection)
             {
-                var parameters = new DynamicParameters();
-                parameters.Add("@CustomerGUID", customerGUID);
-                parameters.Add("@CharName", characterName);
-                parameters.Add("@MapInstanceID", mapInstanceID);
-
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
-                    parameters,
-                    commandType: CommandType.Text);
-
-                var outputZone = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetZoneName,
-                    parameters,
-                    commandType: CommandType.Text);
-
-                if (outputCharacter.CharacterId > 0)
+                using (IDbTransaction transaction = Connection.BeginTransaction())
                 {
-                    parameters.Add("@CharacterID", outputCharacter.CharacterId);
-                    parameters.Add("@ZoneName", outputZone.ZoneName);
+                    try
+                    {
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@CustomerGUID", customerGUID);
+                        parameters.Add("@CharName", characterName);
+                        parameters.Add("@MapInstanceID", mapInstanceID);
 
-                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
-                        parameters,
-                        commandType: CommandType.Text);
+                        var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(
+                            GenericQueries.GetCharacterIDByName,
+                            parameters,
+                            commandType: CommandType.Text);
 
-                    await Connection.ExecuteAsync(GenericQueries.AddCharacterToInstance,
-                        parameters,
-                        commandType: CommandType.Text);
+                        var outputZone = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetZoneName,
+                            parameters,
+                            commandType: CommandType.Text);
 
-                    await Connection.ExecuteAsync(GenericQueries.UpdateCharacterZone,
-                        parameters,
-                        commandType: CommandType.Text);
+                        if (outputCharacter.CharacterId > 0)
+                        {
+                            parameters.Add("@CharacterID", outputCharacter.CharacterId);
+                            parameters.Add("@ZoneName", outputZone.ZoneName);
+
+                            await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
+                                parameters,
+                                commandType: CommandType.Text);
+
+                            await Connection.ExecuteAsync(GenericQueries.AddCharacterToInstance,
+                                parameters,
+                                commandType: CommandType.Text);
+
+                            await Connection.ExecuteAsync(GenericQueries.UpdateCharacterZone,
+                                parameters,
+                                commandType: CommandType.Text);
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw new Exception("Database Exception in AddCharacterToMapInstanceByCharName!");
+                    }
                 }
-                transaction.Commit();
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw new Exception("Database Exception in AddCharacterToMapInstanceByCharName!");
             }
         }
 
@@ -135,43 +140,48 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task CleanUpInstances(Guid customerGUID)
         {
-            IDbConnection conn = Connection;
-            conn.Open();
-            using IDbTransaction transaction = conn.BeginTransaction();
-            try
+            using (Connection)
             {
-                var parameters = new DynamicParameters();
-                parameters.Add("@CustomerGUID", customerGUID);
-                parameters.Add("@CharacterMinutes", 1); // TODO Add Configuration Parameter
-                parameters.Add("@MapMinutes", 2); // TODO Add Configuration Parameter
-
-                await transaction.ExecuteAsync(PostgresQueries.RemoveCharactersFromAllInactiveInstances,
-                    parameters,
-                    commandType: CommandType.Text);
-
-                var outputMapInstances = await transaction.QueryAsync<int>(PostgresQueries.GetAllInactiveMapInstances,
-                    parameters,
-                    commandType: CommandType.Text);
-
-                if (outputMapInstances.Any())
+                using (IDbTransaction transaction = Connection.BeginTransaction())
                 {
-                    parameters.Add("@MapInstances", outputMapInstances);
+                    try
+                    {
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@CustomerGUID", customerGUID);
+                        parameters.Add("@CharacterMinutes", 1); // TODO Add Configuration Parameter
+                        parameters.Add("@MapMinutes", 2); // TODO Add Configuration Parameter
 
-                    await transaction.ExecuteAsync(PostgresQueries.RemoveCharacterFromInstances,
-                        parameters,
-                        commandType: CommandType.Text);
+                        await transaction.ExecuteAsync(PostgresQueries.RemoveCharactersFromAllInactiveInstances,
+                            parameters,
+                            commandType: CommandType.Text);
 
-                    await transaction.ExecuteAsync(PostgresQueries.RemoveMapInstances,
-                        parameters,
-                        commandType: CommandType.Text);
+                        var outputMapInstances = await transaction.QueryAsync<int>(
+                            PostgresQueries.GetAllInactiveMapInstances,
+                            parameters,
+                            commandType: CommandType.Text);
 
+                        if (outputMapInstances.Any())
+                        {
+                            parameters.Add("@MapInstances", outputMapInstances);
+
+                            await transaction.ExecuteAsync(PostgresQueries.RemoveCharacterFromInstances,
+                                parameters,
+                                commandType: CommandType.Text);
+
+                            await transaction.ExecuteAsync(PostgresQueries.RemoveMapInstances,
+                                parameters,
+                                commandType: CommandType.Text);
+
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw new Exception("Database Exception in CleanUpInstances!");
+                    }
                 }
-                transaction.Commit();
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw new Exception("Database Exception in CleanUpInstances!");
             }
         }
 
@@ -247,6 +257,21 @@ namespace OWSData.Repositories.Implementations.Postgres
             bool enableAutoLoopback = false;
             bool noPortForwarding = false;
 
+            outputObject = new JoinMapByCharName()
+            {
+                ServerIP = serverIp,
+                Port = port,
+                WorldServerID = -1,
+                WorldServerIP = worldServerIp,
+                WorldServerPort = worldServerPort,
+                MapInstanceID = mapInstanceID,
+                MapNameToStart = mapNameToStart,
+                MapInstanceStatus = -1,
+                NeedToStartupMap = false,
+                EnableAutoLoopback = false,
+                NoPortForwarding = false
+            };
+
             using (Connection)
             {
                 var parameters = new DynamicParameters();
@@ -259,29 +284,31 @@ namespace OWSData.Repositories.Implementations.Postgres
                     parameters,
                     commandType: CommandType.Text);
 
-                Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName,
-                    parameters,
-                    commandType: CommandType.Text);
+                if (outputMap == null)
+                {
+                    Console.WriteLine($"CharactersRepository: JoinMapByCharName - Unable to find Zone Name: {zoneName} for CustomerGUID: {customerGUID}  Check your Maps table for this row!");
 
-                Customers outputCustomer = await Connection.QuerySingleOrDefaultAsync<Customers>(GenericQueries.GetCustomer,
+                    return outputObject;
+                }
+
+                Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName,
                     parameters,
                     commandType: CommandType.Text);
 
                 if (outputCharacter == null)
                 {
-                    outputObject = new JoinMapByCharName() {
-                        ServerIP = serverIp,
-                        Port = port,
-                        WorldServerID = -1,
-                        WorldServerIP = worldServerIp,
-                        WorldServerPort = worldServerPort,
-                        MapInstanceID = mapInstanceID,
-                        MapNameToStart = mapNameToStart,
-                        MapInstanceStatus = -1,
-                        NeedToStartupMap = false,
-                        EnableAutoLoopback = enableAutoLoopback,
-                        NoPortForwarding = noPortForwarding
-                    };
+                    Console.WriteLine($"CharactersRepository: JoinMapByCharName - Unable to find Character by Name: {characterName} for CustomerGUID: {customerGUID}");
+
+                    return outputObject;
+                }
+
+                Customers outputCustomer = await Connection.QuerySingleOrDefaultAsync<Customers>(GenericQueries.GetCustomer,
+                    parameters,
+                    commandType: CommandType.Text);
+
+                if (outputCustomer == null)
+                {
+                    Console.WriteLine($"CharactersRepository: JoinMapByCharName - Unable to find Customer for CustomerGUID: {customerGUID}");
 
                     return outputObject;
                 }
@@ -372,14 +399,13 @@ namespace OWSData.Repositories.Implementations.Postgres
 
                 if (outputWorldServers.Any())
                 {
-                    int? firstAvailable = null;
                     foreach (var worldServer in outputWorldServers)
                     {
                         var portsInUse = await Connection.QueryAsync<int>(GenericQueries.GetPortsInUseByWorldServer,
                             parameters,
                             commandType: CommandType.Text);
 
-                        firstAvailable = Enumerable.Range(worldServer.StartingMapInstancePort, worldServer.StartingMapInstancePort + worldServer.MaxNumberOfInstances)
+                        int? firstAvailable = Enumerable.Range(worldServer.StartingMapInstancePort, worldServer.StartingMapInstancePort + worldServer.MaxNumberOfInstances)
                             .Except(portsInUse)
                             .FirstOrDefault();
 
@@ -394,11 +420,11 @@ namespace OWSData.Repositories.Implementations.Postgres
                             parameters.Add("@MapID", outputMaps.MapId);
                             parameters.Add("@Port", firstAvailable);
 
-                            int outputMapInstanceID = await Connection.QuerySingleOrDefaultAsync<int>(PostgresQueries.AddMapInstance,
+                            int outputMapInstanceId = await Connection.QuerySingleOrDefaultAsync<int>(PostgresQueries.AddMapInstance,
                                 parameters,
                                 commandType: CommandType.Text);
 
-                            parameters.Add("@MapInstanceID", outputMapInstanceID);
+                            parameters.Add("@MapInstanceID", outputMapInstanceId);
 
                             MapInstances outputMapInstances = await Connection.QuerySingleOrDefaultAsync<MapInstances>(GenericQueries.GetMapInstance,
                                 parameters,
