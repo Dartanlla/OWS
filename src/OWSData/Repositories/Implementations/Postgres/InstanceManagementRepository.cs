@@ -121,34 +121,37 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<SuccessAndErrorMessage> ShutDownWorldServer(Guid customerGUID, int worldServerID)
         {
-            IDbConnection conn = Connection;
-            conn.Open();
-            using IDbTransaction transaction = conn.BeginTransaction();
-            try
+            using (Connection)
             {
-                var parameter = new DynamicParameters();
-                parameter.Add("@CustomerGUID", customerGUID);
-                parameter.Add("@WorldServerID", worldServerID);
-                parameter.Add("@ServerStatus", 0);
+                using (IDbTransaction transaction = Connection.BeginTransaction())
+                {
+                    try
+                    {
+                        var parameter = new DynamicParameters();
+                        parameter.Add("@CustomerGUID", customerGUID);
+                        parameter.Add("@WorldServerID", worldServerID);
+                        parameter.Add("@ServerStatus", 0);
 
-                await Connection.ExecuteAsync(GenericQueries.RemoveAllCharactersFromAllInstancesByWorldID,
-                    parameter,
-                    commandType: CommandType.Text);
+                        await Connection.ExecuteAsync(GenericQueries.RemoveAllCharactersFromAllInstancesByWorldID,
+                            parameter,
+                            commandType: CommandType.Text);
 
-                await Connection.ExecuteAsync(GenericQueries.RemoveAllMapInstancesForWorldServer,
-                    parameter,
-                    commandType: CommandType.Text);
+                        await Connection.ExecuteAsync(GenericQueries.RemoveAllMapInstancesForWorldServer,
+                            parameter,
+                            commandType: CommandType.Text);
 
-                await Connection.ExecuteAsync(GenericQueries.UpdateWorldServerStatus,
-                    parameter,
-                    commandType: CommandType.Text);
+                        await Connection.ExecuteAsync(GenericQueries.UpdateWorldServerStatus,
+                            parameter,
+                            commandType: CommandType.Text);
 
-                transaction.Commit();
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw new Exception("Database Exception in ShutDownWorldServer!");
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw new Exception("Database Exception in ShutDownWorldServer!");
+                    }
+                }
             }
 
             SuccessAndErrorMessage output = new SuccessAndErrorMessage()

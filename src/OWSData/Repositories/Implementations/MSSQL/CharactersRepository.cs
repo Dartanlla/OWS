@@ -204,7 +204,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@DefaultSetName", defaultSetName);
 
-                outputDefaultCustomCharacterDataRows = await Connection.QueryAsync<DefaultCustomData>(GenericQueries.GetDefaultCharacterCustomDataByName,
+                outputDefaultCustomCharacterDataRows = await Connection.QueryAsync<DefaultCustomData>(GenericQueries.GetDefaultCustomCharacterDataByDefaultSetName,
                     parameters,
                     commandType: CommandType.Text);
             }
