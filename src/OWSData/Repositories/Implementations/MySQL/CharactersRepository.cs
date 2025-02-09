@@ -608,5 +608,49 @@ namespace OWSData.Repositories.Implementations.MySQL
                 await Connection.ExecuteAsync(MySQLQueries.UpdateAbilityOnCharacter, parameters);
             }
         }
+
+        public async Task<IEnumerable<Characters>> GetCharacters(Guid customerGuid)
+        {
+            IEnumerable<Characters> outputObject = null;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGuid);
+
+                outputObject = await Connection.QueryAsync<Characters>(GenericQueries.GetCharacters, p);
+            }
+
+            return outputObject;
+        }
+
+        public async Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGuid, string characterName)
+        {
+            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGuid);
+                    p.Add("@CharacterName", characterName);
+
+                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacter, p, commandType: CommandType.Text);
+                }
+
+                outputObject.Success = true;
+                outputObject.ErrorMessage = "";
+
+                return outputObject;
+            }
+            catch (Exception ex)
+            {
+                outputObject.Success = false;
+                outputObject.ErrorMessage = ex.Message;
+
+                return outputObject;
+            }
+        }
     }
 }

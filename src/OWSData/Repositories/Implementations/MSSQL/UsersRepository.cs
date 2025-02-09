@@ -447,5 +447,36 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 return outputObject;
             }
         }
+
+        public async Task<SuccessAndErrorMessage> RemoveUser(Guid customerGuid, Guid userGuid, string email)
+        {
+            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@UserGUID", userGuid);
+                    p.Add("@Email", email);
+
+                    await Connection.ExecuteAsync(GenericQueries.RemoveUser,
+                        p,
+                        commandType: CommandType.Text);
+                }
+
+                outputObject.Success = true;
+                outputObject.ErrorMessage = "";
+
+                return outputObject;
+            }
+            catch (Exception ex)
+            {
+                outputObject.Success = false;
+                outputObject.ErrorMessage = ex.Message;
+
+                return outputObject;
+            }
+        }
     }
 }
