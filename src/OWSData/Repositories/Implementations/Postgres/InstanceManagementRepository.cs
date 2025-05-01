@@ -31,13 +31,13 @@ namespace OWSData.Repositories.Implementations.Postgres
 
             try
             {
-                using (Connection)
+                using (var connection = (NpgsqlConnection)Connection)
                 {
                     var parameter = new DynamicParameters();
                     parameter.Add("@CustomerGUID", customerGUID);
                     parameter.Add("@MapInstanceID", zoneInstanceId);
 
-                    output = await Connection.QuerySingleAsync<GetServerInstanceFromPort>(GenericQueries.GetMapInstance,
+                    output = await connection.QuerySingleAsync<GetServerInstanceFromPort>(GenericQueries.GetMapInstance,
                         parameter,
                         commandType: CommandType.Text);
                 }
@@ -57,14 +57,14 @@ namespace OWSData.Repositories.Implementations.Postgres
 
             try
             {
-                using (Connection)
+                using (var connection = (NpgsqlConnection)Connection)
                 {
                     var parameter = new DynamicParameters();
                     parameter.Add("@CustomerGUID", customerGUID);
                     parameter.Add("@ServerIP", serverIP);
                     parameter.Add("@Port", port);
 
-                    output = await Connection.QuerySingleAsync<GetServerInstanceFromPort>(GenericQueries.GetMapInstancesByIpAndPort,
+                    output = await connection.QuerySingleAsync<GetServerInstanceFromPort>(GenericQueries.GetMapInstancesByIpAndPort,
                         parameter,
                         commandType: CommandType.Text);
                 }
@@ -81,13 +81,13 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             IEnumerable<GetZoneInstancesForWorldServer> output;
 
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameter = new DynamicParameters();
                 parameter.Add("@CustomerGUID", customerGUID);
                 parameter.Add("@WorldServerID", worldServerID);
 
-                output = await Connection.QueryAsync<GetZoneInstancesForWorldServer>(PostgresQueries.GetMapInstancesByWorldServerID,
+                output = await connection.QueryAsync<GetZoneInstancesForWorldServer>(PostgresQueries.GetMapInstancesByWorldServerID,
                     parameter,
                     commandType: CommandType.Text);
             }
@@ -98,14 +98,14 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<SuccessAndErrorMessage> SetZoneInstanceStatus(Guid customerGUID, int zoneInstanceID, int instanceStatus)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameter = new DynamicParameters();
                 parameter.Add("@CustomerGUID", customerGUID);
                 parameter.Add("@MapInstanceID", zoneInstanceID);
                 parameter.Add("@MapInstanceStatus", instanceStatus);
 
-                await Connection.QueryFirstOrDefaultAsync(GenericQueries.UpdateMapInstanceStatus,
+                await connection.QueryFirstOrDefaultAsync(GenericQueries.UpdateMapInstanceStatus,
                     parameter,
                     commandType: CommandType.Text);
             }
@@ -121,9 +121,11 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<SuccessAndErrorMessage> ShutDownWorldServer(Guid customerGUID, int worldServerID)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
-                using (IDbTransaction transaction = Connection.BeginTransaction())
+                await connection.OpenAsync();
+
+                using (IDbTransaction transaction = connection.BeginTransaction())
                 {
                     try
                     {
@@ -132,15 +134,15 @@ namespace OWSData.Repositories.Implementations.Postgres
                         parameter.Add("@WorldServerID", worldServerID);
                         parameter.Add("@ServerStatus", 0);
 
-                        await Connection.ExecuteAsync(GenericQueries.RemoveAllCharactersFromAllInstancesByWorldID,
+                        await connection.ExecuteAsync(GenericQueries.RemoveAllCharactersFromAllInstancesByWorldID,
                             parameter,
                             commandType: CommandType.Text);
 
-                        await Connection.ExecuteAsync(GenericQueries.RemoveAllMapInstancesForWorldServer,
+                        await connection.ExecuteAsync(GenericQueries.RemoveAllMapInstancesForWorldServer,
                             parameter,
                             commandType: CommandType.Text);
 
-                        await Connection.ExecuteAsync(GenericQueries.UpdateWorldServerStatus,
+                        await connection.ExecuteAsync(GenericQueries.UpdateWorldServerStatus,
                             parameter,
                             commandType: CommandType.Text);
 
@@ -167,14 +169,14 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             int worldServerId = -1;
 
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new {
                     CustomerGUID = customerGUID,
                     ZoneServerGUID = launcherGuid
                 };
 
-                GetWorldServerID getWorldServerID  = await Connection.QueryFirstOrDefaultAsync<GetWorldServerID>(PostgresQueries.GetWorldServerSQL, parameters);
+                GetWorldServerID getWorldServerID  = await connection.QueryFirstOrDefaultAsync<GetWorldServerID>(PostgresQueries.GetWorldServerSQL, parameters);
 
                 if (getWorldServerID != null)
                 {
@@ -188,7 +190,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                         WorldServerID = worldServerId
                     };
 
-                    await Connection.ExecuteAsync(PostgresQueries.UpdateWorldServerSQL, parameters2);
+                    await connection.ExecuteAsync(PostgresQueries.UpdateWorldServerSQL, parameters2);
                 }
             }
 
@@ -197,7 +199,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<SuccessAndErrorMessage> UpdateNumberOfPlayers(Guid customerGUID, int zoneInstanceId, int numberOfPlayers)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var paremeters = new
                 {
@@ -206,7 +208,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     NumberOfReportedPlayers = numberOfPlayers
                 };
 
-                _ = await Connection.ExecuteAsync(PostgresQueries.UpdateNumberOfPlayersSQL, paremeters);
+                _ = await connection.ExecuteAsync(PostgresQueries.UpdateNumberOfPlayersSQL, paremeters);
             }
 
             SuccessAndErrorMessage output = new SuccessAndErrorMessage()
@@ -222,13 +224,13 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             IEnumerable<GetZoneInstancesForZone> output;
 
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var p = new DynamicParameters();
                 p.Add("@CustomerGUID", customerGUID);
                 p.Add("@ZoneName", ZoneName);
 
-                output = await Connection.QueryAsync<GetZoneInstancesForZone>("select * from GetZoneInstancesOfZone(@CustomerGUID,@ZoneName)",
+                output = await connection.QueryAsync<GetZoneInstancesForZone>("select * from GetZoneInstancesOfZone(@CustomerGUID,@ZoneName)",
                     p,
                     commandType: CommandType.Text);
             }
@@ -241,12 +243,12 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             GetCurrentWorldTime output;
 
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var p = new DynamicParameters();
                 p.Add("@CustomerGUID", customerGUID);
 
-                output = await Connection.QuerySingleOrDefaultAsync<GetCurrentWorldTime>("select * from GetWorldStartTime(@CustomerGUID)",
+                output = await connection.QuerySingleOrDefaultAsync<GetCurrentWorldTime>("select * from GetWorldStartTime(@CustomerGUID)",
                     p,
                     commandType: CommandType.Text);
             }
@@ -258,7 +260,7 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             try
             {
-                using (Connection)
+                using (var connection = (NpgsqlConnection)Connection)
                 {
                     var p = new DynamicParameters();
                     p.Add("@CustomerGUID", customerGUID);
@@ -268,7 +270,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     p.Add("@InternalServerIP", internalServerIp);
                     p.Add("@StartingMapInstancePort", startingInstancePort);
 
-                    await Connection.ExecuteAsync(PostgresQueries.AddOrUpdateWorldServerSQL,
+                    await connection.ExecuteAsync(PostgresQueries.AddOrUpdateWorldServerSQL,
                         p,
                         commandType: CommandType.Text);
                 }
@@ -297,7 +299,7 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             try
             {
-                using (Connection)
+                using (var connection = (NpgsqlConnection)Connection)
                 {
                     var p = new DynamicParameters();
                     p.Add("@CustomerGUID", customerGUID);
@@ -311,7 +313,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     p.Add("@HardPlayerCap", hardPlayerCap);
                     p.Add("@MapMode", mapMode);
 
-                    await Connection.ExecuteAsync("call AddOrUpdateMapZone(@CustomerGUID,@MapID,@MapName,@MapData,@ZoneName,@WorldCompContainsFilter,@WorldCompListFilter,@SoftPlayerCap,@HardPlayerCap,@MapMode)",
+                    await connection.ExecuteAsync("call AddOrUpdateMapZone(@CustomerGUID,@MapID,@MapName,@MapData,@ZoneName,@WorldCompContainsFilter,@WorldCompListFilter,@SoftPlayerCap,@HardPlayerCap,@MapMode)",
                         p,
                         commandType: CommandType.Text);
                 }
@@ -340,7 +342,7 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             try
             {
-                using (Connection)
+                using (var connection = (NpgsqlConnection)Connection)
                 {
                     var p = new DynamicParameters();
                     p.Add("@CustomerGUID", customerGUID);
@@ -354,7 +356,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     p.Add("@HardPlayerCap", hardPlayerCap);
                     p.Add("@MapMode", mapMode);
 
-                    await Connection.ExecuteAsync("call AddOrUpdateMapZone(@CustomerGUID,@MapID,@MapName,@MapData,@ZoneName,@WorldCompContainsFilter,@WorldCompListFilter,@SoftPlayerCap,@HardPlayerCap,@MapMode)",
+                    await connection.ExecuteAsync("call AddOrUpdateMapZone(@CustomerGUID,@MapID,@MapName,@MapData,@ZoneName,@WorldCompContainsFilter,@WorldCompListFilter,@SoftPlayerCap,@HardPlayerCap,@MapMode)",
                         p,
                         commandType: CommandType.Text);
                 }
