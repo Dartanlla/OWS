@@ -30,21 +30,21 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task AddOrUpdateGlobalData(GlobalData globalData)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
-                var outputGlobalData = await Connection.QuerySingleOrDefaultAsync<GlobalData>(GenericQueries.GetGlobalDataByGlobalDataKey,
+                var outputGlobalData = await connection.QuerySingleOrDefaultAsync<GlobalData>(GenericQueries.GetGlobalDataByGlobalDataKey,
                     globalData,
                     commandType: CommandType.Text);
 
                 if (outputGlobalData != null)
                 {
-                    await Connection.ExecuteAsync(GenericQueries.UpdateGlobalData,
+                    await connection.ExecuteAsync(GenericQueries.UpdateGlobalData,
                         globalData,
                         commandType: CommandType.Text);
                 }
                 else
                 {
-                    await Connection.ExecuteAsync(GenericQueries.AddGlobalData,
+                    await connection.ExecuteAsync(GenericQueries.AddGlobalData,
                         globalData,
                         commandType: CommandType.Text);
                 }
@@ -53,7 +53,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<GlobalData> GetGlobalDataByGlobalDataKey(Guid customerGuid, string globalDataKey)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new
                 {
@@ -61,7 +61,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     GlobalDataKey = globalDataKey
                 };
 
-                return await Connection.QueryFirstOrDefaultAsync<GlobalData>(GenericQueries.GetGlobalDataByGlobalDataKey, parameters);
+                return await connection.QueryFirstOrDefaultAsync<GlobalData>(GenericQueries.GetGlobalDataByGlobalDataKey, parameters);
             }
         }
     }

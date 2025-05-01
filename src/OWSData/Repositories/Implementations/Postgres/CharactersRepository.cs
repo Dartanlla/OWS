@@ -30,9 +30,11 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task AddCharacterToMapInstanceByCharName(Guid customerGUID, string characterName, int mapInstanceID)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
-                using (IDbTransaction transaction = Connection.BeginTransaction())
+                await connection.OpenAsync();
+
+                using (IDbTransaction transaction = connection.BeginTransaction())
                 {
                     try
                     {
@@ -41,12 +43,12 @@ namespace OWSData.Repositories.Implementations.Postgres
                         parameters.Add("@CharName", characterName);
                         parameters.Add("@MapInstanceID", mapInstanceID);
 
-                        var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(
+                        var outputCharacter = await connection.QuerySingleOrDefaultAsync<Characters>(
                             GenericQueries.GetCharacterIDByName,
                             parameters,
                             commandType: CommandType.Text);
 
-                        var outputZone = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetZoneName,
+                        var outputZone = await connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetZoneName,
                             parameters,
                             commandType: CommandType.Text);
 
@@ -55,15 +57,15 @@ namespace OWSData.Repositories.Implementations.Postgres
                             parameters.Add("@CharacterID", outputCharacter.CharacterId);
                             parameters.Add("@ZoneName", outputZone.ZoneName);
 
-                            await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
+                            await connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
                                 parameters,
                                 commandType: CommandType.Text);
 
-                            await Connection.ExecuteAsync(GenericQueries.AddCharacterToInstance,
+                            await connection.ExecuteAsync(GenericQueries.AddCharacterToInstance,
                                 parameters,
                                 commandType: CommandType.Text);
 
-                            await Connection.ExecuteAsync(GenericQueries.UpdateCharacterZone,
+                            await connection.ExecuteAsync(GenericQueries.UpdateCharacterZone,
                                 parameters,
                                 commandType: CommandType.Text);
                         }
@@ -81,7 +83,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task AddOrUpdateCustomCharacterData(Guid customerGUID, AddOrUpdateCustomCharacterData addOrUpdateCustomCharacterData)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
@@ -89,7 +91,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 parameters.Add("@CustomFieldName", addOrUpdateCustomCharacterData.CustomFieldName);
                 parameters.Add("@FieldValue", addOrUpdateCustomCharacterData.FieldValue);
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
+                var outputCharacter = await connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -97,19 +99,19 @@ namespace OWSData.Repositories.Implementations.Postgres
                 {
                     parameters.Add("@CharacterID", outputCharacter.CharacterId);
 
-                    var hasCustomCharacterData = await Connection.QuerySingleOrDefaultAsync<int>(GenericQueries.HasCustomCharacterDataForField,
+                    var hasCustomCharacterData = await connection.QuerySingleOrDefaultAsync<int>(GenericQueries.HasCustomCharacterDataForField,
                         parameters,
                         commandType: CommandType.Text);
 
                     if (hasCustomCharacterData > 0)
                     {
-                        await Connection.ExecuteAsync(GenericQueries.UpdateCharacterCustomDataField,
+                        await connection.ExecuteAsync(GenericQueries.UpdateCharacterCustomDataField,
                             parameters,
                             commandType: CommandType.Text);
                     }
                     else
                     {
-                        await Connection.ExecuteAsync(GenericQueries.AddCharacterCustomDataField,
+                        await connection.ExecuteAsync(GenericQueries.AddCharacterCustomDataField,
                             parameters,
                             commandType: CommandType.Text);
                     }
@@ -119,13 +121,13 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<MapInstances> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@MapInstanceID", mapInstanceID);
 
-                var outputObject = await Connection.QuerySingleOrDefaultAsync<MapInstances>(GenericQueries.GetMapInstanceStatus,
+                var outputObject = await connection.QuerySingleOrDefaultAsync<MapInstances>(GenericQueries.GetMapInstanceStatus,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -140,9 +142,11 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task CleanUpInstances(Guid customerGUID)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
-                using (IDbTransaction transaction = Connection.BeginTransaction())
+                await connection.OpenAsync();
+
+                using (IDbTransaction transaction = connection.BeginTransaction())
                 {
                     try
                     {
@@ -189,13 +193,13 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             IEnumerable<GetCharByCharName> outputCharacter;
 
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@CharName", characterName);
 
-                outputCharacter = await Connection.QueryAsync<GetCharByCharName>(GenericQueries.GetCharByCharName,
+                outputCharacter = await connection.QueryAsync<GetCharByCharName>(GenericQueries.GetCharByCharName,
                     parameters,
                     commandType: CommandType.Text);
             }
@@ -207,13 +211,13 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             IEnumerable<CustomCharacterData> outputCustomCharacterDataRows;
 
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@CharName", characterName);
 
-                outputCustomCharacterDataRows = await Connection.QueryAsync<CustomCharacterData>(GenericQueries.GetCharacterCustomDataByName,
+                outputCustomCharacterDataRows = await connection.QueryAsync<CustomCharacterData>(GenericQueries.GetCharacterCustomDataByName,
                     parameters,
                     commandType: CommandType.Text);
             }
@@ -224,13 +228,13 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             IEnumerable<DefaultCustomData> outputDefaultCustomCharacterDataRows;
 
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@DefaultSetName", defaultSetName);
 
-                outputDefaultCustomCharacterDataRows = await Connection.QueryAsync<DefaultCustomData>(GenericQueries.GetDefaultCustomCharacterDataByDefaultSetName,
+                outputDefaultCustomCharacterDataRows = await connection.QueryAsync<DefaultCustomData>(GenericQueries.GetDefaultCustomCharacterDataByDefaultSetName,
                     parameters,
                     commandType: CommandType.Text);
             }
@@ -272,7 +276,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 NoPortForwarding = false
             };
 
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
@@ -280,7 +284,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 parameters.Add("@ZoneName", zoneName);
                 parameters.Add("@PlayerGroupType", playerGroupType);
 
-                Maps outputMap = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetMapByZoneName,
+                Maps outputMap = await connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetMapByZoneName,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -291,7 +295,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     return outputObject;
                 }
 
-                Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName,
+                Characters outputCharacter = await connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -302,7 +306,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     return outputObject;
                 }
 
-                Customers outputCustomer = await Connection.QuerySingleOrDefaultAsync<Customers>(GenericQueries.GetCustomer,
+                Customers outputCustomer = await connection.QuerySingleOrDefaultAsync<Customers>(GenericQueries.GetCustomer,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -317,7 +321,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
                 if (playerGroupType > 0)
                 {
-                    outputPlayerGroup = await Connection.QuerySingleOrDefaultAsync<PlayerGroup>(GenericQueries.GetPlayerGroupIDByType,
+                    outputPlayerGroup = await connection.QuerySingleOrDefaultAsync<PlayerGroup>(GenericQueries.GetPlayerGroupIDByType,
                         parameters,
                         commandType: CommandType.Text);
                 }
@@ -331,7 +335,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 parameters.Add("@PlayerGroupID", outputPlayerGroup.PlayerGroupId);
                 parameters.Add("@MapID", outputMap.MapId);
 
-                JoinMapByCharName outputJoinMapByCharName = await Connection.QuerySingleOrDefaultAsync<JoinMapByCharName>(PostgresQueries.GetZoneInstancesByZoneAndGroup,
+                JoinMapByCharName outputJoinMapByCharName = await connection.QuerySingleOrDefaultAsync<JoinMapByCharName>(PostgresQueries.GetZoneInstancesByZoneAndGroup,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -356,7 +360,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
                     parameters.Add("@WorldServerId", outputMapInstance.WorldServerId);
 
-                    WorldServers outputWorldServers =  await Connection.QuerySingleOrDefaultAsync<WorldServers>(GenericQueries.GetWorldByID,
+                    WorldServers outputWorldServers =  await connection.QuerySingleOrDefaultAsync<WorldServers>(GenericQueries.GetWorldByID,
                         parameters,
                         commandType: CommandType.Text);
 
@@ -386,14 +390,14 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task<MapInstances> SpinUpInstance(Guid customerGUID, string zoneName, int playerGroupId = 0)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@ZoneName", zoneName);
                 parameters.Add("@PlayerGroupId", playerGroupId);
 
-                List<WorldServers> outputWorldServers = (List<WorldServers>)await Connection.QueryAsync<WorldServers>(GenericQueries.GetActiveWorldServersByLoad,
+                List<WorldServers> outputWorldServers = (List<WorldServers>)await connection.QueryAsync<WorldServers>(GenericQueries.GetActiveWorldServersByLoad,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -401,7 +405,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 {
                     foreach (var worldServer in outputWorldServers)
                     {
-                        var portsInUse = await Connection.QueryAsync<int>(GenericQueries.GetPortsInUseByWorldServer,
+                        var portsInUse = await connection.QueryAsync<int>(GenericQueries.GetPortsInUseByWorldServer,
                             parameters,
                             commandType: CommandType.Text);
 
@@ -412,7 +416,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                         if (firstAvailable >= worldServer.StartingMapInstancePort)
                         {
 
-                            Maps outputMaps = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetMapByZoneName,
+                            Maps outputMaps = await connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetMapByZoneName,
                                 parameters,
                                 commandType: CommandType.Text);
 
@@ -420,13 +424,13 @@ namespace OWSData.Repositories.Implementations.Postgres
                             parameters.Add("@MapID", outputMaps.MapId);
                             parameters.Add("@Port", firstAvailable);
 
-                            int outputMapInstanceId = await Connection.QuerySingleOrDefaultAsync<int>(PostgresQueries.AddMapInstance,
+                            int outputMapInstanceId = await connection.QuerySingleOrDefaultAsync<int>(PostgresQueries.AddMapInstance,
                                 parameters,
                                 commandType: CommandType.Text);
 
                             parameters.Add("@MapInstanceID", outputMapInstanceId);
 
-                            MapInstances outputMapInstances = await Connection.QuerySingleOrDefaultAsync<MapInstances>(GenericQueries.GetMapInstance,
+                            MapInstances outputMapInstances = await connection.QuerySingleOrDefaultAsync<MapInstances>(GenericQueries.GetMapInstance,
                                 parameters,
                                 commandType: CommandType.Text);
 
@@ -441,9 +445,9 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task UpdateCharacterStats(UpdateCharacterStats updateCharacterStats)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
-                await Connection.ExecuteAsync(GenericQueries.UpdateCharacterStats.Replace("@CustomerGUID", "@CustomerGUID::uuid"), // NOTE Postgres text=>uuid
+                await connection.ExecuteAsync(GenericQueries.UpdateCharacterStats.Replace("@CustomerGUID", "@CustomerGUID::uuid"), // NOTE Postgres text=>uuid
                     updateCharacterStats,
                     commandType: CommandType.Text);
             }
@@ -451,7 +455,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task UpdatePosition(Guid customerGUID, string characterName, string mapName, float X, float Y, float Z, float RX, float RY, float RZ)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var p = new DynamicParameters();
                 p.Add("@CustomerGUID", customerGUID);
@@ -466,18 +470,18 @@ namespace OWSData.Repositories.Implementations.Postgres
 
                 if (mapName != String.Empty)
                 {
-                    await Connection.ExecuteAsync(GenericQueries.UpdateCharacterPositionAndMap,
+                    await connection.ExecuteAsync(GenericQueries.UpdateCharacterPositionAndMap,
                         p,
                         commandType: CommandType.Text);
                 }
                 else
                 {
-                    await Connection.ExecuteAsync(GenericQueries.UpdateCharacterPosition,
+                    await connection.ExecuteAsync(GenericQueries.UpdateCharacterPosition,
                         p,
                         commandType: CommandType.Text);
                 }
 
-                await Connection.ExecuteAsync(PostgresQueries.UpdateUserLastAccess,
+                await connection.ExecuteAsync(PostgresQueries.UpdateUserLastAccess,
                     p,
                     commandType: CommandType.Text);
             }
@@ -485,13 +489,13 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task PlayerLogout(Guid customerGUID, string characterName)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@CharName", characterName);
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
+                var outputCharacter = await connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -499,7 +503,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 {
                     parameters.Add("@CharacterID", outputCharacter.CharacterId);
 
-                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
+                    await connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
                         parameters,
                         commandType: CommandType.Text);
                 }
@@ -508,7 +512,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task AddAbilityToCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new
                 {
@@ -519,13 +523,13 @@ namespace OWSData.Repositories.Implementations.Postgres
                     CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
                 };
 
-                var outputCharacterAbility = await Connection.QuerySingleOrDefaultAsync<GlobalData>(GenericQueries.GetCharacterAbilityByName,
+                var outputCharacterAbility = await connection.QuerySingleOrDefaultAsync<GlobalData>(GenericQueries.GetCharacterAbilityByName,
                     parameters,
                     commandType: CommandType.Text);
 
                 if (outputCharacterAbility == null)
                 {
-                    await Connection.ExecuteAsync(PostgresQueries.AddAbilityToCharacter,
+                    await connection.ExecuteAsync(PostgresQueries.AddAbilityToCharacter,
                         parameters,
                         commandType: CommandType.Text);
                 }
@@ -536,12 +540,12 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             IEnumerable<Abilities> outputGetAbilities;
 
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
 
-                outputGetAbilities = await Connection.QueryAsync<Abilities>(GenericQueries.GetAbilities,
+                outputGetAbilities = await connection.QueryAsync<Abilities>(GenericQueries.GetAbilities,
                     parameters,
                     commandType: CommandType.Text);
             }
@@ -553,13 +557,13 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             IEnumerable<GetCharacterAbilities> outputGetCharacterAbilities;
 
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@CharName", characterName);
 
-                outputGetCharacterAbilities = await Connection.QueryAsync<GetCharacterAbilities>(GenericQueries.GetCharacterAbilities,
+                outputGetCharacterAbilities = await connection.QueryAsync<GetCharacterAbilities>(GenericQueries.GetCharacterAbilities,
                     parameters,
                     commandType: CommandType.Text);
             }
@@ -571,13 +575,13 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             IEnumerable<GetAbilityBars> outputGetAbilityBars;
 
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@CharName", characterName);
 
-                outputGetAbilityBars = await Connection.QueryAsync<GetAbilityBars>(GenericQueries.GetCharacterAbilityBars,
+                outputGetAbilityBars = await connection.QueryAsync<GetAbilityBars>(GenericQueries.GetCharacterAbilityBars,
                     parameters,
                     commandType: CommandType.Text);
             }
@@ -589,13 +593,13 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             IEnumerable<GetAbilityBarsAndAbilities> outputGetAbilityBarsAndAbilities;
 
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@CharName", characterName);
 
-                outputGetAbilityBarsAndAbilities = await Connection.QueryAsync<GetAbilityBarsAndAbilities>(GenericQueries.GetCharacterAbilityBarsAndAbilities,
+                outputGetAbilityBarsAndAbilities = await connection.QueryAsync<GetAbilityBarsAndAbilities>(GenericQueries.GetCharacterAbilityBarsAndAbilities,
                     parameters,
                     commandType: CommandType.Text);
             }
@@ -605,7 +609,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         public async Task RemoveAbilityFromCharacter(Guid customerGUID, string abilityName, string characterName)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new
                 {
@@ -614,13 +618,13 @@ namespace OWSData.Repositories.Implementations.Postgres
                     CharacterName = characterName
                 };
 
-                await Connection.ExecuteAsync(PostgresQueries.RemoveAbilityFromCharacter, parameters);
+                await connection.ExecuteAsync(PostgresQueries.RemoveAbilityFromCharacter, parameters);
             }
         }
 
         public async Task UpdateAbilityOnCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON)
         {
-            using (Connection)
+            using (var connection = (NpgsqlConnection)Connection)
             {
                 var parameters = new
                 {
@@ -631,7 +635,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     CharHasAbilitiesCustomJSON = charHasAbilitiesCustomJSON
                 };
 
-                await Connection.ExecuteAsync(PostgresQueries.UpdateAbilityOnCharacter, parameters);
+                await connection.ExecuteAsync(PostgresQueries.UpdateAbilityOnCharacter, parameters);
             }
         }
     }
