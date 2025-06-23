@@ -254,7 +254,7 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(PlayerLoginAndCreateSession))]
         public async Task<PlayerLoginAndCreateSession> RegisterUser([FromBody] RegisterUserDTO requestDTO)
         {
-            RegisterUserRequest request = new RegisterUserRequest(requestDTO, _usersRepository, _externalLoginProviderFactory, _customerGuid);
+            RegisterUserRequest request = new RegisterUserRequest(requestDTO, _usersRepository, _externalLoginProviderFactory, _customerGuid, _publicAPIInputValidation);
             return await request.Handle();
         }
 
@@ -268,6 +268,21 @@ namespace OWSPublicAPI.Controllers
         [Route("RemoveCharacter")]
         [Produces(typeof(SuccessAndErrorMessage))]
         public async Task<IActionResult> RemoveCharacter([FromBody] RemoveCharacterRequest request)
+        {
+            request.SetData(_usersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
+        /// <summary>
+        /// Remove a User
+        /// </summary>
+        /// <remarks>
+        /// Removes a new user
+        /// </remarks>
+        [HttpPost]
+        [Route("RemoveUser")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<IActionResult> RemoveUser([FromBody] RemoveUserRequest request)
         {
             request.SetData(_usersRepository, _customerGuid);
             return await request.Handle();
