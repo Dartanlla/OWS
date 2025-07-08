@@ -6,7 +6,7 @@ grand_parent: Getting Started
 nav_order: 1
 ---
 
-# OWS Starter Project for Unreal Engine 5.5.0
+# OWS Starter Project for Unreal Engine 5.6.0
 Follow these instructions if you want to setup the OWS Starter Project for Unreal Engine 5. Before you are able to setup this project you need to finish the [Docker Setup](docker-setup) and [Database setup](setup-database) sections.
 
 ## Download the project
