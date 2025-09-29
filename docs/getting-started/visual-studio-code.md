@@ -95,4 +95,4 @@ nav_order: 2
    ```
 </details>
 
-[Next: Database setup](setup-database){: .btn .btn-outline }
+[Next: Database setup](database-setup){: .btn .btn-outline }
