@@ -140,7 +140,7 @@ namespace OWSData.Repositories.Implementations.Postgres
             }
         }
 
-        public async Task CleanUpInstances(Guid customerGUID)
+        public async Task CleanUpInstances(Guid customerGuid)
         {
             using (var connection = (NpgsqlConnection)Connection)
             {
@@ -151,7 +151,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     try
                     {
                         var parameters = new DynamicParameters();
-                        parameters.Add("@CustomerGUID", customerGUID);
+                        parameters.Add("@CustomerGUID", customerGuid);
                         parameters.Add("@CharacterMinutes", 1); // TODO Add Configuration Parameter
                         parameters.Add("@MapMinutes", 2); // TODO Add Configuration Parameter
 
@@ -179,6 +179,10 @@ namespace OWSData.Repositories.Implementations.Postgres
                         }
 
                         transaction.Commit();
+                    }
+                    catch (NpgsqlException ex)
+                    {
+                        Console.WriteLine($"Error opening PostgreSQL connection: {ex.Message}");
                     }
                     catch
                     {
@@ -358,11 +362,23 @@ namespace OWSData.Repositories.Implementations.Postgres
                 {
                     MapInstances outputMapInstance = await SpinUpInstance(customerGUID, zoneName, outputPlayerGroup.PlayerGroupId);
 
+                    if (outputMapInstance.WorldServerId < 1)
+                    {
+                        Console.WriteLine("Failed to spin up Server Instance!");
+                        return outputObject;
+                    }
+
                     parameters.Add("@WorldServerId", outputMapInstance.WorldServerId);
 
                     WorldServers outputWorldServers =  await connection.QuerySingleOrDefaultAsync<WorldServers>(GenericQueries.GetWorldByID,
                         parameters,
                         commandType: CommandType.Text);
+
+                    if (outputWorldServers == null)
+                    {
+                        Console.WriteLine($"Failed to find Server Instance for World ServerId: {outputMapInstance.WorldServerId}");
+                        return outputObject;
+                    }
 
                     outputObject.NeedToStartupMap = true;
                     outputObject.WorldServerID = outputMapInstance.WorldServerId;

@@ -32,21 +32,28 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             using (var connection = (NpgsqlConnection)Connection)
             {
-                var outputGlobalData = await connection.QuerySingleOrDefaultAsync<GlobalData>(GenericQueries.GetGlobalDataByGlobalDataKey,
-                    globalData,
-                    commandType: CommandType.Text);
+                try
+                {
+                    var outputGlobalData = await connection.QuerySingleOrDefaultAsync<GlobalData>(GenericQueries.GetGlobalDataByGlobalDataKey,
+                        globalData,
+                        commandType: CommandType.Text);
 
-                if (outputGlobalData != null)
-                {
-                    await connection.ExecuteAsync(GenericQueries.UpdateGlobalData,
-                        globalData,
-                        commandType: CommandType.Text);
+                    if (outputGlobalData != null)
+                    {
+                        await connection.ExecuteAsync(GenericQueries.UpdateGlobalData,
+                            globalData,
+                            commandType: CommandType.Text);
+                    }
+                    else
+                    {
+                        await connection.ExecuteAsync(GenericQueries.AddGlobalData,
+                            globalData,
+                            commandType: CommandType.Text);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    await connection.ExecuteAsync(GenericQueries.AddGlobalData,
-                        globalData,
-                        commandType: CommandType.Text);
+                    Console.WriteLine($"AddOrUpdateGlobalData Error: {ex.Message}");
                 }
             }
         }

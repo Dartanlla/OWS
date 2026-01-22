@@ -384,18 +384,6 @@ AOWSPlayerState* AOWSPlayerController::GetOWSPlayerState() const
 	return GetPlayerState<AOWSPlayerState>();
 }
 
-bool AOWSPlayerController::InputAxis(FKey Key, float Delta, float DeltaTime, int32 NumSamples, bool bGamepad)
-{
-	bool bResult = false;
-
-	if (PlayerInput)
-	{
-		bResult = PlayerInput->InputKey(FInputKeyParams(Key, Delta, DeltaTime, NumSamples, bGamepad));
-	}
-
-	return bResult;
-}
-
 void AOWSPlayerController::SavePlayerLocation()
 {
 	OWSPlayerControllerComponent->SavePlayerLocation();

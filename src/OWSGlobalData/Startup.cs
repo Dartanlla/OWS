@@ -129,17 +129,20 @@ namespace OWSGlobalData
             if (OWSStorageConfig.Exists())
             {
                 string dbBackend = OWSStorageConfig.GetValue<string>("OWSDBBackend");
+                string connectionString = OWSStorageConfig.GetValue<string>("OWSDBConnectionString");
+                string connectionStringWithApplicationName = $"{connectionString}Application Name=OWS Global Data;";
+                OWSStorageConfig["OWSDBConnectionString"] = connectionStringWithApplicationName;
 
                 switch (dbBackend)
                 {
                     case "postgres":
-                        container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.Postgres.GlobalDataRepository>(Lifestyle.Singleton);
+                        container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.Postgres.GlobalDataRepository>(Lifestyle.Scoped);
                         break;
                     case "mysql":
-                        container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.MySQL.GlobalDataRepository>(Lifestyle.Singleton);
+                        container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.MySQL.GlobalDataRepository>(Lifestyle.Scoped);
                         break;
                     default: // Default to MSSQL
-                        container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.MSSQL.GlobalDataRepository>(Lifestyle.Singleton);
+                        container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.MSSQL.GlobalDataRepository>(Lifestyle.Scoped);
                         break;
                 }
             }
