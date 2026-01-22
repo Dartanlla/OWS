@@ -201,22 +201,24 @@ FString UOWSGameInstance::SerializeStructToJSONString(const UStruct* StructToSer
 
 UClass* UOWSGameInstance::FindClass(FString ClassName) const
 {
-	UObject* ClassPackage = ANY_PACKAGE;
-	UClass* Result = FindObject<UClass>(ClassPackage, *ClassName);
+	if (ClassName.IsEmpty())
+	{
+		return nullptr;
+	}
 
-	return Result;
+	UClass* FoundClass = FindFirstObject<UClass>(*ClassName);
+	return IsValid(FoundClass) ? FoundClass : nullptr;
 }
 
 //This only works if the ability is already in memory.  Use LoadGameplayAbilityClass instead
 TSubclassOf<UGameplayAbility> UOWSGameInstance::FindGameplayAbilityClass(FString ClassName) const
 {
-	UObject* ClassPackage = ANY_PACKAGE;
-	UClass* Result = FindObject<UClass>(ClassPackage, *ClassName);
+	UClass* FoundClass = FindFirstObject<UClass>(*ClassName);
 
-	TSubclassOf<UGameplayAbility> GameplayAbilityClass = Result;
+	TSubclassOf<UGameplayAbility> GameplayAbilityClass = FoundClass;
 
 	if (GameplayAbilityClass)
-		return Result;
+		return FoundClass;
 	else
 		return nullptr;
 }

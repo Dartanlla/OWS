@@ -128,9 +128,6 @@ public:
 
 	void PawnLeavingGame();
 
-	//bool InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad) override;
-	bool InputAxis(FKey Key, float Delta, float DeltaTime, int32 NumSamples, bool bGamepad) override;
-
 	UFUNCTION(BlueprintImplementableEvent, Category = "Save")
 		void NotifyPawnLeavingGame(const AOWSCharacter* RPGCharacter);
 

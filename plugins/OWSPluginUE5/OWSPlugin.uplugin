@@ -10,7 +10,7 @@
   "DocsURL": "https://www.openworldserver.com",
   "MarketplaceURL": "",
   "SupportURL": "",
-  "EngineVersion": "5.5.0",
+  "EngineVersion": "5.7.0",
   "CanContainContent": true,
   "IsBetaVersion": false,
   "Installed": true,
@@ -24,10 +24,6 @@
   "Plugins": [
     {
       "Name": "GameplayAbilities",
-      "Enabled": true
-    },
-    {
-      "Name": "ReplicationGraph",
       "Enabled": true
     }
   ]

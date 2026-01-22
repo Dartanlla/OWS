@@ -153,7 +153,7 @@ void UOWSCharacterMovementComponent::OnMovementUpdated(float DeltaTime, const FV
 			APlayerController* OurPlayerController = Cast<APlayerController>(CharacterOwner->GetController());
 			if (OurPlayerController)
 			{
-				OurPlayerController->SetDeprecatedInputYawScale(0.f);
+				//OurPlayerController->SetDeprecatedInputYawScale(0.f);
 			}
 		}
 
@@ -169,7 +169,7 @@ void UOWSCharacterMovementComponent::OnMovementUpdated(float DeltaTime, const FV
 		APlayerController* OurPlayerController = Cast<APlayerController>(CharacterOwner->GetController());
 		if (OurPlayerController)
 		{
-			OurPlayerController->SetDeprecatedInputYawScale(1.f);
+			//OurPlayerController->SetDeprecatedInputYawScale(1.f);
 		}
 
 		bUseControllerDesiredRotation = true;
@@ -586,7 +586,7 @@ void UOWSCharacterMovementComponent::ProcessLanded(const FHitResult& Hit, float 
 
 		if (OurPlayerController)
 		{
-			OurPlayerController->SetDeprecatedInputYawScale(1.f);
+			//OurPlayerController->SetDeprecatedInputYawScale(1.f);
 		}
 	}
 

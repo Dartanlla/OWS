@@ -171,39 +171,49 @@ namespace OWSData.Repositories.Implementations.Postgres
 
             using (var connection = (NpgsqlConnection)Connection)
             {
-                var parameters = new {
-                    CustomerGUID = customerGUID,
-                    ZoneServerGUID = launcherGuid
-                };
-
-                GetWorldServerID getWorldServerID  = await connection.QueryFirstOrDefaultAsync<GetWorldServerID>(PostgresQueries.GetWorldServerSQL, parameters);
-
-                if (getWorldServerID != null)
+                try
                 {
-                    worldServerId = getWorldServerID.WorldServerID;
-                }
-
-                if (worldServerId > 0)
-                {
-                    var parameters2 = new {
+                    var parameters = new
+                    {
                         CustomerGUID = customerGUID,
-                        WorldServerID = worldServerId
+                        ZoneServerGUID = launcherGuid
                     };
 
-                    await connection.ExecuteAsync(PostgresQueries.UpdateWorldServerSQL, parameters2);
+                    GetWorldServerID getWorldServerID = await connection.QueryFirstOrDefaultAsync<GetWorldServerID>(PostgresQueries.GetWorldServerSQL, parameters);
+
+                    if (getWorldServerID != null)
+                    {
+                        worldServerId = getWorldServerID.WorldServerID;
+                    }
+
+                    if (worldServerId > 0)
+                    {
+                        var parameters2 = new
+                        {
+                            CustomerGUID = customerGUID,
+                            WorldServerID = worldServerId
+                        };
+
+                        await connection.ExecuteAsync(PostgresQueries.UpdateWorldServerSQL, parameters2);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"StartWorldServer error: {ex.Message}");
+                    return -1;
                 }
             }
 
             return worldServerId;
         }
 
-        public async Task<SuccessAndErrorMessage> UpdateNumberOfPlayers(Guid customerGUID, int zoneInstanceId, int numberOfPlayers)
+        public async Task<SuccessAndErrorMessage> UpdateNumberOfPlayers(Guid customerGuid, int zoneInstanceId, int numberOfPlayers)
         {
             using (var connection = (NpgsqlConnection)Connection)
             {
                 var paremeters = new
                 {
-                    CustomerGUID = customerGUID,
+                    CustomerGUID = customerGuid,
                     ZoneInstanceID = zoneInstanceId,
                     NumberOfReportedPlayers = numberOfPlayers
                 };
@@ -211,13 +221,11 @@ namespace OWSData.Repositories.Implementations.Postgres
                 _ = await connection.ExecuteAsync(PostgresQueries.UpdateNumberOfPlayersSQL, paremeters);
             }
 
-            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+            return new SuccessAndErrorMessage()
             {
                 Success = true,
                 ErrorMessage = ""
             };
-
-            return output;
         }
 
         public async Task<IEnumerable<GetZoneInstancesForZone>> GetZoneInstancesOfZone(Guid customerGUID, string ZoneName)

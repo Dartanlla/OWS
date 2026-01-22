@@ -167,20 +167,23 @@ namespace OWSPublicAPI
             if (OWSStorageConfig.Exists())
             {
                 string dbBackend = OWSStorageConfig.GetValue<string>("OWSDBBackend");
+                string connectionString = OWSStorageConfig.GetValue<string>("OWSDBConnectionString");
+                string connectionStringWithApplicationName = $"{connectionString}Application Name=OWS Public API;";
+                OWSStorageConfig["OWSDBConnectionString"] = connectionStringWithApplicationName;
 
                 switch (dbBackend)
                 {
                     case "postgres":
-                        container.Register<ICharactersRepository, OWSData.Repositories.Implementations.Postgres.CharactersRepository>(Lifestyle.Singleton);
-                        container.Register<IUsersRepository, OWSData.Repositories.Implementations.Postgres.UsersRepository>(Lifestyle.Singleton);
+                        container.Register<ICharactersRepository, OWSData.Repositories.Implementations.Postgres.CharactersRepository>(Lifestyle.Scoped);
+                        container.Register<IUsersRepository, OWSData.Repositories.Implementations.Postgres.UsersRepository>(Lifestyle.Scoped);
                         break;
                     case "mysql":
-                        container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MySQL.CharactersRepository>(Lifestyle.Singleton);
-                        container.Register<IUsersRepository, OWSData.Repositories.Implementations.MySQL.UsersRepository>(Lifestyle.Singleton);
+                        container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MySQL.CharactersRepository>(Lifestyle.Scoped);
+                        container.Register<IUsersRepository, OWSData.Repositories.Implementations.MySQL.UsersRepository>(Lifestyle.Scoped);
                         break;
                     default: // Default to MSSQL
-                        container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MSSQL.CharactersRepository>(Lifestyle.Singleton);
-                        container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Singleton);
+                        container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MSSQL.CharactersRepository>(Lifestyle.Scoped);
+                        container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Scoped);
                         break;
                 }
             }
