@@ -1,5 +1,6 @@
 ﻿using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
+using OWSData.Models.Tables;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -21,5 +22,11 @@ namespace OWSData.Repositories.Interfaces
         Task<SuccessAndErrorMessage> RegisterLauncher(Guid customerGUID, string launcherGuid, string serverIp, int maxNumberOfInstances, string internalServerIp, int startingInstancePort);
         Task<SuccessAndErrorMessage> AddZone(Guid customerGUID, string mapName,	string zoneName, string worldCompContainsFilter, string worldCompListFilter, int softPlayerCap, int hardPlayerCap, int mapMode);
         Task<SuccessAndErrorMessage> UpdateZone(Guid customerGUID, int mapId, string mapName, string zoneName, string worldCompContainsFilter, string worldCompListFilter, int softPlayerCap, int hardPlayerCap, int mapMode);
+        Task<IEnumerable<WorldServers>> GetWorldServers(Guid customerGuid);
+        Task<SuccessAndErrorMessage> RemoveWorldServer(Guid customerGuid, int worldserverid);
+        Task<IEnumerable<Maps>> GetZones(Guid customerGuid);
+        Task<SuccessAndErrorMessage> RemoveZone(Guid customerGuid, int mapid);
+        Task<IEnumerable<MapInstances>> GetMapInstances(Guid customerGuid);
+        Task<SuccessAndErrorMessage> RemoveMapInstances(Guid customerGuid, int mapinstanceid);
     }
 }
