@@ -27,7 +27,7 @@ Click on the button below to download the Open World Starter project.
    
 5. Modify the **PathToUProject** value to include the path to the **OpenWorldStarter.uproject**. The path must also include the uproject file and file extension.
 
-6. Enter the **OWSAPIKey** value that you created when following the [Database setup instructions](setup-database).
+6. Enter the **OWSAPIKey** value that you created when following the [Database setup instructions](https://www.openworldserver.com/getting-started/database-setup).
 
 7. Save the `appsettings.json` file
 
