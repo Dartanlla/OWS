@@ -67,7 +67,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     p.Add("@CharacterName", characterName);
                     p.Add("@ClassName", className);
 
-                    outputObject = await connection.QuerySingleAsync<CreateCharacter>("select * from AddCharacter(@CustomerGUID,@UserSessionGUID,@CharacterName,@ClassName)",
+                    outputObject = await Connection.QuerySingleAsync<CreateCharacter>(GenericQueries.CreateCharacterSQL,
                         p,
                         commandType: CommandType.Text);
                 }
