@@ -153,7 +153,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     p.Add("@UserSessionGUID", userSessionGUID);
                     p.Add("@PlayerGroupTypeID", playerGroupTypeID);
 
-                    outputObject = await connection.QueryAsync<GetPlayerGroupsCharacterIsIn>("select * from GetPlayerGroupsCharacterIsIn(@CustomerGUID,@CharName,@UserSessionGUID,@PlayerGroupTypeID)",
+                    outputObject = await connection.QueryAsync<GetPlayerGroupsCharacterIsIn>(GenericQueries.GetPlayerGroupsCharacterIsIn,
                         p,
                         commandType: CommandType.Text);
                 }

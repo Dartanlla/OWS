@@ -330,11 +330,33 @@ namespace OWSData.SQL
 				WHERE C.CustomerGUID = @CustomerGUID
 				  AND C.CharName = @CharName";
 
-	    public static readonly string GetCharacterCustomDataByName = @"SELECT *
+        public static readonly string GetCharacterCustomDataByName = @"SELECT *
 				FROM CustomCharacterData CCD
 				INNER JOIN Characters C ON C.CharacterID = CCD.CharacterID
 				WHERE CCD.CustomerGUID = @CustomerGUID
 				  AND C.CharName = @CharName";
+
+        public static readonly string GetPlayerGroupsCharacterIsIn = @"SELECT PG.PlayerGroupID,
+				PG.CustomerGUID,
+				PG.PlayerGroupName,
+				PG.PlayerGroupTypeID,
+				PG.ReadyState,
+				PG.CreateDate,
+				PGC.DateAdded,
+				PGC.TeamNumber
+			FROM PlayerGroupCharacters PGC
+			INNER JOIN PlayerGroup PG
+				ON PG.PlayerGroupID = PGC.PlayerGroupID
+				AND PG.CustomerGUID = PGC.CustomerGUID
+			INNER JOIN Characters C
+				ON C.CharacterID = PGC.CharacterID
+			INNER JOIN UserSessions US
+				ON US.UserGUID = C.UserGUID
+				AND US.CustomerGUID = C.CustomerGUID
+			WHERE PGC.CustomerGUID = @CustomerGUID
+			  AND (PG.PlayerGroupTypeID = @PlayerGroupTypeID OR @PlayerGroupTypeID = 0)
+			  AND C.CharName = @CharName
+			  AND C.CustomerGUID = @CustomerGUID";
 
         public static readonly string GetDefaultCustomCharacterDataByDefaultSetName = @"SELECT *
 				FROM DefaultCustomCharacterData DCCD
