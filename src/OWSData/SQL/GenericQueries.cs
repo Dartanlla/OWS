@@ -373,9 +373,14 @@ namespace OWSData.SQL
 				  AND PGC.CharacterID = @CharacterID
 				  AND PG.PlayerGroupTypeID = @PlayerGroupType";
 
-		public static readonly string GetUsers = @"SELECT UserGUID, FirstName, LastName, Email, CreateDate, LastAccess, Role
+        public static readonly string GetUsers = @"SELECT UserGUID, FirstName, LastName, Email, CreateDate, LastAccess, Role
 				FROM Users
 				WHERE CustomerGUID = @CustomerGUID";
+
+        public static readonly string GetUser = @"SELECT *
+				FROM Users
+				WHERE CustomerGUID = @CustomerGUID
+				  AND UserGUID = @UserGUID";
 
 		public static readonly string UpdateUser = @"UPDATE Users
 				SET FirstName = @FirstName
@@ -615,6 +620,181 @@ namespace OWSData.SQL
         #region User Queries
 
         public static readonly string Logout = @"DELETE FROM UserSessions WHERE CustomerGUID=@CustomerGuid AND UserSessionGUID=@UserSessionGUID";
+
+        public static readonly string GetUserSession = @"SELECT US.CustomerGUID,
+				US.UserGUID,
+				US.UserSessionGUID,
+				US.LoginDate,
+				US.SelectedCharacterName,
+				U.Email,
+				U.FirstName,
+				U.LastName,
+				U.CreateDate,
+				U.LastAccess,
+				U.Role,
+				C.CharacterID,
+				C.CharName,
+				C.X,
+				C.Y,
+				C.Z,
+				C.RX,
+				C.RY,
+				C.RZ,
+				C.MapName AS ZoneName
+			FROM UserSessions US
+			INNER JOIN Users U
+				ON U.UserGUID = US.UserGUID
+			LEFT JOIN Characters C
+				ON C.CustomerGUID = US.CustomerGUID
+				AND C.CharName = US.SelectedCharacterName
+				AND C.UserGUID = US.UserGUID
+			WHERE US.CustomerGUID = @CustomerGUID
+			  AND US.UserSessionGUID = @UserSessionGUID";
+
+        public static readonly string PlayerLoginAndCreateSession = @"WITH user_row AS (
+				SELECT U.UserGUID,
+					(U.PasswordHash = crypt(@Password, U.PasswordHash)) AS PasswordCheck
+				FROM Users U
+				WHERE U.CustomerGUID = @CustomerGUID
+				  AND U.Email = @Email
+				  AND U.Role = 'Player'
+			),
+			auth AS (
+				SELECT CASE
+						WHEN (PasswordCheck OR @DontCheckPassword) THEN TRUE
+						ELSE FALSE
+					END AS Authenticated,
+					UserGUID
+				FROM user_row
+			),
+			deleted AS (
+				DELETE FROM UserSessions US
+				USING auth A
+				WHERE A.Authenticated = TRUE
+				  AND US.UserGUID = A.UserGUID
+				RETURNING 1
+			),
+			ins AS (
+				INSERT INTO UserSessions (CustomerGUID, UserSessionGUID, UserGUID, LoginDate)
+				SELECT @CustomerGUID, gen_random_uuid(), A.UserGUID, NOW()
+				FROM auth A
+				WHERE A.Authenticated = TRUE
+				RETURNING UserSessionGUID
+			)
+			SELECT COALESCE((SELECT Authenticated FROM auth), FALSE) AS Authenticated,
+				(SELECT UserSessionGUID FROM ins) AS UserSessionGUID";
+
+        public static readonly string UserSessionSetSelectedCharacter = @"UPDATE UserSessions
+				SET SelectedCharacterName = @SelectedCharacterName
+				WHERE CustomerGUID = @CustomerGUID
+				  AND UserSessionGUID = @UserSessionGUID";
+
+        public static readonly string AddUser = @"WITH new_user AS (
+				SELECT gen_random_uuid() AS UserGUID,
+					crypt(@Password, gen_salt('md5')) AS PasswordHash
+			),
+			ins AS (
+				INSERT INTO Users (UserGUID, CustomerGUID, FirstName, LastName, Email, PasswordHash, CreateDate, LastAccess, Role)
+				SELECT NU.UserGUID, @CustomerGUID, @FirstName, @LastName, @Email, NU.PasswordHash, NOW(), NOW(), @Role
+				FROM new_user NU
+				RETURNING UserGUID
+			)
+			SELECT UserGUID FROM ins";
+
+        public static readonly string RemoveCharacter = @"WITH user_data AS (
+				SELECT US.UserGUID
+				FROM UserSessions US
+				WHERE US.CustomerGUID = @CustomerGUID
+				  AND US.UserSessionGUID = @UserSessionGUID
+			),
+			char_data AS (
+				SELECT C.CharacterID
+				FROM Characters C
+				JOIN user_data UD ON C.UserGUID = UD.UserGUID
+				WHERE C.CustomerGUID = @CustomerGUID
+				  AND C.CharName = @CharacterName
+			),
+			del_char_ability_bar_abilities AS (
+				DELETE FROM CharAbilityBarAbilities CABA
+				USING CharAbilityBars CAB, char_data CD
+				WHERE CABA.CustomerGUID = @CustomerGUID
+				  AND CABA.CharAbilityBarID = CAB.CharAbilityBarID
+				  AND CAB.CustomerGUID = @CustomerGUID
+				  AND CAB.CharacterID = CD.CharacterID
+				RETURNING 1
+			),
+			del_char_ability_bars AS (
+				DELETE FROM CharAbilityBars CAB
+				USING char_data CD
+				WHERE CAB.CustomerGUID = @CustomerGUID
+				  AND CAB.CharacterID = CD.CharacterID
+				RETURNING 1
+			),
+			del_char_has_abilities AS (
+				DELETE FROM CharHasAbilities CHA
+				USING char_data CD
+				WHERE CHA.CustomerGUID = @CustomerGUID
+				  AND CHA.CharacterID = CD.CharacterID
+				RETURNING 1
+			),
+			del_char_has_items AS (
+				DELETE FROM CharHasItems CHI
+				USING char_data CD
+				WHERE CHI.CharacterID = CD.CharacterID
+				RETURNING 1
+			),
+			del_char_inventory_items AS (
+				DELETE FROM CharInventoryItems CII
+				USING CharInventory CI, char_data CD
+				WHERE CII.CustomerGUID = @CustomerGUID
+				  AND CII.CharInventoryID = CI.CharInventoryID
+				  AND CI.CustomerGUID = @CustomerGUID
+				  AND CI.CharacterID = CD.CharacterID
+				RETURNING 1
+			),
+			del_char_inventory AS (
+				DELETE FROM CharInventory CI
+				USING char_data CD
+				WHERE CI.CustomerGUID = @CustomerGUID
+				  AND CI.CharacterID = CD.CharacterID
+				RETURNING 1
+			),
+			del_char_on_map_instance AS (
+				DELETE FROM CharOnMapInstance COMI
+				USING char_data CD
+				WHERE COMI.CustomerGUID = @CustomerGUID
+				  AND COMI.CharacterID = CD.CharacterID
+				RETURNING 1
+			),
+			del_chat_group_users AS (
+				DELETE FROM ChatGroupUsers CGU
+				USING char_data CD
+				WHERE CGU.CustomerGUID = @CustomerGUID
+				  AND CGU.CharacterID = CD.CharacterID
+				RETURNING 1
+			),
+			del_custom_character_data AS (
+				DELETE FROM CustomCharacterData CCD
+				USING char_data CD
+				WHERE CCD.CustomerGUID = @CustomerGUID
+				  AND CCD.CharacterID = CD.CharacterID
+				RETURNING 1
+			),
+			del_player_group_characters AS (
+				DELETE FROM PlayerGroupCharacters PGC
+				USING char_data CD
+				WHERE PGC.CustomerGUID = @CustomerGUID
+				  AND PGC.CharacterID = CD.CharacterID
+				RETURNING 1
+			),
+			del_characters AS (
+				DELETE FROM Characters C
+				USING char_data CD
+				WHERE C.CustomerGUID = @CustomerGUID
+				  AND C.CharacterID = CD.CharacterID
+				RETURNING 1
+			)
+			SELECT 1";
 
         #endregion
     }
