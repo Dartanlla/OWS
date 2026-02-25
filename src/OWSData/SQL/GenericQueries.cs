@@ -142,11 +142,20 @@ namespace OWSData.SQL
 				FROM Users
 				WHERE CustomerGUID = @CustomerGUID";
 
+        public static readonly string GetCharacters = @"SELECT CharacterID, UserGUID, CharName, MapName, X, Y, Z, LastActivity, CreateDate
+				FROM Characters";
+
+        public static readonly string RemoveCharacter = @"DELETE From Characters
+				WHERE charname = @charname";
+
 		public static readonly string UpdateUser = @"UPDATE Users
 				SET FirstName = @FirstName
 				  , LastName = @LastName
 				  , Email = @Email
 			  WHERE CustomerGUID = @CustomerGUID AND UserGUID = @UserGUID";
+
+        public static readonly string RemoveUser = @"DELETE From Users
+			  WHERE UserGUID = @UserGUID AND Email = @Email";
 
         public static readonly string HasCustomCharacterDataForField = @"SELECT 1
 				FROM CustomCharacterData
@@ -313,6 +322,13 @@ namespace OWSData.SQL
 					  , ServerStatus = @ServerStatus
 				  WHERE CustomerGUID = @CustomerGUID
 				    AND WorldServerID = @WorldServerID";
+
+        public static readonly string GetWorldServers = @"SELECT *
+				FROM WorldServers";
+
+        public static readonly string RemoveWorldServer = @"DELETE From WorldServers
+				WHERE worldserverid = @worldserverid";
+
         #endregion
 
         #region Zone Queries
@@ -349,7 +365,10 @@ namespace OWSData.SQL
 				WHERE M.CustomerGUID = @CustomerGUID
 				  AND MI.MapInstanceID = @MapInstanceID";
 
-	    public static readonly string RemoveMapInstances = @"DELETE FROM MapInstances WHERE CustomerGUID = @CustomerGUID AND MapInstanceID IN @MapInstances";
+        public static readonly string GetMapInstances = @"SELECT mapinstanceid, worldserverid, mapid, port, status, numberofreportedplayers, createdate, lastupdatefromserver, lastserveremptydate
+				FROM MapInstances";
+
+        public static readonly string RemoveMapInstances = @"DELETE FROM MapInstances WHERE CustomerGUID = @CustomerGUID AND MapInstanceID IN @MapInstances";
 
         public static readonly string RemoveAllMapInstancesForWorldServer = @"DELETE FROM MapInstances WHERE CustomerGUID = @CustomerGUID AND WorldServerId = @WorldServerId";
 
@@ -358,11 +377,17 @@ namespace OWSData.SQL
 				WHERE CustomerGUID = @CustomerGUID
 				  AND MapInstanceID = @MapInstanceID";
 
+        public static readonly string GetZones = @"SELECT mapid, mapname, zonename, softplayercap, hardplayercap, mapmode, minutestoshutdownafterempty
+				FROM Maps";
+
+        public static readonly string RemoveZone = @"DELETE From Maps
+				WHERE mapid = @mapid";
+
         #endregion
 
-		#region Global Data Queries
+        #region Global Data Queries
 
-		public static readonly string AddGlobalData = @"INSERT INTO GlobalData (CustomerGUID, GlobalDataKey, GlobalDataValue)
+        public static readonly string AddGlobalData = @"INSERT INTO GlobalData (CustomerGUID, GlobalDataKey, GlobalDataValue)
 		VALUES (@CustomerGUID, @GlobalDataKey, @GlobalDataValue)";
 
         public static readonly string GetGlobalDataByGlobalDataKey = @"SELECT CustomerGUID, GlobalDataKey, GlobalDataValue

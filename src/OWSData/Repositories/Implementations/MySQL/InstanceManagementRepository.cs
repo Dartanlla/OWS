@@ -11,6 +11,7 @@ using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSData.SQL;
 using OWSShared.Options;
+using OWSData.Models.Tables;
 
 namespace OWSData.Repositories.Implementations.MySQL
 {
@@ -369,6 +370,138 @@ namespace OWSData.Repositories.Implementations.MySQL
                 };
 
                 return output;
+            }
+        }
+
+        public async Task<IEnumerable<WorldServers>> GetWorldServers(Guid customerGuid)
+        {
+            IEnumerable<WorldServers> outputObject = null;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGuid);
+
+                outputObject = await Connection.QueryAsync<WorldServers>(GenericQueries.GetWorldServers, p);
+            }
+
+            return outputObject;
+        }
+
+        public async Task<SuccessAndErrorMessage> RemoveWorldServer(Guid customerGuid, int worldserverid)
+        {
+            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGuid);
+                    p.Add("@WorldServerID", worldserverid);
+
+                    await Connection.ExecuteAsync(GenericQueries.RemoveWorldServer, p, commandType: CommandType.Text);
+                }
+
+                outputObject.Success = true;
+                outputObject.ErrorMessage = "";
+
+                return outputObject;
+            }
+            catch (Exception ex)
+            {
+                outputObject.Success = false;
+                outputObject.ErrorMessage = ex.Message;
+
+                return outputObject;
+            }
+        }
+
+        public async Task<IEnumerable<Maps>> GetZones(Guid customerGuid)
+        {
+            IEnumerable<Maps> outputObject = null;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGuid);
+
+                outputObject = await Connection.QueryAsync<Maps>(GenericQueries.GetZones, p);
+            }
+
+            return outputObject;
+        }
+
+        public async Task<SuccessAndErrorMessage> RemoveZone(Guid customerGuid, int mapid)
+        {
+            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGuid);
+                    p.Add("@MapID", mapid);
+
+                    await Connection.ExecuteAsync(GenericQueries.RemoveZone, p, commandType: CommandType.Text);
+                }
+
+                outputObject.Success = true;
+                outputObject.ErrorMessage = "";
+
+                return outputObject;
+            }
+            catch (Exception ex)
+            {
+                outputObject.Success = false;
+                outputObject.ErrorMessage = ex.Message;
+
+                return outputObject;
+            }
+        }
+
+        public async Task<IEnumerable<MapInstances>> GetMapInstances(Guid customerGuid)
+        {
+            IEnumerable<MapInstances> outputObject = null;
+
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGuid);
+
+                outputObject = await Connection.QueryAsync<MapInstances>(GenericQueries.GetMapInstances, p);
+            }
+
+            return outputObject;
+        }
+
+        public async Task<SuccessAndErrorMessage> RemoveMapInstances(Guid customerGuid, int mapinstanceid)
+        {
+            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGuid);
+                    p.Add("@MapInstanceID", mapinstanceid);
+
+                    await Connection.ExecuteAsync(GenericQueries.RemoveMapInstances, p, commandType: CommandType.Text);
+                }
+
+                outputObject.Success = true;
+                outputObject.ErrorMessage = "";
+
+                return outputObject;
+            }
+            catch (Exception ex)
+            {
+                outputObject.Success = false;
+                outputObject.ErrorMessage = ex.Message;
+
+                return outputObject;
             }
         }
     }

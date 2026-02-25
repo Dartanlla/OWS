@@ -27,6 +27,7 @@ namespace OWSData.Repositories.Interfaces
         Task<GetUserSession> GetUserFromEmail(Guid customerGUID, string email);
         Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGUID, Guid userSessionGUID, string characterName);
         Task<SuccessAndErrorMessage> UpdateUser(Guid customerGuid, Guid userGuid, string firstName, string lastName, string email);
-        
+        Task<SuccessAndErrorMessage> RemoveUser(Guid customerGuid, Guid userGuid, string email);
+
     }
 }

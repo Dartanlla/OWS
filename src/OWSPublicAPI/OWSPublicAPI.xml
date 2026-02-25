@@ -182,6 +182,14 @@
             Removes a Character from the User.  This method permanently deletes the character and all associated data.  In the future, it might make sense to modify this to only mark the character as removed to support restoring an accidentally removed character.
             </remarks>
         </member>
+        <member name="M:OWSPublicAPI.Controllers.UsersController.RemoveUser(OWSPublicAPI.Requests.Users.RemoveUserRequest)">
+            <summary>
+            Remove a User
+            </summary>
+            <remarks>
+            Removes a new user
+            </remarks>
+        </member>
         <member name="T:OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO">
             <summary>
             CreateCharacterUsingDefaultCharacterValues Data Transfer Object
@@ -566,7 +574,7 @@
             Register a user with the system.  You can control validation with a custom IIPublicAPIInputValidation implementation.  See DefaultPublicAPIInputValidation for an example.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Requests.Users.RegisterUserRequest.#ctor(OWSPublicAPI.DTOs.RegisterUserDTO,OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSShared.Interfaces.IHeaderCustomerGUID)">
+        <member name="M:OWSPublicAPI.Requests.Users.RegisterUserRequest.#ctor(OWSPublicAPI.DTOs.RegisterUserDTO,OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSShared.Interfaces.IHeaderCustomerGUID,OWSShared.Interfaces.IPublicAPIInputValidation)">
             <summary>
             RegisterUserRequest Constructor
             </summary>
@@ -617,6 +625,46 @@
         <member name="M:OWSPublicAPI.Requests.Users.RemoveCharacterRequest.Handle">
             <summary>
             Handles the CreateCharacterRequest
+            </summary>
+            <remarks>
+            Overrides IRequestHandler Handle().
+            </remarks>
+        </member>
+        <member name="T:OWSPublicAPI.Requests.Users.RemoveUserRequest">
+            <summary>
+            RemoveUserRequest Handler
+            </summary>
+            <remarks>
+            Handles api/Users/RemoveUser requests.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Users.RemoveUserRequest.UserGUID">
+            <summary>
+            UserGUID Request Paramater.
+            </summary>
+            <remarks>
+            Contains the User GUID from the request.  This identifies the User we are modifying.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Users.RemoveUserRequest.Email">
+            <summary>
+            Email Request Paramater.
+            </summary>
+            <remarks>
+            Contains the Email from the request.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Users.RemoveUserRequest.SetData(OWSData.Repositories.Interfaces.IUsersRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            Set Dependencies for RemoveUserRequest
+            </summary>
+            <remarks>
+            Injects the dependencies for the RemoveUserRequest.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Users.RemoveUserRequest.Handle">
+            <summary>
+            Handles the RemoveUser Request
             </summary>
             <remarks>
             Overrides IRequestHandler Handle().
