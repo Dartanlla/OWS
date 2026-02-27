@@ -1,0 +1,17 @@
+version: '3.7'
+
+services:
+  usersessioncache:
+    hostname: 'ows2'
+    container_name: usersessioncache
+    image: valkey/valkey:latest
+    restart: always
+    command: valkey-server --appendonly yes --requirepass "${UserSessionCacheValkeyPassword}"
+    ports:
+      - "6379:6379"
+    volumes:
+      - usersessioncache:/data
+  environment:
+    TZ=America/New_York
+  volumes:
+    usersessioncache:  

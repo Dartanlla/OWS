@@ -55,6 +55,12 @@ services:
   #  file: .docker/matchmakingcache.yml
   #  service: matchmakingcache
 
+  # User Session Cache (ValKey)
+  usersessioncache:
+    extends:
+      file: .docker/usersessioncache.yml
+      service: usersessioncache
+
   # OWS Public Api
   owspublicapi:
     image: ${REGISTRY:-ows}/owspublicapi:${PLATFORM:-linux}-${TAG:-latest}
@@ -176,3 +182,5 @@ volumes:
     name: "ows2-messaging"
   matchmakingcache:
     name: "ows2-matchmakingcache"
+  usersessioncache:
+    name: "ows2-usersessioncache"
