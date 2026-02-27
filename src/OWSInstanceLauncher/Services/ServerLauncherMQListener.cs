@@ -187,9 +187,9 @@ namespace OWSInstanceLauncher.Services
 
             serverSpinUpConsumer.Received += (model, ea) =>
             {
-                Log.Information("Server Spin Up Message Received");
                 var body = ea.Body;
                 MQSpinUpServerMessage serverSpinUpMessage = MQSpinUpServerMessage.Deserialize(body.ToArray());
+                Log.Information($"Server Spin Up Message Received: {serverSpinUpMessage.CustomerGUID} WorldServerID: {serverSpinUpMessage.WorldServerID} ZoneInstanceID: {serverSpinUpMessage.ZoneInstanceID} MapName: {serverSpinUpMessage.MapName} Port: {serverSpinUpMessage.Port}");
                 HandleServerSpinUpMessage(
                     serverSpinUpMessage.CustomerGUID,
                     serverSpinUpMessage.WorldServerID,
