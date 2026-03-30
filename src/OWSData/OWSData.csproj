@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.5" />
     <PackageReference Include="StackExchange.Redis" Version="2.8.24" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.414.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OWSShared\OWSShared.csproj" />

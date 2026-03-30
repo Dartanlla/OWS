@@ -168,6 +168,41 @@ services:
       - database
       - messaging
 
+  # OWS Content
+  owscontent:
+    image: ${REGISTRY:-ows}/owscontent:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: OWSContent/Dockerfile
+    environment:
+     - OWSStorageConfig__OWSDBBackend=${DATABASE}
+     - OWSStorageConfig__OWSDBConnectionString=${DATABASE_CONNECTION_STRING}
+     - OWSAPIPathConfig__InternalPublicApiURL=${InternalPublicApiURL}
+     - OWSAPIPathConfig__InternalInstanceManagementApiURL=${InternalInstanceManagementApiURL}
+     - OWSAPIPathConfig__InternalCharacterPersistenceApiURL=${InternalCharacterPersistenceApiURL}
+     - ContentCacheConfig__Endpoint=http://owscontentcache:9000
+     - ContentCacheConfig__AccessKey=${MINIO_ROOT_USER}
+     - ContentCacheConfig__SecretKey=${MINIO_ROOT_PASSWORD}
+     - ContentCacheConfig__BucketName=${MINIO_BUCKET_NAME}
+    ports:
+      - "44430:80"
+      - "44431:443"
+    depends_on:
+      - database
+      - messaging
+      - owscontentcache
+    restart: on-failure
+
+  # OWS Content Cache (MinIO - internal only)
+  owscontentcache:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - owscontentcache:/data
+
 networks:
   elk:
     driver: bridge
@@ -184,3 +219,5 @@ volumes:
     name: "ows2-matchmakingcache"
   usersessioncache:
     name: "ows2-usersessioncache"
+  owscontentcache:
+    name: "ows2-owscontentcache"
