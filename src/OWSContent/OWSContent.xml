@@ -4,5 +4,29 @@
         <name>OWSContent</name>
     </assembly>
     <members>
+        <member name="T:OWSContent.DTOs.ExampleDTO">
+            <summary>
+            Example Data Transfer Object
+            </summary>
+            <remarks>
+            This object is for collecting POST request parameters
+            </remarks>
+        </member>
+        <member name="P:OWSContent.DTOs.ExampleDTO.Message">
+            <summary>
+            Message
+            </summary>
+            <remarks>
+            A Example Message
+            </remarks>
+        </member>
+        <member name="T:OWSContent.Program">
+            <summary>
+            OWSContent Program
+            </summary>
+            <remarks>
+            The program class.
+            </remarks>
+        </member>
     </members>
 </doc>

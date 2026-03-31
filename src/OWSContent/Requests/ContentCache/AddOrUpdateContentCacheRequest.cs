@@ -3,6 +3,7 @@ using OWSContent.DTOs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 using Serilog;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace OWSContent.Requests.ContentCache
@@ -25,11 +26,12 @@ namespace OWSContent.Requests.ContentCache
             if (string.IsNullOrEmpty(_dto.ZoneName))
                 return new BadRequestObjectResult("ZoneName is required.");
 
-            if (string.IsNullOrEmpty(_dto.ContentJson))
+            if (_dto.ContentJson.ValueKind == JsonValueKind.Undefined)
                 return new BadRequestObjectResult("ContentJson is required.");
 
             _logger.Information("AddOrUpdateContentCache called for zone {ZoneName}", _dto.ZoneName);
-            await _contentCacheRepository.AddOrUpdateContentCacheAsync(_dto.ZoneName, _dto.ContentJson);
+            var contentJsonString = JsonSerializer.Serialize(_dto.ContentJson);
+            await _contentCacheRepository.AddOrUpdateContentCacheAsync(_dto.ZoneName, contentJsonString);
             return new OkObjectResult($"Content cache updated for zone: {_dto.ZoneName}");
         }
     }

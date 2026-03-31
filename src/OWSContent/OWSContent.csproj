@@ -5,6 +5,8 @@
     <UserSecretsId>69dc8dd2-6511-4849-ad79-570c0c1cfc99</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>OWSContent.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
