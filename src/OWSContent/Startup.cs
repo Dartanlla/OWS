@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using OWSData.Repositories.Implementations.AWS;
+using OWSData.Repositories.Implementations.Postgres;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
@@ -75,6 +76,7 @@ namespace OWSContent
             });
 
             services.Configure<ContentCacheOptions>(Configuration.GetSection(ContentCacheOptions.SectionName));
+            services.Configure<StorageOptions>(Configuration.GetSection(StorageOptions.SectionName));
 
             InitializeContainer(services);
         }
@@ -105,6 +107,7 @@ namespace OWSContent
         {
             container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
             container.Register<IContentCacheRepository, AwsContentCacheRepository>(Lifestyle.Singleton);
+            container.Register<IContentRepository, ContentRepository>(Lifestyle.Scoped);
         }
     }
 }

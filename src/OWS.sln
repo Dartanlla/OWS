@@ -37,6 +37,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OWSManagement", "OWSManagem
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OWSContent", "OWSContent\OWSContent.csproj", "{F2DEBC48-5413-46DA-9FA9-163F7A34D606}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OWSPublicAPILambda", "OWSPublicAPILambda\OWSPublicAPILambda.csproj", "{05DD25A5-0B23-5310-6D23-DFA7CB38F8CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -95,6 +97,10 @@ Global
 		{F2DEBC48-5413-46DA-9FA9-163F7A34D606}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F2DEBC48-5413-46DA-9FA9-163F7A34D606}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2DEBC48-5413-46DA-9FA9-163F7A34D606}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05DD25A5-0B23-5310-6D23-DFA7CB38F8CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05DD25A5-0B23-5310-6D23-DFA7CB38F8CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05DD25A5-0B23-5310-6D23-DFA7CB38F8CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05DD25A5-0B23-5310-6D23-DFA7CB38F8CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
