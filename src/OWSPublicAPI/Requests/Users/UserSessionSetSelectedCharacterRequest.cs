@@ -26,6 +26,20 @@ namespace OWSPublicAPI.Requests.Users
 
         public async Task<IActionResult> Handle()
         {
+            var userCharacters = await usersRepository.GetAllCharacters(customerGUID, UserSessionGUID);
+            bool characterExistsForUser = userCharacters.Any(character =>
+                !string.IsNullOrWhiteSpace(character.CharName) &&
+                string.Equals(character.CharName, SelectedCharacterName, StringComparison.OrdinalIgnoreCase));
+
+            if (!characterExistsForUser)
+            {
+                return new OkObjectResult(new SuccessAndErrorMessage
+                {
+                    Success = false,
+                    ErrorMessage = "SelectedCharacterName does not exist for this user session."
+                });
+            }
+
             output = await usersRepository.UserSessionSetSelectedCharacter(customerGUID, UserSessionGUID, SelectedCharacterName);
 
             return new OkObjectResult(output);
