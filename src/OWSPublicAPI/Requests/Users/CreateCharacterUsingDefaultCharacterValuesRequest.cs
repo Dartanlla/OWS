@@ -64,11 +64,11 @@ namespace OWSPublicAPI.Requests.Users
             //Make sure Character Name is Unique
             var characterToLookup = await _charactersRepository.GetCharByCharName(_customerGUID, _createCharacterUsingDefaultCharacterValuesDTO.CharacterName);
 
-            if (characterToLookup != null && characterToLookup.UserGuid != Guid.Empty)
+            if (characterToLookup != null)
             {
                 SuccessAndErrorMessage successAndErrorMessage = new SuccessAndErrorMessage();
                 successAndErrorMessage.Success = false;
-                successAndErrorMessage.ErrorMessage = "Character name already exists!";
+                successAndErrorMessage.ErrorMessage = "Character name already exists for this customer!";
                 return successAndErrorMessage;
             }
 
@@ -83,10 +83,23 @@ namespace OWSPublicAPI.Requests.Users
                 return successAndErrorMessage;
             }
 
-            await _usersRepository.CreateCharacterUsingDefaultCharacterValues(_customerGUID, userSession.UserGuid.Value, _createCharacterUsingDefaultCharacterValuesDTO.CharacterName,
+            var createCharacterResult = await _usersRepository.CreateCharacterUsingDefaultCharacterValues(_customerGUID, userSession.UserGuid.Value, _createCharacterUsingDefaultCharacterValuesDTO.CharacterName,
                 _createCharacterUsingDefaultCharacterValuesDTO.DefaultSetName);
 
-            return new SuccessAndErrorMessage() { Success = true, ErrorMessage = "" };
+            if (createCharacterResult == null)
+            {
+                return new SuccessAndErrorMessage()
+                {
+                    Success = false,
+                    ErrorMessage = "Character could not be created."
+                };
+            }
+
+            return new SuccessAndErrorMessage()
+            {
+                Success = createCharacterResult.Success,
+                ErrorMessage = createCharacterResult.Success ? "" : createCharacterResult.ErrorMessage
+            };
         }
     }
 }
