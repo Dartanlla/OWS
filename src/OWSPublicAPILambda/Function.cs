@@ -22,6 +22,9 @@ namespace OWSPublicAPILambda;
 public class Function
 {
     public static IServiceProvider? services;
+    private const string ConnectionStringEnvVar = "OWS_DB_CONNECTION_STRING";
+    private const string LegacyConnectionStringEnvVar = "OWSDBConnectionString";
+    private const string ConfigSectionConnectionStringEnvVar = "OWSStorageConfig__OWSDBConnectionString";
 
     private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
     {
@@ -31,6 +34,7 @@ public class Function
     public Function()
     {
         string? instanceManagementApiUrl = Environment.GetEnvironmentVariable("INSTANCE_MANAGEMENT_API_URL") ?? "http://localhost:5000/";
+        string owsDbConnectionString = GetRequiredConnectionString();
 
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddSingleton<ICharactersRepository, OWSData.Repositories.Implementations.Postgres.CharactersRepository>();
@@ -55,9 +59,32 @@ public class Function
         };
         serviceCollection.AddSingleton<IOptions<PublicAPIOptions>>(Options.Create(publicAPIOptions));
 
+        var storageOptions = new StorageOptions
+        {
+            OWSDBConnectionString = owsDbConnectionString
+        };
+        serviceCollection.AddSingleton<IOptions<StorageOptions>>(Options.Create(storageOptions));
+
         serviceCollection.AddSingleton<IExternalLoginProviderFactory>(new ExternalLoginProviderFactory(new Container()));
 
         services = serviceCollection.BuildServiceProvider();
+    }
+
+    private static string GetRequiredConnectionString()
+    {
+        string? connectionString =
+            Environment.GetEnvironmentVariable(ConnectionStringEnvVar)
+            ?? Environment.GetEnvironmentVariable(LegacyConnectionStringEnvVar)
+            ?? Environment.GetEnvironmentVariable(ConfigSectionConnectionStringEnvVar);
+
+        if (!string.IsNullOrWhiteSpace(connectionString))
+        {
+            return connectionString;
+        }
+
+        throw new InvalidOperationException(
+            $"No database connection string was found. Set one of these AWS Lambda environment variables: " +
+            $"{ConnectionStringEnvVar}, {LegacyConnectionStringEnvVar}, or {ConfigSectionConnectionStringEnvVar}.");
     }
 
     /// <summary>

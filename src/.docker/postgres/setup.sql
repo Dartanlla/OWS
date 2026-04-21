@@ -3793,4 +3793,4 @@ ALTER TABLE ContentFeatures
     ADD CONSTRAINT fk_contentfeature_package
     FOREIGN KEY (ContentPackageId) REFERENCES ContentPackages(ContentPackageId);
 
-INSERT INTO OWSVersion (OWSDBVersion) VALUES('20250401');
+INSERT INTO OWSVersion (OWSDBVersion) VALUES('20260401');

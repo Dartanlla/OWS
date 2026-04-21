@@ -5,12 +5,19 @@
     "dotnet lambda help",
     "All the command line options for the Lambda command can be specified in this file."
   ],
-  "profile": "",
-  "region": "",
+  "profile": "default",
+  "region": "us-east-1",
   "configuration": "Release",
   "function-architecture": "x86_64",
-  "function-runtime": "dotnet10",
+  "function-runtime": "dotnet8",
   "function-memory-size": 512,
   "function-timeout": 30,
-  "function-handler": "OWSPublicAPILambda::OWSPublicAPILambda.Function::FunctionHandler"
+  "function-handler": "OWSPublicAPILambda::OWSPublicAPILambda.Function::FunctionHandler",
+  "framework": "net8.0",
+  "function-name": "OWSPublicAPILambda",
+  "function-description": "",
+  "package-type": "Zip",
+  "tracing-mode": "PassThrough",
+  "environment-variables": "\u0022OWS_DB_CONNECTION_STRING\u0022=\u0022Host=ep-old-dust-anoqizoy.c-6.us-east-1.aws.neon.tech;Port=5432;Database=openworldserver;Username=neondb_owner;Password=npg_vfKXYHr21hnD;Maximum Pool Size=6;\u0022",
+  "image-tag": ""
 }

@@ -1,3 +1,10 @@
+UPDATE OWSVersion
+SET OWSDBVersion='20260401'
+WHERE OWSDBVersion IS NOT NULL;
+
+SELECT OWSDBVersion
+FROM OWSVersion;
+
 CREATE TABLE ContentFeatures (
     ContentFeatureId  SERIAL PRIMARY KEY,
     CustomerGuid      UUID NOT NULL,
