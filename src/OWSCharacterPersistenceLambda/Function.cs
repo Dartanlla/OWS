@@ -8,7 +8,6 @@ using OWSCharacterPersistence.Requests.Characters;
 using OWSCharacterPersistence.Requests.Statuses;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Implementations;
-using OWSShared.Interfaces;
 using OWSShared.Options;
 using System.Text.Json;
 

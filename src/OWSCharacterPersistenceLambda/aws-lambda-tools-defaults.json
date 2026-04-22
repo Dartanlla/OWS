@@ -5,12 +5,21 @@
     "dotnet lambda help",
     "All the command line options for the Lambda command can be specified in this file."
   ],
-  "profile": "",
-  "region": "",
+  "profile": "default",
+  "region": "us-east-1",
   "configuration": "Release",
   "function-architecture": "x86_64",
-  "function-runtime": "dotnet10",
-  "function-memory-size": 512,
+  "function-runtime": "dotnet8",
+  "function-memory-size": 192,
   "function-timeout": 30,
-  "function-handler": "OWSCharacterPersistenceLambda::OWSCharacterPersistenceLambda.Function::FunctionHandler"
+  "function-handler": "OWSCharacterPersistenceLambda::OWSCharacterPersistenceLambda.Function::FunctionHandler",
+  "framework": "net8.0",
+  "function-name": "OWSCharacterPersistence",
+  "package-type": "Zip",
+  "function-role": "arn:aws:iam::395053132894:role/role-ows-characterpersistence",
+  "function-subnets": "",
+  "function-security-groups": "",
+  "tracing-mode": "PassThrough",
+  "environment-variables": "",
+  "image-tag": ""
 }
