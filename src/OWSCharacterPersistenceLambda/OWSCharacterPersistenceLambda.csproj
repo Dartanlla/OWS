@@ -9,12 +9,17 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <!-- Generate ready to run images during publishing to improve cold start time. -->
     <PublishReadyToRun>true</PublishReadyToRun>
+    <SelfContained>false</SelfContained>
+    <PublishSelfContained>false</PublishSelfContained>
+<RuntimeIdentifier>linux-x64</RuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.3" />
     <PackageReference Include="Amazon.Lambda.Core" Version="2.8.1" />
     <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.5" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\OWSCharacterPersistence\OWSCharacterPersistence.csproj" />
     <ProjectReference Include="..\OWSData\OWSData.csproj" />
     <ProjectReference Include="..\OWSShared\OWSShared.csproj" />
   </ItemGroup>
