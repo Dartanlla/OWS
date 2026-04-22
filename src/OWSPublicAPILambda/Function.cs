@@ -8,6 +8,7 @@ using OWSExternalLoginProviders.Extensions;
 using OWSExternalLoginProviders.Interfaces;
 using OWSPublicAPI;
 using OWSPublicAPI.DTOs;
+using OWSPublicAPI.Requests.Characters;
 using OWSPublicAPI.Requests.Users;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
@@ -114,6 +115,9 @@ public class Function
         var externalLoginProviderFactory = services!.GetRequiredService<IExternalLoginProviderFactory>();
         var owsGeneralConfig = services!.GetRequiredService<IOptions<PublicAPIOptions>>();
         var httpClientFactory = services!.GetRequiredService<IHttpClientFactory>();
+        var customCharacterDataSelector = services!.GetRequiredService<ICustomCharacterDataSelector>();
+        var customDataSelector = services!.GetRequiredService<ICustomDataSelector>();
+        var getReadOnlyPublicCharacterData = services!.GetRequiredService<IGetReadOnlyPublicCharacterData>();
 
         string body = proxyRequest.Body ?? "{}";
         object? result;
@@ -213,6 +217,25 @@ public class Function
                 var request = JsonSerializer.Deserialize<RemoveCharacterRequest>(body, _jsonOptions)!;
                 request.SetData(usersRepository, customerGuid);
                 result = ExtractActionResultValue(await request.Handle());
+                break;
+            }
+            case "ByName":
+            {
+                var dto = JsonSerializer.Deserialize<GetByNameDTO>(body, _jsonOptions)!;
+                var request = new GetByNameRequest(dto, usersRepository, charactersRepository, customerGuid, customCharacterDataSelector, getReadOnlyPublicCharacterData);
+                result = ExtractActionResultValue(await request.Handle());
+                break;
+            }
+            case "GetDefaultCustomData":
+            {
+                var dto = JsonSerializer.Deserialize<GetDefaultCustomrDataDTO>(body, _jsonOptions)!;
+                var request = new GetDefaultCustomDataRequest(dto, usersRepository, charactersRepository, customerGuid, customDataSelector, getReadOnlyPublicCharacterData);
+                result = ExtractActionResultValue(await request.Handle());
+                break;
+            }
+            case "Status":
+            {
+                result = true;
                 break;
             }
             default:
