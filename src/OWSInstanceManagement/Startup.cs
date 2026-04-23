@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Amazon.SQS;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
@@ -89,6 +90,8 @@ namespace OWSInstanceManagement
 
             //Use AWS SQS for Instance Launcher Messaging
             services.Configure<OWSShared.Options.SQSOptions>(Configuration.GetSection(OWSShared.Options.SQSOptions.SectionName));
+            services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
+            services.AddAWSService<IAmazonSQS>();
             services.AddSingleton<IInstanceLauncherMessaging, SQSInstanceLauncherMessaging>();
 
             InitializeContainer(services);
