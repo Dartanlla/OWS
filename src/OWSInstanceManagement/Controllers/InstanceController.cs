@@ -25,19 +25,19 @@ namespace OWSInstanceManagement.Controllers
         private readonly Container _container;
         private readonly IInstanceManagementRepository _instanceManagementRepository;
         private readonly ICharactersRepository _charactersRepository;
-        private readonly IOptions<RabbitMQOptions> _rabbitMQOptions;
+        private readonly IInstanceLauncherMessaging _instanceLauncherMessaging;
         private readonly IHeaderCustomerGUID _customerGuid;
 
         public InstanceController(Container container,
             IInstanceManagementRepository instanceManagementRepository,
             ICharactersRepository charactersRepository,
-            IOptions<RabbitMQOptions> rabbitMQOptions,
+            IInstanceLauncherMessaging instanceLauncherMessaging,
             IHeaderCustomerGUID customerGuid)
         {
             _container = container;
             _instanceManagementRepository = instanceManagementRepository;
             _charactersRepository = charactersRepository;
-            _rabbitMQOptions = rabbitMQOptions;
+            _instanceLauncherMessaging = instanceLauncherMessaging;
             _customerGuid = customerGuid;
         }
 
@@ -72,7 +72,7 @@ namespace OWSInstanceManagement.Controllers
         [SwaggerResponse(404)]*/
         public async Task<IActionResult> ShutDownServerInstance([FromBody] ShutDownServerInstanceRequest request)
         {
-            request.SetData(_rabbitMQOptions, _instanceManagementRepository, _customerGuid);
+            request.SetData(_instanceLauncherMessaging, _instanceManagementRepository, _customerGuid);
 
             return await request.Handle();
         }
@@ -98,7 +98,7 @@ namespace OWSInstanceManagement.Controllers
         [SwaggerResponse(404)]*/
         public async Task<IActionResult> SpinUpServerInstance([FromBody] SpinUpServerInstanceRequest request)
         {
-            request.SetData(_rabbitMQOptions, _charactersRepository, _customerGuid);
+            request.SetData(_instanceLauncherMessaging, _charactersRepository, _customerGuid);
 
             return await request.Handle();
         }

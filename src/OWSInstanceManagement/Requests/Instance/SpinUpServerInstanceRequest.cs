@@ -1,16 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using OWSData.Models.Composites;
-using OWSData.Models.StoredProcs;
+using Microsoft.AspNetCore.Mvc;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
-using OWSShared.Messages;
-using OWSShared.Options;
-using RabbitMQ.Client;
-using SimpleInjector;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace OWSInstanceManagement.Requests.Instance
@@ -22,62 +13,26 @@ namespace OWSInstanceManagement.Requests.Instance
         public string ZoneName { get; set; }
         public int Port { get; set; }
 
-        private IOptions<RabbitMQOptions> _rabbitMQOptions;
-        private SuccessAndErrorMessage Output;
-        private Guid CustomerGUID;
-        //private IServiceProvider ServiceProvider;
+        private IInstanceLauncherMessaging _instanceLauncherMessaging;
         private ICharactersRepository _charactersRepository;
+        private Guid CustomerGUID;
 
-        public void SetData(IOptions<RabbitMQOptions> rabbitMQOptions, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
+        public void SetData(IInstanceLauncherMessaging instanceLauncherMessaging, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
         {
-            _rabbitMQOptions = rabbitMQOptions;
+            _instanceLauncherMessaging = instanceLauncherMessaging;
             _charactersRepository = charactersRepository;
             CustomerGUID = customerGuid.CustomerGUID;
         }
 
         public async Task<IActionResult> Handle()
         {
-            ConnectionFactory factory = new() 
-            { 
-                HostName = _rabbitMQOptions.Value.RabbitMQHostName,
-                Port = _rabbitMQOptions.Value.RabbitMQPort,
-                UserName = _rabbitMQOptions.Value.RabbitMQUserName, 
-                Password = _rabbitMQOptions.Value.RabbitMQPassword
-            };
+            _instanceLauncherMessaging.PublishSpinUpServerMessage(CustomerGUID, WorldServerID, ZoneInstanceID, ZoneName, Port);
 
-            using (var connection = factory.CreateConnection())
+            return new OkObjectResult(new OWSData.Models.Composites.SuccessAndErrorMessage
             {
-                using (var channel = connection.CreateModel())
-                {
-                    channel.ExchangeDeclare(exchange: "ows.serverspinup",
-                        type: "direct",
-                        durable: false,
-                        autoDelete: false);
-
-                    MQSpinUpServerMessage serverSpinUpMessage = new()
-                    {
-                        CustomerGUID = CustomerGUID,
-                        WorldServerID = WorldServerID,
-                        ZoneInstanceID = ZoneInstanceID,
-                        MapName = ZoneName,
-                        Port = Port
-                    };
-
-                    var body = serverSpinUpMessage.Serialize();
-
-                    channel.BasicPublish(exchange: "ows.serverspinup",
-                                         routingKey: String.Format("ows.serverspinup.{0}", WorldServerID),
-                                         basicProperties: null,
-                                         body: body);
-                }
-            }
-
-            Output = new SuccessAndErrorMessage() {
                 Success = true,
                 ErrorMessage = ""
-            };
-
-            return new OkObjectResult(Output);
+            });
         }
     }
 }

@@ -7,6 +7,7 @@ using OWSData.Repositories.Interfaces;
 using OWSInstanceManagement.Requests.Instance;
 using OWSInstanceManagement.Requests.Zones;
 using OWSShared.Implementations;
+using OWSShared.Interfaces;
 using OWSShared.Options;
 using System.Text.Json;
 
@@ -50,6 +51,7 @@ public class Function
             RabbitMQPassword = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? "guest",
         };
         serviceCollection.AddSingleton<IOptions<RabbitMQOptions>>(Options.Create(rabbitMQOptions));
+        serviceCollection.AddSingleton<IInstanceLauncherMessaging, RabbitMQInstanceLauncherMessaging>();
 
         services = serviceCollection.BuildServiceProvider();
     }
@@ -94,7 +96,7 @@ public class Function
 
         var instanceManagementRepository = services!.GetRequiredService<IInstanceManagementRepository>();
         var charactersRepository = services!.GetRequiredService<ICharactersRepository>();
-        var rabbitMQOptions = services!.GetRequiredService<IOptions<RabbitMQOptions>>();
+        var instanceLauncherMessaging = services!.GetRequiredService<IInstanceLauncherMessaging>();
 
         string body = proxyRequest.Body ?? "{}";
         object? result;
@@ -112,7 +114,7 @@ public class Function
             case "ShutDownServerInstance":
             {
                 var request = JsonSerializer.Deserialize<ShutDownServerInstanceRequest>(body, _jsonOptions)!;
-                request.SetData(rabbitMQOptions, instanceManagementRepository, customerGuid);
+                request.SetData(instanceLauncherMessaging, instanceManagementRepository, customerGuid);
                 result = ExtractActionResultValue(await request.Handle());
                 break;
             }
@@ -126,7 +128,7 @@ public class Function
             case "SpinUpServerInstance":
             {
                 var request = JsonSerializer.Deserialize<SpinUpServerInstanceRequest>(body, _jsonOptions)!;
-                request.SetData(rabbitMQOptions, charactersRepository, customerGuid);
+                request.SetData(instanceLauncherMessaging, charactersRepository, customerGuid);
                 result = ExtractActionResultValue(await request.Handle());
                 break;
             }

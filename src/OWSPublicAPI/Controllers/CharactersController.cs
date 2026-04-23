@@ -4,7 +4,6 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Dapper;
 using System.Data;
 using Swashbuckle.AspNetCore.Annotations;

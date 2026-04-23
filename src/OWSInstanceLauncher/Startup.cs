@@ -16,6 +16,7 @@ using OWSData.Repositories.Interfaces;
 using OWSShared.Extensions;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
+using OWSShared.Options;
 using OWSShared.Messages;
 using SimpleInjector;
 using Serilog;
@@ -195,6 +196,9 @@ namespace OWSInstanceLauncher
                 action: processor => processor.DoWork(),
                 dispose: processor => processor.Dispose()
             ));
+
+            //Register RabbitMQ messaging abstraction
+            container.RegisterSingleton<IInstanceLauncherMessaging, RabbitMQInstanceLauncherMessaging>();
 
             //Register our Server Launcher MQ Listener job
             container.RegisterSingleton<IInstanceLauncherJob, ServerLauncherMQListener>();

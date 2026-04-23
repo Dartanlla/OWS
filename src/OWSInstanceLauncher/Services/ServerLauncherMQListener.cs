@@ -19,17 +19,16 @@ namespace OWSInstanceLauncher.Services
 {
     public class ServerLauncherMQListener : IInstanceLauncherJob //BackgroundService
     {
-        private IConnection connection;
         private IModel serverSpinUpChannel;
         private IModel serverShutDownChannel;
-        private Guid serverSpinUpQueueNameGUID;
-        private Guid serverShutDownQueueNameGUID;
+        private string serverSpinUpQueueName;
+        private string serverShutDownQueueName;
 
         private readonly Guid _customerGUID;
         private readonly Guid _launcherGUID;
         private readonly IWritableOptions<OWSInstanceLauncherOptions> _owsInstanceLauncherOptions;
         private readonly IOptions<APIPathOptions> _owsAPIPathOptions;
-        private readonly IOptions<RabbitMQOptions> _rabbitMQOptions;
+        private readonly IInstanceLauncherMessaging _instanceLauncherMessaging;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IZoneServerProcessesRepository _zoneServerProcessesRepository;
         private readonly IOWSInstanceLauncherDataRepository _owsInstanceLauncherDataRepository;
@@ -39,12 +38,12 @@ namespace OWSInstanceLauncher.Services
         private readonly string _InternalServerIP;
         private readonly int _StartingInstancePort;
 
-        public ServerLauncherMQListener(IWritableOptions<OWSInstanceLauncherOptions> owsInstanceLauncherOptions, IOptions<APIPathOptions> owsAPIPathOptions, IOptions<RabbitMQOptions> rabbitMQOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository,
+        public ServerLauncherMQListener(IWritableOptions<OWSInstanceLauncherOptions> owsInstanceLauncherOptions, IOptions<APIPathOptions> owsAPIPathOptions, IInstanceLauncherMessaging instanceLauncherMessaging, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository,
             IOWSInstanceLauncherDataRepository owsInstanceLauncherDataRepository)
         {
             _owsInstanceLauncherOptions = owsInstanceLauncherOptions;
             _owsAPIPathOptions = owsAPIPathOptions;
-            _rabbitMQOptions = rabbitMQOptions;
+            _instanceLauncherMessaging = instanceLauncherMessaging;
             _httpClientFactory = httpClientFactory;
             _zoneServerProcessesRepository = zoneServerProcessesRepository;
             _owsInstanceLauncherDataRepository = owsInstanceLauncherDataRepository;
@@ -110,19 +109,9 @@ namespace OWSInstanceLauncher.Services
         {
             Log.Information("Attempting to Register OWS Instance Launcher with RabbitMQ ServerSpinUp Queue...");
 
-            var factory = new ConnectionFactory()
-            {
-                HostName = _rabbitMQOptions.Value.RabbitMQHostName,
-                Port = _rabbitMQOptions.Value.RabbitMQPort,
-                UserName = _rabbitMQOptions.Value.RabbitMQUserName,
-                Password = _rabbitMQOptions.Value.RabbitMQPassword,
-                DispatchConsumersAsync = true
-            };
-
-            // create connection  
             try
             {
-                connection = factory.CreateConnection();
+                _instanceLauncherMessaging.InitializeConnection();
             }
             catch (Exception ex)
             {
@@ -130,45 +119,10 @@ namespace OWSInstanceLauncher.Services
                 return;
             }
 
-            // create channel for server spin up  
-            serverSpinUpChannel = connection.CreateModel();
+            (serverSpinUpChannel, serverSpinUpQueueName) = _instanceLauncherMessaging.InitializeSpinUpChannel(_worldServerId);
+            (serverShutDownChannel, serverShutDownQueueName) = _instanceLauncherMessaging.InitializeShutDownChannel(_worldServerId);
 
-            serverSpinUpQueueNameGUID = Guid.NewGuid();
-
-            serverSpinUpChannel.ExchangeDeclare(exchange: "ows.serverspinup",
-                            type: "direct",
-                            durable: false,
-                            autoDelete: false);
-
-            serverSpinUpChannel.QueueDeclare(queue: serverSpinUpQueueNameGUID.ToString(),
-                                         durable: false,
-                                         exclusive: true,
-                                         autoDelete: true,
-                                         arguments: null);
-            serverSpinUpChannel.QueueBind(serverSpinUpQueueNameGUID.ToString(), "ows.serverspinup", String.Format("ows.serverspinup.{0}", _worldServerId));
-            serverSpinUpChannel.BasicQos(0, 1, false);
-
-
-            // create channel for server shut down
-            serverShutDownChannel = connection.CreateModel();
-
-            serverShutDownQueueNameGUID = Guid.NewGuid();
-
-            serverShutDownChannel.ExchangeDeclare(exchange: "ows.servershutdown",
-                            type: "direct",
-                            durable: false,
-                            autoDelete: false);
-
-            serverShutDownChannel.QueueDeclare(queue: serverShutDownQueueNameGUID.ToString(),
-                                         durable: false,
-                                         exclusive: true,
-                                         autoDelete: true,
-                                         arguments: null);
-            serverShutDownChannel.QueueBind(serverShutDownQueueNameGUID.ToString(), "ows.servershutdown", String.Format("ows.servershutdown.{0}", _worldServerId));
-            serverShutDownChannel.BasicQos(0, 1, false);
-
-
-            connection.ConnectionShutdown += RabbitMQ_ConnectionShutdown;
+            _instanceLauncherMessaging.GetConnection().ConnectionShutdown += RabbitMQ_ConnectionShutdown;
 
             Log.Information("Registered OWS Instance Launcher with RabbitMQ ServerSpinUp Queue Success!");
         }
@@ -205,7 +159,7 @@ namespace OWSInstanceLauncher.Services
             serverSpinUpConsumer.Unregistered += OnServerSpinUpConsumerUnregistered;
             serverSpinUpConsumer.ConsumerCancelled += OnServerSpinUpConsumerConsumerCancelled;
 
-            serverSpinUpChannel.BasicConsume(queue: serverSpinUpQueueNameGUID.ToString(),
+            serverSpinUpChannel.BasicConsume(queue: serverSpinUpQueueName,
                                          autoAck: true,
                                          consumer: serverSpinUpConsumer);
 
@@ -230,7 +184,7 @@ namespace OWSInstanceLauncher.Services
             serverShutDownConsumer.Unregistered += OnServerShutDownConsumerUnregistered;
             serverShutDownConsumer.ConsumerCancelled += OnServerShutDownConsumerConsumerCancelled;
 
-            serverShutDownChannel.BasicConsume(queue: serverShutDownQueueNameGUID.ToString(),
+            serverShutDownChannel.BasicConsume(queue: serverShutDownQueueName,
                                          autoAck: true,
                                          consumer: serverShutDownConsumer);
 
@@ -498,10 +452,7 @@ namespace OWSInstanceLauncher.Services
             {
                 serverShutDownChannel.Close();
             }
-            if (connection != null)
-            {
-                connection.Close();
-            }
+            _instanceLauncherMessaging.GetConnection()?.Close();
 
             Log.Information("Done!");
         }
