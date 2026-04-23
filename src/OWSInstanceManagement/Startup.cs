@@ -82,9 +82,14 @@ namespace OWSInstanceManagement
 
             services.Configure<OWSShared.Options.StorageOptions>(Configuration.GetSection(OWSShared.Options.StorageOptions.SectionName));
             services.Configure<OWSShared.Options.APIPathOptions>(Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName));
-            services.Configure<OWSShared.Options.RabbitMQOptions>(Configuration.GetSection(OWSShared.Options.RabbitMQOptions.SectionName));
+            
+            //User RabbitMQ for Instance Launcher Messaging
+            //services.Configure<OWSShared.Options.RabbitMQOptions>(Configuration.GetSection(OWSShared.Options.RabbitMQOptions.SectionName));
+            //services.AddSingleton<IInstanceLauncherMessaging, RabbitMQInstanceLauncherMessaging>();
+
+            //Use AWS SQS for Instance Launcher Messaging
             services.Configure<OWSShared.Options.SQSOptions>(Configuration.GetSection(OWSShared.Options.SQSOptions.SectionName));
-            services.AddSingleton<IInstanceLauncherMessaging, RabbitMQInstanceLauncherMessaging>();
+            services.AddSingleton<IInstanceLauncherMessaging, SQSInstanceLauncherMessaging>();
 
             InitializeContainer(services);
         }
