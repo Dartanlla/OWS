@@ -119,7 +119,12 @@ namespace OWSInstanceLauncher
 
             services.ConfigureWritable<OWSShared.Options.OWSInstanceLauncherOptions>(Configuration.GetSection(OWSShared.Options.OWSInstanceLauncherOptions.SectionName));
             services.Configure<OWSShared.Options.APIPathOptions>(Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName));
-            services.Configure<OWSShared.Options.RabbitMQOptions>(Configuration.GetSection(OWSShared.Options.RabbitMQOptions.SectionName));
+
+            //User RabbitMQ for Instance Launcher Messaging
+            //services.Configure<OWSShared.Options.RabbitMQOptions>(Configuration.GetSection(OWSShared.Options.RabbitMQOptions.SectionName));
+
+            //Use AWS SQS for Instance Launcher Messaging
+            services.Configure<OWSShared.Options.SQSOptions>(Configuration.GetSection(OWSShared.Options.SQSOptions.SectionName));
 
             var apiPathOptions = new OWSShared.Options.APIPathOptions();
             Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName).Bind(apiPathOptions);
@@ -197,8 +202,11 @@ namespace OWSInstanceLauncher
                 dispose: processor => processor.Dispose()
             ));
 
-            //Register RabbitMQ messaging abstraction
-            container.RegisterSingleton<IInstanceLauncherMessaging, RabbitMQInstanceLauncherMessaging>();
+            //Register RabbitMQ nstance Launcher Messaging
+            //container.RegisterSingleton<IInstanceLauncherMessaging, RabbitMQInstanceLauncherMessaging>();
+
+            //Register AWS SQS Instance Launcher Messaging
+            container.RegisterSingleton<IInstanceLauncherMessaging, SQSInstanceLauncherMessaging>();
 
             //Register our Server Launcher MQ Listener job
             container.RegisterSingleton<IInstanceLauncherJob, ServerLauncherMQListener>();
