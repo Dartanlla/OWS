@@ -11,6 +11,7 @@ namespace OWSShared.Implementations
     {
         private readonly IOptions<RabbitMQOptions> _rabbitMQOptions;
         private IConnection? _connection;
+        private IMessagingConnection? _messagingConnection;
 
         public RabbitMQInstanceLauncherMessaging(IOptions<RabbitMQOptions> rabbitMQOptions)
         {
@@ -63,9 +64,10 @@ namespace OWSShared.Implementations
         public void InitializeConnection()
         {
             _connection = CreateConnectionFactory(dispatchConsumersAsync: true).CreateConnection();
+            _messagingConnection = new RabbitMQMessagingConnection(_connection);
         }
 
-        public (IModel Channel, string QueueName) InitializeSpinUpChannel(int worldServerId)
+        public (IMessagingChannel Channel, string QueueName) InitializeSpinUpChannel(int worldServerId)
         {
             var channel = _connection!.CreateModel();
             string queueName = Guid.NewGuid().ToString();
@@ -75,10 +77,10 @@ namespace OWSShared.Implementations
             channel.QueueBind(queueName, "ows.serverspinup", $"ows.serverspinup.{worldServerId}");
             channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
 
-            return (channel, queueName);
+            return (new RabbitMQMessagingChannel(channel), queueName);
         }
 
-        public (IModel Channel, string QueueName) InitializeShutDownChannel(int worldServerId)
+        public (IMessagingChannel Channel, string QueueName) InitializeShutDownChannel(int worldServerId)
         {
             var channel = _connection!.CreateModel();
             string queueName = Guid.NewGuid().ToString();
@@ -88,10 +90,10 @@ namespace OWSShared.Implementations
             channel.QueueBind(queueName, "ows.servershutdown", $"ows.servershutdown.{worldServerId}");
             channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
 
-            return (channel, queueName);
+            return (new RabbitMQMessagingChannel(channel), queueName);
         }
 
-        public IConnection GetConnection() => _connection!;
+        public IMessagingConnection GetConnection() => _messagingConnection!;
 
         private ConnectionFactory CreateConnectionFactory(bool dispatchConsumersAsync = false) => new()
         {

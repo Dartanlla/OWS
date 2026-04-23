@@ -6,8 +6,6 @@ using OWSShared.Interfaces;
 using OWSShared.Messages;
 using OWSShared.Options;
 using OWSShared.RequestPayloads;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System;
 using System.Net.Http;
 using System.Text;
@@ -19,8 +17,8 @@ namespace OWSInstanceLauncher.Services
 {
     public class ServerLauncherMQListener : IInstanceLauncherJob //BackgroundService
     {
-        private IModel serverSpinUpChannel;
-        private IModel serverShutDownChannel;
+        private IMessagingChannel serverSpinUpChannel;
+        private IMessagingChannel serverShutDownChannel;
         private string serverSpinUpQueueName;
         private string serverShutDownQueueName;
 
@@ -122,7 +120,7 @@ namespace OWSInstanceLauncher.Services
             (serverSpinUpChannel, serverSpinUpQueueName) = _instanceLauncherMessaging.InitializeSpinUpChannel(_worldServerId);
             (serverShutDownChannel, serverShutDownQueueName) = _instanceLauncherMessaging.InitializeShutDownChannel(_worldServerId);
 
-            _instanceLauncherMessaging.GetConnection().ConnectionShutdown += RabbitMQ_ConnectionShutdown;
+            _instanceLauncherMessaging.GetConnection().ConnectionShutdown += OnConnectionShutdown;
 
             Log.Information("Registered OWS Instance Launcher with RabbitMQ ServerSpinUp Queue Success!");
         }
@@ -136,59 +134,21 @@ namespace OWSInstanceLauncher.Services
                 return;
             }
 
-            //Server Spin Up
-            var serverSpinUpConsumer = new AsyncEventingBasicConsumer(serverSpinUpChannel);
-
-            serverSpinUpConsumer.Received += (model, ea) =>
+            serverSpinUpChannel.StartConsuming(serverSpinUpQueueName, body =>
             {
-                var body = ea.Body;
-                MQSpinUpServerMessage serverSpinUpMessage = MQSpinUpServerMessage.Deserialize(body.ToArray());
-                Log.Information($"Server Spin Up Message Received: {serverSpinUpMessage.CustomerGUID} WorldServerID: {serverSpinUpMessage.WorldServerID} ZoneInstanceID: {serverSpinUpMessage.ZoneInstanceID} MapName: {serverSpinUpMessage.MapName} Port: {serverSpinUpMessage.Port}");
-                HandleServerSpinUpMessage(
-                    serverSpinUpMessage.CustomerGUID,
-                    serverSpinUpMessage.WorldServerID,
-                    serverSpinUpMessage.ZoneInstanceID,
-                    serverSpinUpMessage.MapName,
-                    serverSpinUpMessage.Port);
-
+                MQSpinUpServerMessage msg = MQSpinUpServerMessage.Deserialize(body);
+                Log.Information($"Server Spin Up Message Received: {msg.CustomerGUID} WorldServerID: {msg.WorldServerID} ZoneInstanceID: {msg.ZoneInstanceID} MapName: {msg.MapName} Port: {msg.Port}");
+                HandleServerSpinUpMessage(msg.CustomerGUID, msg.WorldServerID, msg.ZoneInstanceID, msg.MapName, msg.Port);
                 return Task.CompletedTask;
-            };
+            });
 
-            serverSpinUpConsumer.Shutdown += OnServerSpinUpConsumerShutdown;
-            serverSpinUpConsumer.Registered += OnServerSpinUpConsumerRegistered;
-            serverSpinUpConsumer.Unregistered += OnServerSpinUpConsumerUnregistered;
-            serverSpinUpConsumer.ConsumerCancelled += OnServerSpinUpConsumerConsumerCancelled;
-
-            serverSpinUpChannel.BasicConsume(queue: serverSpinUpQueueName,
-                                         autoAck: true,
-                                         consumer: serverSpinUpConsumer);
-
-            //Server Shut Down
-            var serverShutDownConsumer = new AsyncEventingBasicConsumer(serverShutDownChannel);
-
-            serverShutDownConsumer.Received += (model, ea) =>
+            serverShutDownChannel.StartConsuming(serverShutDownQueueName, body =>
             {
                 Log.Information("Message Received");
-                var body = ea.Body;
-                MQShutDownServerMessage serverShutDownMessage = MQShutDownServerMessage.Deserialize(body.ToArray());
-                HandleServerShutDownMessage(
-                    serverShutDownMessage.CustomerGUID,
-                    serverShutDownMessage.ZoneInstanceID
-                );
-
+                MQShutDownServerMessage msg = MQShutDownServerMessage.Deserialize(body);
+                HandleServerShutDownMessage(msg.CustomerGUID, msg.ZoneInstanceID);
                 return Task.CompletedTask;
-            };
-
-            serverShutDownConsumer.Shutdown += OnServerShutDownConsumerShutdown;
-            serverShutDownConsumer.Registered += OnServerShutDownConsumerRegistered;
-            serverShutDownConsumer.Unregistered += OnServerShutDownConsumerUnregistered;
-            serverShutDownConsumer.ConsumerCancelled += OnServerShutDownConsumerConsumerCancelled;
-
-            serverShutDownChannel.BasicConsume(queue: serverShutDownQueueName,
-                                         autoAck: true,
-                                         consumer: serverShutDownConsumer);
-
-            //return Task.CompletedTask;
+            });
         }
 
         private void HandleServerSpinUpMessage(Guid customerGUID, int worldServerID, int zoneInstanceID, string mapName, int port)
@@ -418,18 +378,7 @@ namespace OWSInstanceLauncher.Services
             return;
         }
 
-        private Task OnServerSpinUpConsumerConsumerCancelled(object sender, ConsumerEventArgs e) { return Task.CompletedTask; }
-        private Task OnServerSpinUpConsumerUnregistered(object sender, ConsumerEventArgs e) { return Task.CompletedTask; }
-        private Task OnServerSpinUpConsumerRegistered(object sender, ConsumerEventArgs e) { return Task.CompletedTask; }
-        private Task OnServerSpinUpConsumerShutdown(object sender, ShutdownEventArgs e) { return Task.CompletedTask; }
-
-        private Task OnServerShutDownConsumerConsumerCancelled(object sender, ConsumerEventArgs e) { return Task.CompletedTask; }
-        private Task OnServerShutDownConsumerUnregistered(object sender, ConsumerEventArgs e) { return Task.CompletedTask; }
-        private Task OnServerShutDownConsumerRegistered(object sender, ConsumerEventArgs e) { return Task.CompletedTask; }
-        private Task OnServerShutDownConsumerShutdown(object sender, ShutdownEventArgs e) { return Task.CompletedTask; }
-
-
-        private void RabbitMQ_ConnectionShutdown(object sender, ShutdownEventArgs e) { }
+        private void OnConnectionShutdown(object? sender, EventArgs e) { }
 
         public void Dispose()
         {

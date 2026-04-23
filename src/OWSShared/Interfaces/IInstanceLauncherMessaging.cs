@@ -1,4 +1,3 @@
-using RabbitMQ.Client;
 using System;
 
 namespace OWSShared.Interfaces
@@ -9,8 +8,8 @@ namespace OWSShared.Interfaces
         void PublishShutDownServerMessage(Guid customerGUID, int worldServerID, int zoneInstanceID);
 
         void InitializeConnection();
-        (IModel Channel, string QueueName) InitializeSpinUpChannel(int worldServerId);
-        (IModel Channel, string QueueName) InitializeShutDownChannel(int worldServerId);
-        IConnection GetConnection();
+        (IMessagingChannel Channel, string QueueName) InitializeSpinUpChannel(int worldServerId);
+        (IMessagingChannel Channel, string QueueName) InitializeShutDownChannel(int worldServerId);
+        IMessagingConnection GetConnection();
     }
 }

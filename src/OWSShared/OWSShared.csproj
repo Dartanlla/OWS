@@ -3,6 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="AWSSDK.SQS" Version="3.7.400.55" />
     <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
     <PackageReference Include="Serilog" Version="3.1.1" />
     <PackageReference Include="SimpleInjector" Version="5.4.5" />
