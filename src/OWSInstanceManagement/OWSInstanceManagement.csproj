@@ -4,9 +4,7 @@
     <UserSecretsId>e3bb93df-33d8-4372-b1d5-43a2c1864599</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>OWSInstanceManagement.xml</DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\.dockerignore" Link=".dockerignore">
@@ -37,10 +35,5 @@
   <ItemGroup>
     <ProjectReference Include="..\OWSData\OWSData.csproj" />
     <ProjectReference Include="..\OWSShared\OWSShared.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="OWSInstanceManagement.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 </Project>
