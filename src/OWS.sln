@@ -41,6 +41,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OWSPublicAPILambda", "OWSPu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OWSCharacterPersistenceLambda", "OWSCharacterPersistenceLambda\OWSCharacterPersistenceLambda.csproj", "{C1BF20A8-E128-1896-DBCF-79205ED48778}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OWSInstanceManagementLambda", "OWSInstanceManagementLambda\OWSInstanceManagementLambda.csproj", "{E15ADCFC-8F6D-244F-6DD0-C7546833855A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -107,6 +109,10 @@ Global
 		{C1BF20A8-E128-1896-DBCF-79205ED48778}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C1BF20A8-E128-1896-DBCF-79205ED48778}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C1BF20A8-E128-1896-DBCF-79205ED48778}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E15ADCFC-8F6D-244F-6DD0-C7546833855A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E15ADCFC-8F6D-244F-6DD0-C7546833855A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E15ADCFC-8F6D-244F-6DD0-C7546833855A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E15ADCFC-8F6D-244F-6DD0-C7546833855A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
