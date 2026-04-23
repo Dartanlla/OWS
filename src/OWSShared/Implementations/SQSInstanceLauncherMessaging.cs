@@ -6,12 +6,16 @@ using OWSShared.Messages;
 using OWSShared.Options;
 using System;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace OWSShared.Implementations
 {
     public class SQSInstanceLauncherMessaging : IInstanceLauncherMessaging
     {
+        private const string SpinUpMessageType = "SpinUp";
+        private const string ShutDownMessageType = "ShutDown";
+
         private readonly IOptions<SQSOptions> _sqsOptions;
         private IAmazonSQS? _sqsClient;
         private SQSMessagingConnection? _messagingConnection;
@@ -24,9 +28,9 @@ namespace OWSShared.Implementations
         public void PublishSpinUpServerMessage(Guid customerGUID, int worldServerID, int zoneInstanceID, string zoneName, int port)
         {
             using var client = CreateSQSClient();
-            string queueUrl = GetQueueUrlAsync(client, $"{_sqsOptions.Value.SpinUpQueueNamePrefix}-{worldServerID}").GetAwaiter().GetResult();
+            string queueUrl = GetQueueUrlAsync(client, _sqsOptions.Value.QueueName).GetAwaiter().GetResult();
 
-            var message = new MQSpinUpServerMessage
+            var inner = new MQSpinUpServerMessage
             {
                 CustomerGUID = customerGUID,
                 WorldServerID = worldServerID,
@@ -35,22 +39,36 @@ namespace OWSShared.Implementations
                 Port = port
             };
 
-            client.SendMessageAsync(queueUrl, Encoding.UTF8.GetString(message.Serialize())).GetAwaiter().GetResult();
+            var wrapper = new SQSInstanceLauncherMessage
+            {
+                MessageType = SpinUpMessageType,
+                WorldServerID = worldServerID,
+                Payload = Encoding.UTF8.GetString(inner.Serialize())
+            };
+
+            client.SendMessageAsync(queueUrl, JsonSerializer.Serialize(wrapper)).GetAwaiter().GetResult();
         }
 
         public void PublishShutDownServerMessage(Guid customerGUID, int worldServerID, int zoneInstanceID)
         {
             using var client = CreateSQSClient();
-            string queueUrl = GetQueueUrlAsync(client, $"{_sqsOptions.Value.ShutDownQueueNamePrefix}-{worldServerID}").GetAwaiter().GetResult();
+            string queueUrl = GetQueueUrlAsync(client, _sqsOptions.Value.QueueName).GetAwaiter().GetResult();
 
-            var message = new MQShutDownServerMessage
+            var inner = new MQShutDownServerMessage
             {
                 CustomerGUID = customerGUID,
                 WorldServerID = worldServerID,
                 ZoneInstanceID = zoneInstanceID
             };
 
-            client.SendMessageAsync(queueUrl, Encoding.UTF8.GetString(message.Serialize())).GetAwaiter().GetResult();
+            var wrapper = new SQSInstanceLauncherMessage
+            {
+                MessageType = ShutDownMessageType,
+                WorldServerID = worldServerID,
+                Payload = Encoding.UTF8.GetString(inner.Serialize())
+            };
+
+            client.SendMessageAsync(queueUrl, JsonSerializer.Serialize(wrapper)).GetAwaiter().GetResult();
         }
 
         public void InitializeConnection()
@@ -61,14 +79,18 @@ namespace OWSShared.Implementations
 
         public (IMessagingChannel Channel, string QueueName) InitializeSpinUpChannel(int worldServerId)
         {
-            string queueUrl = GetQueueUrlAsync(_sqsClient!, $"{_sqsOptions.Value.SpinUpQueueNamePrefix}-{worldServerId}").GetAwaiter().GetResult();
-            return (new SQSMessagingChannel(_sqsClient!), queueUrl);
+            string queueUrl = GetQueueUrlAsync(_sqsClient!, _sqsOptions.Value.QueueName).GetAwaiter().GetResult();
+            var channel = new SQSMessagingChannel(_sqsClient!, queueUrl,
+                msg => msg.MessageType == SpinUpMessageType && msg.WorldServerID == worldServerId);
+            return (channel, queueUrl);
         }
 
         public (IMessagingChannel Channel, string QueueName) InitializeShutDownChannel(int worldServerId)
         {
-            string queueUrl = GetQueueUrlAsync(_sqsClient!, $"{_sqsOptions.Value.ShutDownQueueNamePrefix}-{worldServerId}").GetAwaiter().GetResult();
-            return (new SQSMessagingChannel(_sqsClient!), queueUrl);
+            string queueUrl = GetQueueUrlAsync(_sqsClient!, _sqsOptions.Value.QueueName).GetAwaiter().GetResult();
+            var channel = new SQSMessagingChannel(_sqsClient!, queueUrl,
+                msg => msg.MessageType == ShutDownMessageType && msg.WorldServerID == worldServerId);
+            return (channel, queueUrl);
         }
 
         public IMessagingConnection GetConnection() => _messagingConnection!;
