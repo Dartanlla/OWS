@@ -20,6 +20,7 @@
   "function-subnets": "",
   "function-security-groups": "",
   "tracing-mode": "PassThrough",
-  "environment-variables": "",
-  "image-tag": ""
+  "environment-variables": "\u0022OWS_DB_CONNECTION_STRING\u0022=\u0022Host=ep-old-dust-anoqizoy.c-6.us-east-1.aws.neon.tech;Port=5432;Database=openworldserver;Username=neondb_owner;Password=;Maximum Pool Size=6;\u0022",
+  "image-tag": "",
+  "function-description": ""
 }

@@ -79,9 +79,9 @@ public class Function
     /// <param name="proxyRequest">The proxy request from the API Gateway.</param>
     /// <param name="context">The ILambdaContext that provides methods for logging and describing the Lambda environment.</param>
     /// <returns></returns>
-    public async Task<APIGatewayProxyResponse> FunctionHandler(APIGatewayProxyRequest proxyRequest, ILambdaContext context)
+    public async Task<APIGatewayHttpApiV2ProxyResponse> FunctionHandler(APIGatewayHttpApiV2ProxyRequest proxyRequest, ILambdaContext context)
     {
-        string path = proxyRequest.Path ?? string.Empty;
+        string path = proxyRequest.RawPath ?? string.Empty;
         string action = path.Split('/').LastOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
 
         string? customerGuidStr = null;
@@ -167,8 +167,8 @@ public class Function
             }
             case "GetServerInstanceFromPort":
             {
-                string remoteIp = proxyRequest.RequestContext?.Identity?.SourceIp
-                    ?? (proxyRequest.Headers?.TryGetValue("X-Forwarded-For", out var fwd) == true ? fwd!.Split(',')[0].Trim() : "127.0.0.1");
+                string remoteIp = proxyRequest.RequestContext?.Http?.SourceIp
+                    ?? (proxyRequest.Headers?.TryGetValue("x-forwarded-for", out var fwd) == true ? fwd!.Split(',')[0].Trim() : "127.0.0.1");
 
                 var request = JsonSerializer.Deserialize<GetServerInstanceFromPortRequest>(body, _jsonOptions)!;
                 request.SetData(instanceManagementRepository, customerGuid, remoteIp);
@@ -218,7 +218,7 @@ public class Function
                 break;
             }
             default:
-                return new APIGatewayProxyResponse
+                return new APIGatewayHttpApiV2ProxyResponse
                 {
                     StatusCode = 404,
                     Body = JsonSerializer.Serialize(new { ErrorMessage = $"Unknown action: {action}" }),
@@ -226,7 +226,7 @@ public class Function
                 };
         }
 
-        return new APIGatewayProxyResponse
+        return new APIGatewayHttpApiV2ProxyResponse
         {
             StatusCode = 200,
             Body = JsonSerializer.Serialize(result),
