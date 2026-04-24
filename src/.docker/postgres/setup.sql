@@ -3736,6 +3736,11 @@ BEGIN
 END;
 $$;
 
+ALTER TABLE WorldServers
+ADD ZoneServerGUID UUID NULL;
+
+ALTER TABLE WorldServers
+ADD CONSTRAINT AK_ZoneServers UNIQUE (CustomerGUID, ZoneServerGUID);
 
 CREATE TABLE DefaultCharacterValues
 (
