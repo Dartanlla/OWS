@@ -96,6 +96,10 @@ services:
      - RabbitMQOptions__RabbitMQPort=${RabbitMQPort}
      - RabbitMQOptions__RabbitMQUserName=${RabbitMQUserName}
      - RabbitMQOptions__RabbitMQPassword=${RabbitMQPassword}
+      - AWS_PROFILE=default
+      - AWS_REGION=us-east-1
+    volumes:
+      - ${USERPROFILE}/.aws:/root/.aws:ro
     ports:
       - "44328:80"
       - "44329:443"
