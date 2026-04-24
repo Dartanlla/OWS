@@ -1,5 +1,7 @@
-using Amazon.Lambda.Core;
 using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.Core;
+using Amazon.Runtime;
+using Amazon.SQS;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -9,6 +11,7 @@ using OWSInstanceManagement.Requests.Zones;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
 using OWSShared.Options;
+using System.Configuration;
 using System.Text.Json;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -43,6 +46,7 @@ public class Function
         };
         serviceCollection.AddSingleton<IOptions<StorageOptions>>(Options.Create(storageOptions));
 
+        /*
         var rabbitMQOptions = new RabbitMQOptions
         {
             RabbitMQHostName = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost",
@@ -52,6 +56,17 @@ public class Function
         };
         serviceCollection.AddSingleton<IOptions<RabbitMQOptions>>(Options.Create(rabbitMQOptions));
         serviceCollection.AddSingleton<IInstanceLauncherMessaging, RabbitMQInstanceLauncherMessaging>();
+        */
+
+        var sqsOptions = new SQSOptions
+        {
+            AWSRegion = Environment.GetEnvironmentVariable("AWS_REGION") ?? "us-east-1",
+            QueueName = Environment.GetEnvironmentVariable("QUEUE_NAME") ?? "ows-instance-launcher-messaging"
+        };
+
+        serviceCollection.AddSingleton<IOptions<SQSOptions>>(Options.Create(sqsOptions));
+        serviceCollection.AddAWSService<IAmazonSQS>();
+        serviceCollection.AddSingleton<IInstanceLauncherMessaging, SQSInstanceLauncherMessaging>();
 
         services = serviceCollection.BuildServiceProvider();
     }
