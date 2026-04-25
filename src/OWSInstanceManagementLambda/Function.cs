@@ -13,6 +13,7 @@ using OWSShared.Interfaces;
 using OWSShared.Options;
 using System.Configuration;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
@@ -28,7 +29,8 @@ public class Function
 
     private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
     {
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        NumberHandling = JsonNumberHandling.AllowReadingFromString
     };
 
     public Function()
