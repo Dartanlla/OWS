@@ -155,7 +155,23 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(GetServerToConnectTo))]
         public async Task<IActionResult> GetServerToConnectTo([FromBody] GetServerToConnectToRequest request)
         {
-            request.SetData(_owsGeneralConfig, _usersRepository, _charactersRepository, _customerGuid, _httpClientFactory);
+            request.SetData(_usersRepository, _charactersRepository, _customerGuid, _httpClientFactory);
+            return await request.Handle();
+        }
+
+        /// <summary>
+        /// Checks whether a zone server instance is ready to connect to.
+        /// </summary>
+        /// <remarks>
+        /// Poll this endpoint after GetServerToConnectTo returns MapInstanceStatus 1 (spinning up).
+        /// Returns MapInstanceStatus 2 when the server is ready; connect using the ServerIP and Port
+        /// returned by the original GetServerToConnectTo call.
+        /// </remarks>
+        [HttpPost]
+        [Route("GetServerToConnectToStatus")]
+        public async Task<IActionResult> GetServerToConnectToStatus([FromBody] GetServerToConnectToStatusRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();
         }
 

@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Mvc;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
-using OWSShared.Options;
 using OWSShared.RequestPayloads;
 using Serilog;
 using System;
@@ -24,15 +22,13 @@ namespace OWSPublicAPI.Requests.Users
 
         //Private objects
         private JoinMapByCharName Output;
-        private IOptions<PublicAPIOptions> owsGeneralConfig;
         private Guid CustomerGUID;
         private IUsersRepository usersRepository;
         private ICharactersRepository charactersRepository;
         private IHttpClientFactory httpClientFactory;
 
-        public void SetData(IOptions<PublicAPIOptions> owsGeneralConfig, IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, IHttpClientFactory httpClientFactory)
+        public void SetData(IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, IHttpClientFactory httpClientFactory)
         {
-            this.owsGeneralConfig = owsGeneralConfig;
             this.usersRepository = usersRepository;
             this.charactersRepository = charactersRepository;
             this.httpClientFactory = httpClientFactory;
@@ -70,8 +66,6 @@ namespace OWSPublicAPI.Requests.Users
 
             JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharName(CustomerGUID, CharacterName, ZoneName, PlayerGroupType);
 
-            bool readyForPlayersToConnect = false;
-
             if (joinMapByCharacterName == null || joinMapByCharacterName.WorldServerID < 1)
             {
                 Log.Error($"GetServerToConnectTo: WorldServerID is less than 1.  Make sure you setup at least one valid World Server and that it is currently running!");
@@ -80,36 +74,23 @@ namespace OWSPublicAPI.Requests.Users
                 return new OkObjectResult(Output);
             }
 
-            //There is no zone server running that will accept our connection, so start up a new one
+            //There is no zone server running that will accept our connection, so start up a new one and return immediately.
+            //The client should cache ServerIP/Port/MapInstanceID and poll GetServerToConnectToStatus until MapInstanceStatus == 2.
             if (joinMapByCharacterName.NeedToStartupMap)
             {
                 Log.Information($"GetServerToConnectTo: Starting up server instance MapInstanceID: {joinMapByCharacterName.MapInstanceID}");
-                bool requestSuccess = await RequestServerSpinUp(joinMapByCharacterName.WorldServerID, joinMapByCharacterName.MapInstanceID, joinMapByCharacterName.MapNameToStart, joinMapByCharacterName.Port);
-
-                //Wait OWSGeneralConfig.SecondsToWaitBeforeFirstPollForSpinUp seconds before the first CheckMapInstanceStatus to give it time to spin up
-                System.Threading.Thread.Sleep(owsGeneralConfig.Value.SecondsToWaitBeforeFirstPollForSpinUp);
-
-                readyForPlayersToConnect = await WaitForServerReadyToConnect(CustomerGUID, joinMapByCharacterName.MapInstanceID);
+                await RequestServerSpinUp(joinMapByCharacterName.WorldServerID, joinMapByCharacterName.MapInstanceID, joinMapByCharacterName.MapNameToStart, joinMapByCharacterName.Port);
             }
-            //We found a zone server we can connect to, but it is still spinning up.  Wait until it is ready to connect to (up to OWSGeneralConfig.SecondsToWaitForServerSpinUp seconds).
+            //We found a zone server we can connect to, but it is still spinning up.
+            //Return immediately — client should poll GetServerToConnectToStatus until MapInstanceStatus == 2.
             else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 1)
             {
-                Log.Information($"GetServerToConnectTo: We found a zone server we can connect to, but it is still spinning up.  Wait until it is ready to connect to (up to OWSGeneralConfig.SecondsToWaitForServerSpinUp seconds)");
-                //CheckMapInstanceStatus every OWSGeneralConfig.SecondsToWaitInBetweenSpinUpPolling seconds for up to OWSGeneralConfig.SecondsToWaitForServerSpinUp seconds
-                readyForPlayersToConnect = await WaitForServerReadyToConnect(CustomerGUID, joinMapByCharacterName.MapInstanceID);
+                Log.Information($"GetServerToConnectTo: Found a zone server that is still spinning up (MapInstanceID: {joinMapByCharacterName.MapInstanceID}). Returning immediately for client polling.");
             }
-            //We found a zone server we can connect to and it is ready to connect
+            //We found a zone server we can connect to and it is already ready.
             else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 2)
             {
-                Log.Information($"GetServerToConnectTo: We found a zone server we can connect to and it is ready to connect");
-                //The zone server is ready to connect to
-                readyForPlayersToConnect = true;
-            }
-
-            //The zone instance is ready, so connect the character to the map instance in our data store
-            if (readyForPlayersToConnect)
-            {
-                Log.Information($"GetServerToConnectTo: The zone instance is ready, so connect the character to the map instance in our data store");
+                Log.Information($"GetServerToConnectTo: Found a ready zone server (MapInstanceID: {joinMapByCharacterName.MapInstanceID}). Connecting character.");
                 await charactersRepository.AddCharacterToMapInstanceByCharName(CustomerGUID, CharacterName, joinMapByCharacterName.MapInstanceID);
             }
 
@@ -119,39 +100,6 @@ namespace OWSPublicAPI.Requests.Users
             return new OkObjectResult(Output);
         }
 
-        private async Task<bool> WaitForServerReadyToConnect(Guid customerGUID, int zoneInstanceID)
-        {
-            DateTime StartPollingTime = DateTime.Now;
-
-            int retryCount = 0;
-            while (DateTime.Now < StartPollingTime.AddSeconds(owsGeneralConfig.Value.SecondsToWaitForServerSpinUp))
-            {
-                int retrySeconds = owsGeneralConfig.Value.SecondsToWaitInBetweenSpinUpPolling * 1000;
-                if (retryCount < 1)
-                {
-                    retrySeconds = owsGeneralConfig.Value.SecondsToWaitBeforeFirstPollForSpinUp * 1000;
-                }
-
-                //Check Map Status
-                Log.Information($"GetServerToConnectTo: Checking if the server instance is ready to play. Check every {retrySeconds / 1000} seconds...");
-                var resultCheckMapInstanceStatus = await charactersRepository.CheckMapInstanceStatus(CustomerGUID, zoneInstanceID);
-
-                if (resultCheckMapInstanceStatus.Status == 2) //Ready to play
-                {
-                    Log.Information($"GetServerToConnectTo: The server is ready to play.");
-                    return true;
-                }
-                
-                System.Threading.Thread.Sleep(retrySeconds);
-                retryCount++;
-            }
-
-            //The server did not spin up in time so shut it down
-            Log.Information($"GetServerToConnectTo: The server did not spin up in time.  Shut it down.");
-
-            return false;
-        }
-
         private async Task<bool> RequestServerSpinUp(int worldServerID, int zoneInstanceID, string zoneName, int port)
         {
             var instanceManagementHttpClient = httpClientFactory.CreateClient("OWSInstanceManagement");
@@ -159,7 +107,7 @@ namespace OWSPublicAPI.Requests.Users
             instanceManagementHttpClient.DefaultRequestHeaders.Add("Accept", "application/json");
             instanceManagementHttpClient.DefaultRequestHeaders.Add("X-CustomerGUID", CustomerGUID.ToString());
 
-            SpinUpServerInstanceRequestPayload spinUpServerInstanceRequestPayload = new SpinUpServerInstanceRequestPayload { 
+            SpinUpServerInstanceRequestPayload spinUpServerInstanceRequestPayload = new SpinUpServerInstanceRequestPayload {
                 WorldServerID = worldServerID,
                 ZoneInstanceID = zoneInstanceID,
                 ZoneName = zoneName,

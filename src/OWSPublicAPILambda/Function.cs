@@ -155,7 +155,14 @@ public class Function
             case "GetServerToConnectTo":
             {
                 var request = JsonSerializer.Deserialize<GetServerToConnectToRequest>(body, _jsonOptions)!;
-                request.SetData(owsGeneralConfig, usersRepository, charactersRepository, customerGuid, httpClientFactory);
+                request.SetData(usersRepository, charactersRepository, customerGuid, httpClientFactory);
+                result = ExtractActionResultValue(await request.Handle());
+                break;
+            }
+            case "GetServerToConnectToStatus":
+            {
+                var request = JsonSerializer.Deserialize<GetServerToConnectToStatusRequest>(body, _jsonOptions)!;
+                request.SetData(charactersRepository, customerGuid);
                 result = ExtractActionResultValue(await request.Handle());
                 break;
             }
