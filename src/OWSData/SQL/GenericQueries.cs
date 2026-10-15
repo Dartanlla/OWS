@@ -49,8 +49,16 @@ namespace OWSData.SQL
                 WHERE CharInventoryItems.CharInventoryID = @CharInventoryID
                 AND CharInventoryItems.CustomerGUID = @CustomerGUID";
 
+        // Samsara saves levels as CharStats rows (the game's attribute names), not in Characters.CharacterLevel,
+        // which nothing updates. The login screen cannot call the stats API, so the roster carries them.
         public static readonly string GetAllCharacters = @"SELECT WC.*,
-                COALESCE(CL.ClassName,'') as ClassName
+                COALESCE(CL.ClassName,'') as ClassName,
+                COALESCE((SELECT CS.Value FROM CharStats CS
+                    WHERE CS.CustomerGUID = WC.CustomerGUID AND CS.CharacterID = WC.CharacterID
+                      AND CS.StatIdentifier = 'BaseLevel'), 0) as BaseLevel,
+                COALESCE((SELECT CS.Value FROM CharStats CS
+                    WHERE CS.CustomerGUID = WC.CustomerGUID AND CS.CharacterID = WC.CharacterID
+                      AND CS.StatIdentifier = 'BaseJobLevel'), 0) as BaseJobLevel
             FROM Characters WC
             INNER JOIN Users U
                 ON U.UserGUID = WC.UserGUID

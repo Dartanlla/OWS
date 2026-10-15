@@ -45,6 +45,10 @@ namespace OWSData.Models.StoredProcs
 
         [JsonPropertyName("level")]
         public short CharacterLevel { get; set; }
+
+        // From CharStats (see GenericQueries.GetAllCharacters); 0 means the character never saved a level.
+        public int BaseLevel { get; set; }
+        public int BaseJobLevel { get; set; }
         public byte Gender { get; set; }
         public int Xp { get; set; }
         public byte HitDie { get; set; }
