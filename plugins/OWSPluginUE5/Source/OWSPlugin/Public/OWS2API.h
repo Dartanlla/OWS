@@ -45,6 +45,23 @@ public:
 };
 
 USTRUCT()
+struct FGetServerToConnectToStatusJSONPost
+{
+	GENERATED_BODY()
+
+public:
+	FGetServerToConnectToStatusJSONPost() {
+		CharacterName = "";
+		MapInstanceId = 0;
+	}
+
+	UPROPERTY()
+		FString CharacterName;
+	UPROPERTY()
+		int32 MapInstanceId;
+};
+
+USTRUCT()
 struct FGetCharacterStatsJSONPost
 {
 	GENERATED_BODY()

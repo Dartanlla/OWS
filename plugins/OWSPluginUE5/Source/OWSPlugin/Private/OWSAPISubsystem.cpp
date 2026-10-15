@@ -40,6 +40,13 @@ void UOWSAPISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		OWS2GlobalDataAPIPath,
 		GGameIni
 	);
+
+	GConfig->GetString(
+		TEXT("/Script/EngineSettings.GeneralProjectSettings"),
+		TEXT("OWSContentAPIPath"),
+		OWSContentAPIPath,
+		GGameIni
+	);
 }
 
 void UOWSAPISubsystem::Deinitialize()
@@ -133,6 +140,10 @@ void UOWSAPISubsystem::ProcessOWS2GETRequest(FString ApiModuleToCall, FString Ap
 	{
 		OWS2APIPathToUse = OWS2GlobalDataAPIPath;
 	}
+	else if (ApiModuleToCall == "ContentAPI")
+	{
+		OWS2APIPathToUse = OWSContentAPIPath;
+	}
 	else //When an ApiModuleToCall is not specified, use the PublicAPI
 	{
 		OWS2APIPathToUse = OWS2APIPath;
@@ -142,6 +153,7 @@ void UOWSAPISubsystem::ProcessOWS2GETRequest(FString ApiModuleToCall, FString Ap
 	Request->SetVerb("GET");
 	Request->SetHeader(TEXT("User-Agent"), "X-UnrealEngine-Agent");
 	Request->SetHeader("Content-Type", TEXT("application/json"));
+	Request->SetHeader(TEXT("Accept-Encoding"), TEXT("gzip"));
 	Request->SetHeader(TEXT("X-CustomerGUID"), OWSAPICustomerKey);
 	Request->ProcessRequest();
 }
@@ -289,4 +301,32 @@ void UOWSAPISubsystem::OnLogoutResponseReceived(FHttpRequestPtr Request, FHttpRe
 	}
 
 	OnNotifyLogoutDelegate.ExecuteIfBound();
+}
+
+
+//Get Content Cache
+void UOWSAPISubsystem::GetContentCache(FString ZoneName)
+{
+	if (OWSContentAPIPath.IsEmpty())
+	{
+		UE_LOG(OWS, Error, TEXT("GetContentCache - OWSContentAPIPath is not configured!"));
+		OnErrorGetContentCacheDelegate.ExecuteIfBound(TEXT("OWSContentAPIPath is not configured!"));
+		return;
+	}
+
+	FString Url = FString::Printf(TEXT("GetContentCache?zoneName=%s"), *ZoneName.TrimStartAndEnd());
+	ProcessOWS2GETRequest("ContentAPI", Url, &UOWSAPISubsystem::OnGetContentCacheResponseReceived);
+}
+
+void UOWSAPISubsystem::OnGetContentCacheResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful && Response.IsValid())
+	{
+		OnNotifyGetContentCacheDelegate.ExecuteIfBound(Response->GetContentAsString());
+	}
+	else
+	{
+		UE_LOG(OWS, Error, TEXT("OnGetContentCacheResponseReceived - Response was unsuccessful or invalid!"));
+		OnErrorGetContentCacheDelegate.ExecuteIfBound(TEXT("OnGetContentCacheResponseReceived - Response was unsuccessful or invalid!"));
+	}
 }

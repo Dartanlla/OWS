@@ -9,7 +9,7 @@ AOWSEnvironmentAbilityActor::AOWSEnvironmentAbilityActor()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 	bNetLoadOnClient = true;
-	bReplicates = true;
+	//bReplicates = true;
 
 	//BeginOverlapLatchLengthSeconds = 1.f;
 	//EndOverlapLatchLengthSeconds = 1.f;
@@ -36,7 +36,7 @@ AOWSEnvironmentAbilityActor::AOWSEnvironmentAbilityActor()
 void AOWSEnvironmentAbilityActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	SetReplicates(true);
 }
 
 void AOWSEnvironmentAbilityActor::PostInitializeComponents()

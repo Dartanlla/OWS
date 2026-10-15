@@ -94,6 +94,7 @@ public:
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FItemLibraryLoadedSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnZoneContentLoaded, FString, ContentJSON);
 /**
  * 
  */
@@ -125,11 +126,17 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Item Library Loaded")
 		FItemLibraryLoadedSignature ItemLibraryLoadedEvent;
 
+	UPROPERTY(BlueprintAssignable, Category = "OWS|Content")
+		FOnZoneContentLoaded OnZoneContentLoaded;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 		FVector DebugStartLocation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 		FString DebugCharacterName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+		FString DebugZoneName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Items")
 		TArray<FInventoryItemStruct> AllInventoryItems;
@@ -171,6 +178,8 @@ public:
 
 	FTimerHandle SaveAllPlayerLocationsTimerHandle;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
+	bool bEnableContentPullOnServerSpinUp;
 
 	//Time of Day
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeOfDay")
@@ -336,6 +345,9 @@ public:
 		void ErrorUpdateZone(const FString& ErrorMsg);
 	*/
 
+
+	void GetContentCacheSuccess(FString ContentJSON);
+	void GetContentCacheError(const FString& ErrorMsg);
 
 	void InitializeOWSAPISubsystemOnGameMode();
 	AOWSPlayerController* GetPlayerControllerFromCharacterName(const FString CharacterName);

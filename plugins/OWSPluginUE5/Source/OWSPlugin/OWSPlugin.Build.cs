@@ -35,7 +35,6 @@ public class OWSPlugin : ModuleRules
                 "GameplayAbilities",
                 "GameplayTags",
                 "GameplayTasks",
-                "ReplicationGraph",
                 "AIModule"
 				// ... add other public dependencies that you statically link with here ...
 			}

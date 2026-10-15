@@ -68,6 +68,8 @@ void AOWSGameMode::InitializeOWSAPISubsystemOnGameMode()
 	GameInstance->GetSubsystem<UOWSAPISubsystem>()->OnErrorGetGlobalDataItemDelegate.BindUObject(this, &AOWSGameMode::GetGlobalDataItemError);
 	GameInstance->GetSubsystem<UOWSAPISubsystem>()->OnNotifyAddOrUpdateGlobalDataItemDelegate.BindUObject(this, &AOWSGameMode::AddOrUpdateGlobalDataItemSuccess);
 	GameInstance->GetSubsystem<UOWSAPISubsystem>()->OnErrorAddOrUpdateGlobalDataItemDelegate.BindUObject(this, &AOWSGameMode::AddOrUpdateGlobalDataItemError);
+	GameInstance->GetSubsystem<UOWSAPISubsystem>()->OnNotifyGetContentCacheDelegate.BindUObject(this, &AOWSGameMode::GetContentCacheSuccess);
+	GameInstance->GetSubsystem<UOWSAPISubsystem>()->OnErrorGetContentCacheDelegate.BindUObject(this, &AOWSGameMode::GetContentCacheError);
 }
 
 void AOWSGameMode::GetGlobalDataItemSuccess(TSharedPtr<FGlobalDataItem> GlobalDataItem)
@@ -86,6 +88,16 @@ void AOWSGameMode::AddOrUpdateGlobalDataItemSuccess()
 void AOWSGameMode::AddOrUpdateGlobalDataItemError(const FString& ErrorMsg)
 {
 	ErrorAddOrUpdateGlobalDataItem(ErrorMsg);
+}
+
+void AOWSGameMode::GetContentCacheSuccess(FString ContentJSON)
+{
+	OnZoneContentLoaded.Broadcast(ContentJSON);
+}
+
+void AOWSGameMode::GetContentCacheError(const FString& ErrorMsg)
+{
+	UE_LOG(OWS, Error, TEXT("GetContentCache failed: %s"), *ErrorMsg);
 }
 
 void AOWSGameMode::ProcessOWS2POSTRequest(FString ApiModuleToCall, FString ApiToCall, FString PostParameters, void (AOWSGameMode::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful))
@@ -162,8 +174,17 @@ void AOWSGameMode::StartPlay()
 
 		UE_LOG(OWS, Warning, TEXT("OWSGameMode::StartPlay - ZoneInstanceID: %d"), ZoneInstanceID)
 
-		//Lookup which Zone this server is running for and get the ZoneName into IAmZoneName var
-		GetZoneInstanceFromZoneInstanceID(ZoneInstanceID);
+		if (ZoneInstanceID > 0)
+		{
+			//Lookup which Zone this server is running for and get the ZoneName into IAmZoneName var
+			GetZoneInstanceFromZoneInstanceID(ZoneInstanceID);
+		}
+		else if (bEnableContentPullOnServerSpinUp)
+		{
+			IAmZoneName = DebugZoneName;
+			UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
+			GameInstance->GetSubsystem<UOWSAPISubsystem>()->GetContentCache(IAmZoneName);
+		}
 
 		//Change Status of the Zone Instance to 2 (ready for players to connect)
 		UpdateNumberOfPlayers();
@@ -674,6 +695,7 @@ void AOWSGameMode::OnGetZoneInstanceFromZoneInstanceIDResponseReceived(FHttpRequ
 	{
 		FGetServerInstanceFromPort ServerInstanceFromPort;
 		FString JsonString = Response->GetContentAsString();
+		UE_LOG(OWS, Warning, TEXT("OnGetZoneInstanceFromZoneInstanceIDResponseReceived raw response: %s"), *JsonString);
 		if (FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &ServerInstanceFromPort))
 		{
 			if (ServerInstanceFromPort.ZoneName != "")
@@ -681,6 +703,12 @@ void AOWSGameMode::OnGetZoneInstanceFromZoneInstanceIDResponseReceived(FHttpRequ
 				IAmZoneName = ServerInstanceFromPort.ZoneName;
 				UE_LOG(OWS, Verbose, TEXT("I am ZoneName: %s"), *IAmZoneName);
 				NotifyGetZoneInstanceFromZoneInstanceID(IAmZoneName);
+
+				if (bEnableContentPullOnServerSpinUp)
+				{
+					UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
+					GameInstance->GetSubsystem<UOWSAPISubsystem>()->GetContentCache(IAmZoneName);
+				}
 			}
 			else
 			{
@@ -731,11 +759,11 @@ void AOWSGameMode::OnUpdateNumberOfPlayersResponseReceived(FHttpRequestPtr Reque
 {
 	if (bWasSuccessful)
 	{
-		UE_LOG(OWS, Verbose, TEXT("OnUpdateNumberOfPlayersResponseReceived success!"));
+		UE_LOG(OWS, Warning, TEXT("OnUpdateNumberOfPlayersResponseReceived success: %s"), *Response->GetContentAsString());
 	}
 	else
 	{
-		UE_LOG(OWS, Verbose, TEXT("OnUpdateNumberOfPlayersResponseReceived Error accessing server!"));
+		UE_LOG(OWS, Error, TEXT("OnUpdateNumberOfPlayersResponseReceived Error accessing server!"));
 	}
 }
 

@@ -26,6 +26,10 @@ DECLARE_DELEGATE_OneParam(FErrorCreateCharacterUsingDefaultCharacterValuesDelega
 DECLARE_DELEGATE(FNotifyLogoutDelegate)
 DECLARE_DELEGATE_OneParam(FErrorLogoutDelegate, const FString&)
 
+//Get Content Cache
+DECLARE_DELEGATE_OneParam(FNotifyGetContentCacheDelegate, FString /* ContentJSON */)
+DECLARE_DELEGATE_OneParam(FErrorGetContentCacheDelegate, const FString&)
+
 
 /**
  * 
@@ -54,6 +58,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Config")
 		FString OWSEncryptionKey = "";
+
+	UPROPERTY(BlueprintReadWrite, Category = "Config")
+		FString OWSContentAPIPath = "";
 
 protected:
 	FHttpModule* Http;
@@ -94,6 +101,15 @@ public:
 
 	FNotifyLogoutDelegate OnNotifyLogoutDelegate;
 	FErrorLogoutDelegate OnErrorLogoutDelegate;
+
+	//Get Content Cache
+	UFUNCTION(BlueprintCallable, Category = "Content")
+		void GetContentCache(FString ZoneName);
+
+	void OnGetContentCacheResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	FNotifyGetContentCacheDelegate OnNotifyGetContentCacheDelegate;
+	FErrorGetContentCacheDelegate OnErrorGetContentCacheDelegate;
 
 protected:
 	void ProcessOWS2POSTRequest(FString ApiModuleToCall, FString ApiToCall, FString PostParameters, void (UOWSAPISubsystem::* InMethodPtr)(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful));

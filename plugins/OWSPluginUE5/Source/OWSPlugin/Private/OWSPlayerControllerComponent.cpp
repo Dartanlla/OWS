@@ -51,6 +51,20 @@ UOWSPlayerControllerComponent::UOWSPlayerControllerComponent()
 		GGameIni
 	);
 
+	GConfig->GetFloat(
+		TEXT("/Script/EngineSettings.GeneralProjectSettings"),
+		TEXT("ZoneStatusPollIntervalSeconds"),
+		ZoneStatusPollIntervalSeconds,
+		GGameIni
+	);
+
+	GConfig->GetInt(
+		TEXT("/Script/EngineSettings.GeneralProjectSettings"),
+		TEXT("ZoneStatusMaxPolls"),
+		ZoneStatusMaxPolls,
+		GGameIni
+	);
+
 	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
 	//GameInstance will be null on Editor startup, but will have a valid refernce when playing the game
 	if (GameInstance)
@@ -296,17 +310,20 @@ void UOWSPlayerControllerComponent::OnSetSelectedCharacterAndConnectToLastZoneRe
 	}
 }
 
-//TravelToLastZoneServer
+//TravelToLastZoneServer - routes through the shared GetZoneServerToTravelTo handlers so polling is supported.
 void UOWSPlayerControllerComponent::TravelToLastZoneServer(FString CharacterName)
 {
+	bZoneStatusIsLastZone = true;
+	ZoneStatusCharacterName = CharacterName;
+
 	FTravelToLastZoneServerJSONPost TravelToLastZoneServerJSONPost;
 	TravelToLastZoneServerJSONPost.CharacterName = CharacterName;
-	TravelToLastZoneServerJSONPost.ZoneName = "GETLASTZONENAME";
+	TravelToLastZoneServerJSONPost.ZoneName = TEXT("GETLASTZONENAME");
 	TravelToLastZoneServerJSONPost.PlayerGroupType = 0;
-	FString PostParameters = "";
+	FString PostParameters;
 	if (FJsonObjectConverter::UStructToJsonObjectString(TravelToLastZoneServerJSONPost, PostParameters))
 	{
-		ProcessOWS2POSTRequest("PublicAPI", "api/Users/GetServerToConnectTo", PostParameters, &UOWSPlayerControllerComponent::OnTravelToLastZoneServerResponseReceived);
+		ProcessOWS2POSTRequest("PublicAPI", "api/Users/GetServerToConnectTo", PostParameters, &UOWSPlayerControllerComponent::OnGetZoneServerToTravelToResponseReceived);
 	}
 	else
 	{
@@ -314,72 +331,13 @@ void UOWSPlayerControllerComponent::TravelToLastZoneServer(FString CharacterName
 	}
 }
 
-void UOWSPlayerControllerComponent::OnTravelToLastZoneServerResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
-{
-	FString ServerAndPort;
-
-	if (!GetWorld())
-	{
-		return;
-	}
-
-	UOWSGameInstance* GameInstance = Cast<UOWSGameInstance>(GetWorld()->GetGameInstance());
-
-	if (!GameInstance)
-	{
-		return;
-	}
-
-	if (bWasSuccessful)
-	{
-		TSharedPtr<FJsonObject> JsonObject;
-		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
-
-		if (FJsonSerializer::Deserialize(Reader, JsonObject))
-		{
-			FString ServerIP = JsonObject->GetStringField(TEXT("serverip"));
-			FString Port = JsonObject->GetStringField(TEXT("port"));
-
-			if (ServerIP.IsEmpty() || Port.IsEmpty())
-			{
-				UE_LOG(OWS, Error, TEXT("OnTravelToLastZoneServerResponseReceived Cannot Get Server IP and Port!"));
-				return;
-			}
-
-			ServerAndPort = ServerIP + FString(TEXT(":")) + Port.Left(4);
-
-			UE_LOG(OWS, Warning, TEXT("OnTravelToLastZoneServerResponseReceived ServerAndPort: %s"), *ServerAndPort);
-
-			//Encrypt data to send
-			FString IDData = FString::SanitizeFloat(ServerTravelX)
-				+ "|" + FString::SanitizeFloat(ServerTravelY)
-				+ "|" + FString::SanitizeFloat(ServerTravelZ)
-				+ "|" + FString::SanitizeFloat(ServerTravelRX)
-				+ "|" + FString::SanitizeFloat(ServerTravelRY)
-				+ "|" + FString::SanitizeFloat(ServerTravelRZ)
-				+ "|" + FGenericPlatformHttp::UrlEncode(ServerTravelCharacterName)
-				+ "|" + ServerTravelUserSessionGUID;
-			FString EncryptedIDData = GameInstance->EncryptWithAES(IDData, OWSEncryptionKey);
-
-			FString URL = ServerAndPort
-				+ FString(TEXT("?ID=")) + EncryptedIDData;
-
-			TravelToMap(URL, false);
-		}
-		else
-		{
-			UE_LOG(OWS, Error, TEXT("OnTravelToLastZoneServerResponseReceived Server returned no data!"));
-		}
-	}
-	else
-	{
-		UE_LOG(OWS, Error, TEXT("OnTravelToLastZoneServerResponseReceived Error accessing server!"));
-	}
-}
-
 //GetZoneServerToTravelTo
 void UOWSPlayerControllerComponent::GetZoneServerToTravelTo(FString CharacterName, TEnumAsByte<ERPGSchemeToChooseMap::SchemeToChooseMap> SelectedSchemeToChooseMap, int32 WorldServerID, FString ZoneName)
 {
+	bZoneStatusIsLastZone = false;
+	// Cache character name for use by the status-polling path.
+	ZoneStatusCharacterName = CharacterName;
+
 	FTravelToLastZoneServerJSONPost TravelToLastZoneServerJSONPost;
 	TravelToLastZoneServerJSONPost.CharacterName = CharacterName;
 	TravelToLastZoneServerJSONPost.ZoneName = ZoneName;
@@ -397,41 +355,179 @@ void UOWSPlayerControllerComponent::GetZoneServerToTravelTo(FString CharacterNam
 
 void UOWSPlayerControllerComponent::OnGetZoneServerToTravelToResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
-	FString ServerAndPort;
-
-	if (bWasSuccessful)
-	{
-		TSharedPtr<FJsonObject> JsonObject;
-		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
-
-		if (FJsonSerializer::Deserialize(Reader, JsonObject))
-		{
-			FString ServerIP = JsonObject->GetStringField(TEXT("serverip"));
-			FString Port = JsonObject->GetStringField(TEXT("port"));
-
-			if (ServerIP.IsEmpty() || Port.IsEmpty())
-			{
-				OnErrorGetZoneServerToTravelToDelegate.ExecuteIfBound(TEXT("Cannot connect to server!"));
-				return;
-			}
-
-			ServerAndPort = ServerIP + FString(TEXT(":")) + Port.Left(4);
-
-			UE_LOG(LogTemp, Warning, TEXT("ServerAndPort: %s"), *ServerAndPort);
-
-			OnNotifyGetZoneServerToTravelToDelegate.ExecuteIfBound(ServerAndPort);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("OnGetZoneServerToTravelToResponseReceived Server returned no data!"));
-			OnErrorGetZoneServerToTravelToDelegate.ExecuteIfBound(TEXT("There was a problem connecting to the server.  Please try again."));
-		}
-	}
-	else
+	if (!bWasSuccessful)
 	{
 		UE_LOG(LogTemp, Error, TEXT("OnGetZoneServerToTravelToResponseReceived Error accessing server!"));
 		OnErrorGetZoneServerToTravelToDelegate.ExecuteIfBound(TEXT("Unknown error connecting to server!"));
+		return;
 	}
+
+	TSharedPtr<FJsonObject> JsonObject;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
+
+	if (!FJsonSerializer::Deserialize(Reader, JsonObject))
+	{
+		UE_LOG(LogTemp, Error, TEXT("OnGetZoneServerToTravelToResponseReceived Server returned no data!"));
+		OnErrorGetZoneServerToTravelToDelegate.ExecuteIfBound(TEXT("There was a problem connecting to the server.  Please try again."));
+		return;
+	}
+
+	FString ServerIP = JsonObject->GetStringField(TEXT("serverip"));
+	FString Port = JsonObject->GetStringField(TEXT("port"));
+
+	if (ServerIP.IsEmpty() || Port.IsEmpty())
+	{
+		OnErrorGetZoneServerToTravelToDelegate.ExecuteIfBound(TEXT("Cannot connect to server!"));
+		return;
+	}
+
+	FString ServerAndPort = ServerIP + FString(TEXT(":")) + Port.Left(4);
+	UE_LOG(LogTemp, Warning, TEXT("ServerAndPort: %s"), *ServerAndPort);
+
+	int32 MapInstanceStatus = 0;
+	JsonObject->TryGetNumberField(TEXT("MapInstanceStatus"), MapInstanceStatus);
+
+	JsonObject->TryGetNumberField(TEXT("MapInstanceId"), ZoneStatusCachedMapInstanceId);
+
+	// Status 2 = server is ready and AddCharacterToMapInstanceByCharName has already been called.
+	if (MapInstanceStatus == 2)
+	{
+		if (bZoneStatusIsLastZone)
+			DoTravelToLastZone(ServerAndPort);
+		else
+			OnNotifyGetZoneServerToTravelToDelegate.ExecuteIfBound(ServerAndPort);
+		return;
+	}
+
+	// Status 1 = server is still starting. Cache the address and poll the status endpoint.
+	ZoneStatusCachedServerAndPort = ServerAndPort;
+	ZoneStatusPollCount = 0;
+
+	UE_LOG(LogTemp, Warning, TEXT("Zone server starting up (status %d), begin polling status for %s"), MapInstanceStatus, *ServerAndPort);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		ZoneStatusPollTimerHandle,
+		this,
+		&UOWSPlayerControllerComponent::PollGetZoneServerToTravelToStatus,
+		ZoneStatusPollIntervalSeconds,
+		false
+	);
+}
+
+void UOWSPlayerControllerComponent::PollGetZoneServerToTravelToStatus()
+{
+	if (ZoneStatusPollCount >= ZoneStatusMaxPolls)
+	{
+		UE_LOG(LogTemp, Error, TEXT("PollGetZoneServerToTravelToStatus timed out after %d polls"), ZoneStatusPollCount);
+		OnErrorGetZoneServerToTravelToDelegate.ExecuteIfBound(TEXT("Server took too long to become ready."));
+		return;
+	}
+
+	++ZoneStatusPollCount;
+
+	FGetServerToConnectToStatusJSONPost StatusPost;
+	StatusPost.CharacterName = ZoneStatusCharacterName;
+	StatusPost.MapInstanceId = ZoneStatusCachedMapInstanceId;
+
+	FString PostParameters;
+	if (FJsonObjectConverter::UStructToJsonObjectString(StatusPost, PostParameters))
+	{
+		ProcessOWS2POSTRequest("PublicAPI", "api/Users/GetServerToConnectToStatus", PostParameters, &UOWSPlayerControllerComponent::OnGetZoneServerToTravelToStatusResponseReceived);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("PollGetZoneServerToTravelToStatus Error serializing status request!"));
+		OnErrorGetZoneServerToTravelToDelegate.ExecuteIfBound(TEXT("Internal error polling server status."));
+	}
+}
+
+void UOWSPlayerControllerComponent::OnGetZoneServerToTravelToStatusResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (!bWasSuccessful)
+	{
+		UE_LOG(LogTemp, Error, TEXT("OnGetZoneServerToTravelToStatusResponseReceived Error accessing server!"));
+		OnErrorGetZoneServerToTravelToDelegate.ExecuteIfBound(TEXT("Unknown error polling server status!"));
+		return;
+	}
+
+	FString StatusRawResponse = Response->GetContentAsString();
+	UE_LOG(LogTemp, Warning, TEXT("OnGetZoneServerToTravelToStatusResponseReceived raw response: %s"), *StatusRawResponse);
+
+	TSharedPtr<FJsonObject> JsonObject;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(StatusRawResponse);
+
+	if (!FJsonSerializer::Deserialize(Reader, JsonObject))
+	{
+		UE_LOG(LogTemp, Error, TEXT("OnGetZoneServerToTravelToStatusResponseReceived Server returned no data!"));
+		OnErrorGetZoneServerToTravelToDelegate.ExecuteIfBound(TEXT("There was a problem polling server status.  Please try again."));
+		return;
+	}
+
+	bool bSuccess = false;
+	JsonObject->TryGetBoolField(TEXT("Success"), bSuccess);
+
+	if (!bSuccess)
+	{
+		FString ErrorMessage;
+		JsonObject->TryGetStringField(TEXT("ErrorMessage"), ErrorMessage);
+		UE_LOG(LogTemp, Error, TEXT("OnGetZoneServerToTravelToStatusResponseReceived: %s"), *ErrorMessage);
+		OnErrorGetZoneServerToTravelToDelegate.ExecuteIfBound(ErrorMessage.IsEmpty() ? TEXT("Server status check failed.") : ErrorMessage);
+		return;
+	}
+
+	int32 MapInstanceStatus = 0;
+	JsonObject->TryGetNumberField(TEXT("MapInstanceStatus"), MapInstanceStatus);
+
+	if (MapInstanceStatus == 2)
+	{
+		// Server is ready — AddCharacterToMapInstanceByCharName was already called server-side.
+		UE_LOG(LogTemp, Warning, TEXT("Zone server ready after %d poll(s), travelling to %s"), ZoneStatusPollCount, *ZoneStatusCachedServerAndPort);
+		if (bZoneStatusIsLastZone)
+			DoTravelToLastZone(ZoneStatusCachedServerAndPort);
+		else
+			OnNotifyGetZoneServerToTravelToDelegate.ExecuteIfBound(ZoneStatusCachedServerAndPort);
+		return;
+	}
+
+	// Still not ready — schedule the next poll.
+	UE_LOG(LogTemp, Verbose, TEXT("Zone server status %d (poll %d), retrying in 2s"), MapInstanceStatus, ZoneStatusPollCount);
+	GetWorld()->GetTimerManager().SetTimer(
+		ZoneStatusPollTimerHandle,
+		this,
+		&UOWSPlayerControllerComponent::PollGetZoneServerToTravelToStatus,
+		ZoneStatusPollIntervalSeconds,
+		false
+	);
+}
+
+// Performs the actual client travel for the TravelToLastZoneServer path once the zone server is confirmed ready.
+// Cannot use TravelToMap2 here because OWSPlayerState is unavailable on the character-select screen.
+void UOWSPlayerControllerComponent::DoTravelToLastZone(const FString& ServerAndPort)
+{
+	if (!GetWorld())
+	{
+		return;
+	}
+
+	UOWSGameInstance* GameInstance = Cast<UOWSGameInstance>(GetWorld()->GetGameInstance());
+	if (!GameInstance)
+	{
+		return;
+	}
+
+	UE_LOG(OWS, Warning, TEXT("DoTravelToLastZone ServerAndPort: %s"), *ServerAndPort);
+
+	FString IDData = FString::SanitizeFloat(ServerTravelX)
+		+ "|" + FString::SanitizeFloat(ServerTravelY)
+		+ "|" + FString::SanitizeFloat(ServerTravelZ)
+		+ "|" + FString::SanitizeFloat(ServerTravelRX)
+		+ "|" + FString::SanitizeFloat(ServerTravelRY)
+		+ "|" + FString::SanitizeFloat(ServerTravelRZ)
+		+ "|" + FGenericPlatformHttp::UrlEncode(ServerTravelCharacterName)
+		+ "|" + ServerTravelUserSessionGUID;
+	FString EncryptedIDData = GameInstance->EncryptWithAES(IDData, OWSEncryptionKey);
+
+	TravelToMap(ServerAndPort + TEXT("?ID=") + EncryptedIDData, false);
 }
 
 void UOWSPlayerControllerComponent::SavePlayerLocation()

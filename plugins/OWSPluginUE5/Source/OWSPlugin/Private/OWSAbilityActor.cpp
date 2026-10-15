@@ -13,8 +13,6 @@ AOWSAbilityActor::AOWSAbilityActor()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	bReplicates = true;
-
 	AbilitySystem = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
 	AbilitySystem->SetIsReplicated(true);
 }
@@ -23,6 +21,7 @@ AOWSAbilityActor::AOWSAbilityActor()
 void AOWSAbilityActor::BeginPlay()
 {
 	Super::BeginPlay();
+	SetReplicates(true);
 
 	OWSBasicAttributes = NewObject<UOWSBasicAttributeSet>();
 

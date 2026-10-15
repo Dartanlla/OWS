@@ -9,7 +9,7 @@ AOWSInventoryItem::AOWSInventoryItem()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	bReplicates = true;
+	//bReplicates = true;
 	bOnlyRelevantToOwner = true;
 }
 
@@ -17,7 +17,7 @@ AOWSInventoryItem::AOWSInventoryItem()
 void AOWSInventoryItem::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	SetReplicates(true);
 }
 
 // Called every frame
