@@ -238,7 +238,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 p.Add("@CustomerGUID", customerGUID);
                 p.Add("@ZoneName", ZoneName);
 
-                output = await connection.QueryAsync<GetZoneInstancesForZone>("select * from GetZoneInstancesOfZone(@CustomerGUID,@ZoneName)",
+                output = await connection.QueryAsync<GetZoneInstancesForZone>(PostgresQueries.GetZoneInstancesOfZone,
                     p,
                     commandType: CommandType.Text);
             }
@@ -256,7 +256,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 var p = new DynamicParameters();
                 p.Add("@CustomerGUID", customerGUID);
 
-                output = await connection.QuerySingleOrDefaultAsync<GetCurrentWorldTime>("select * from GetWorldStartTime(@CustomerGUID)",
+                output = await connection.QuerySingleOrDefaultAsync<GetCurrentWorldTime>(PostgresQueries.GetCurrentWorldTime,
                     p,
                     commandType: CommandType.Text);
             }
@@ -321,7 +321,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     p.Add("@HardPlayerCap", hardPlayerCap);
                     p.Add("@MapMode", mapMode);
 
-                    await connection.ExecuteAsync("call AddOrUpdateMapZone(@CustomerGUID,@MapID,@MapName,@MapData,@ZoneName,@WorldCompContainsFilter,@WorldCompListFilter,@SoftPlayerCap,@HardPlayerCap,@MapMode)",
+                    await connection.ExecuteAsync(PostgresQueries.AddOrUpdateMapZone,
                         p,
                         commandType: CommandType.Text);
                 }
@@ -364,7 +364,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     p.Add("@HardPlayerCap", hardPlayerCap);
                     p.Add("@MapMode", mapMode);
 
-                    await connection.ExecuteAsync("call AddOrUpdateMapZone(@CustomerGUID,@MapID,@MapName,@MapData,@ZoneName,@WorldCompContainsFilter,@WorldCompListFilter,@SoftPlayerCap,@HardPlayerCap,@MapMode)",
+                    await connection.ExecuteAsync(PostgresQueries.AddOrUpdateMapZone,
                         p,
                         commandType: CommandType.Text);
                 }
