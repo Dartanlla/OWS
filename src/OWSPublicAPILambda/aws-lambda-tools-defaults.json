@@ -18,9 +18,9 @@
   "function-description": "",
   "package-type": "Zip",
   "tracing-mode": "PassThrough",
-  "environment-variables": "\u0022INSTANCE_MANAGEMENT_API_URL\u0022=\u0022https://enialxpdfw7fc2vkfhkxkezy5u0gypyp.lambda-url.us-east-1.on.aws/\u0022;\u0022OWS_DB_CONNECTION_STRING\u0022=\u0022Host=ep-old-dust-anoqizoy.c-6.us-east-1.aws.neon.tech;Port=5432;Database=openworldserver;Username=neondb_owner;Password=;Maximum Pool Size=6;\u0022;\u0022SECONDS_BETWEEN_SPINUP_POLLING\u0022=\u00222\u0022;\u0022SECONDS_TO_WAIT_FOR_SERVER_SPINUP\u0022=\u002245\u0022;\u0022SECONDS_BEFORE_FIRST_SPINUP_POLL\u0022=\u00225\u0022",
+  "environment-variables": "",
   "image-tag": "",
-  "function-role": "arn:aws:iam::395053132894:role/role-ows-publicapi",
+  "function-role": "",
   "function-subnets": "",
   "function-security-groups": ""
 }
