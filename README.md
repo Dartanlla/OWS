@@ -38,3 +38,33 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 
 # Documentation
 [Open World Server Documentation](https://www.openworldserver.com/)
+
+### Nilux external connection tickets
+
+`POST /api/Users/ExternalConnectionTicket` accepts `UserSessionGUID` and a
+positive `ServerId` (the intended Edge server ID) in JSON over HTTPS. Include
+the same `X-CustomerGUID` header used for OWS login. The API checks that the
+session exists and has a selected character, then returns an opaque ticket, a
+new Base64-encoded 32-byte session secret, `CharacterId`, `ServerId`, and
+`ExpiresAtUtc`. The ticket expires after 45 seconds.
+
+The dedicated `owsticket` Valkey service stores ticket records in memory and
+publishes port `6380` on the Docker host's loopback interface for local Edge
+integration. Set a distinct `OWSTicketValkeyPassword` in the environment before
+running Docker Compose. In a local API process, set
+`OWSTicketConfig__ConnectionString` to a connection string for `localhost:6380`
+that includes that password. Compose configures the API connection automatically.
+
+`ITicketRepository` exposes `GetTicketAsync` for retrieving the secret before
+handshake verification and `RedeemTicketAsync` for atomically claiming the ticket
+after the Edge verifies the AES-GCM authentication tag. A repeated claim by the
+same authenticated handshake succeeds until the original TTL expires; other
+claimants and other server IDs are rejected.
+
+Nilux Edge accesses those operations through the private HTTPS endpoint
+`POST /api/Users/RedeemExternalConnectionTicket`; it never connects to Valkey.
+The endpoint accepts `Claim: false` for the pre-authentication lookup and
+`Claim: true` for the atomic claim, and requires `X-Edge-Redemption-Key`. Set
+`OWS_TICKET_REDEMPTION_API_KEY` on the API/Lambda and configure the same secret
+as `NILUX_OWS_REDEMPTION_API_KEY` on Edge. Do not expose either value to the game
+client or commit it to source.

@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OWSData.Repositories.Interfaces;
+using OWSData.Repositories.Implementations.ValKey;
 using OWSExternalLoginProviders.Extensions;
 using OWSExternalLoginProviders.Interfaces;
 using OWSPublicAPI;
 using OWSPublicAPI.DTOs;
 using OWSPublicAPI.Requests.Characters;
 using OWSPublicAPI.Requests.Users;
+using OWSPublicAPI.Services;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
 using OWSShared.Options;
@@ -26,6 +28,7 @@ public class Function
     private const string ConnectionStringEnvVar = "OWS_DB_CONNECTION_STRING";
     private const string LegacyConnectionStringEnvVar = "OWSDBConnectionString";
     private const string ConfigSectionConnectionStringEnvVar = "OWSStorageConfig__OWSDBConnectionString";
+    private const string TicketConnectionStringEnvVar = "OWSTicketConfig__ConnectionString";
 
     private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
     {
@@ -40,6 +43,9 @@ public class Function
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddSingleton<ICharactersRepository, OWSData.Repositories.Implementations.Postgres.CharactersRepository>();
         serviceCollection.AddSingleton<IUsersRepository, OWSData.Repositories.Implementations.Postgres.UsersRepository>();
+        string? ticketConnectionString = Environment.GetEnvironmentVariable(TicketConnectionStringEnvVar);
+        if (!string.IsNullOrWhiteSpace(ticketConnectionString))
+            serviceCollection.AddSingleton<ITicketRepository>(new TicketRepository(ticketConnectionString));
         serviceCollection.AddSingleton<IPublicAPIInputValidation, DefaultPublicAPIInputValidation>();
         serviceCollection.AddSingleton<ICustomCharacterDataSelector, DefaultCustomCharacterDataSelector>();
         serviceCollection.AddSingleton<ICustomDataSelector, DefaultCustomDataSelector>();
@@ -124,6 +130,128 @@ public class Function
 
         switch (action)
         {
+            case "ExternalConnectionTicket":
+            {
+                if (!path.TrimEnd('/').EndsWith("/api/Users/ExternalConnectionTicket", StringComparison.OrdinalIgnoreCase))
+                    return TicketResponse(404, new { ErrorMessage = "Unknown action." });
+                if (!string.Equals(proxyRequest.HttpMethod, "POST", StringComparison.OrdinalIgnoreCase))
+                    return TicketResponse(405, new { ErrorMessage = "POST is required." });
+
+                ExternalConnectionTicketRequest? request;
+                try
+                {
+                    request = JsonSerializer.Deserialize<ExternalConnectionTicketRequest>(body, _jsonOptions);
+                }
+                catch (JsonException)
+                {
+                    return TicketResponse(400, new { ErrorMessage = "Invalid JSON request body." });
+                }
+
+                if (request == null || request.UserSessionGUID == Guid.Empty || request.ServerId <= 0)
+                    return TicketResponse(400, new { ErrorMessage = "UserSessionGUID and a positive ServerId are required." });
+
+                var ticketRepository = services!.GetService<ITicketRepository>();
+                if (ticketRepository == null)
+                {
+                    context.Logger.LogLine($"Set {TicketConnectionStringEnvVar} on the Lambda function to enable ticket issuance.");
+                    return TicketResponse(503, new { ErrorMessage = "The connection ticket store is not configured." });
+                }
+
+                try
+                {
+                    var issue = await new ExternalConnectionTicketIssuer(usersRepository, ticketRepository)
+                        .IssueAsync(customerGuid.CustomerGUID, request);
+                    return issue.Status switch
+                    {
+                        TicketIssueStatus.Issued => TicketResponse(200, issue.Response!),
+                        TicketIssueStatus.InvalidRequest => TicketResponse(400, new { ErrorMessage = "UserSessionGUID and a positive ServerId are required." }),
+                        TicketIssueStatus.InvalidSession => TicketResponse(401, new { ErrorMessage = "OWS session or selected character is invalid." }),
+                        _ => TicketResponse(503, new { ErrorMessage = "Could not allocate a connection ticket." })
+                    };
+                }
+                catch (Exception exception)
+                {
+                    context.Logger.LogLine($"Connection ticket issuance failed: {exception}");
+                    return TicketResponse(503, new { ErrorMessage = "The connection ticket store is unavailable." });
+                }
+            }
+            case "RedeemExternalConnectionTicket":
+            {
+                if (!path.TrimEnd('/').EndsWith(
+                        "/api/Users/RedeemExternalConnectionTicket",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return TicketResponse(404, new { ErrorMessage = "Unknown action." });
+                }
+                if (!string.Equals(proxyRequest.HttpMethod, "POST", StringComparison.OrdinalIgnoreCase))
+                {
+                    return TicketResponse(405, new { ErrorMessage = "POST is required." });
+                }
+
+                if (string.IsNullOrWhiteSpace(
+                        ExternalConnectionTicketRedemption.GetConfiguredApiKey()))
+                {
+                    context.Logger.LogLine(
+                        $"Set {ExternalConnectionTicketRedemption.ApiKeyEnvironmentVariable} "
+                        + "on the Lambda function to enable private ticket redemption.");
+                    return TicketResponse(503,
+                        new { ErrorMessage = "Ticket redemption is not configured." });
+                }
+
+                string? providedApiKey = GetHeader(
+                    proxyRequest.Headers, ExternalConnectionTicketRedemption.ApiKeyHeader);
+                if (!ExternalConnectionTicketRedemption.IsAuthorized(providedApiKey))
+                {
+                    return TicketResponse(401,
+                        new { ErrorMessage = "Invalid Edge redemption credentials." });
+                }
+
+                RedeemExternalConnectionTicketRequest? request;
+                try
+                {
+                    request = JsonSerializer.Deserialize<RedeemExternalConnectionTicketRequest>(
+                        body, _jsonOptions);
+                }
+                catch (JsonException)
+                {
+                    return TicketResponse(400,
+                        new { ErrorMessage = "Invalid JSON request body." });
+                }
+
+                if (!ExternalConnectionTicketRedemption.IsValid(request))
+                {
+                    return TicketResponse(400, new
+                    {
+                        ErrorMessage = "Ticket, a positive ServerId, and ClaimantId when claiming are required."
+                    });
+                }
+
+                var ticketRepository = services!.GetService<ITicketRepository>();
+                if (ticketRepository == null)
+                {
+                    return TicketResponse(503,
+                        new { ErrorMessage = "The connection ticket store is not configured." });
+                }
+
+                try
+                {
+                    var ticket = await ExternalConnectionTicketRedemption.ExecuteAsync(
+                        ticketRepository, request!);
+                    return ticket == null
+                        ? TicketResponse(404, new
+                        {
+                            ErrorMessage = "The ticket is unavailable, expired, assigned to another server, or already claimed."
+                        })
+                        : TicketResponse(200,
+                            ExternalConnectionTicketRedemption.ToResponse(ticket));
+                }
+                catch (Exception exception)
+                {
+                    context.Logger.LogLine($"Connection ticket redemption failed: {exception}");
+                    return TicketResponse(503,
+                        new { ErrorMessage = "The connection ticket store is unavailable." });
+                }
+            }
             case "CreateCharacter":
             {
                 var request = JsonSerializer.Deserialize<CreateCharacterRequest>(body, _jsonOptions)!;
@@ -265,9 +393,27 @@ public class Function
     private static object? ExtractActionResultValue(IActionResult actionResult) =>
         actionResult is OkObjectResult ok ? ok.Value : null;
 
+    private static string? GetHeader(
+        IDictionary<string, string>? headers,
+        string name) =>
+        headers?.FirstOrDefault(pair => string.Equals(
+            pair.Key, name, StringComparison.OrdinalIgnoreCase)).Value;
+
+    private static APIGatewayProxyResponse TicketResponse(int statusCode, object body)
+    {
+        var headers = BuildResponseHeaders();
+        headers["Cache-Control"] = "no-store";
+        return new APIGatewayProxyResponse
+        {
+            StatusCode = statusCode,
+            Body = JsonSerializer.Serialize(body),
+            Headers = headers
+        };
+    }
+
     private static Dictionary<string, string> BuildResponseHeaders() => new()
     {
-        { "Access-Control-Allow-Headers", "Content-Type, x-api-key" },
+        { "Access-Control-Allow-Headers", "Content-Type, x-api-key, X-CustomerGUID, X-Edge-Redemption-Key" },
         { "Access-Control-Allow-Methods", "OPTIONS,GET,POST" },
         { "Access-Control-Allow-Origin", "*" },
         { "Content-Type", "application/json" },

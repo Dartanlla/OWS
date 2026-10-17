@@ -33,6 +33,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Hosting;
 using System.IO;
 using Microsoft.AspNetCore.DataProtection;
+using OWSData.Repositories.Implementations.ValKey;
 
 
 namespace OWSPublicAPI
@@ -188,6 +189,10 @@ namespace OWSPublicAPI
             container.Register<ICustomDataSelector, DefaultCustomDataSelector>(Lifestyle.Singleton);
             container.Register<IGetReadOnlyPublicCharacterData, DefaultGetReadOnlyPublicCharacterData>(Lifestyle.Singleton);
             container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
+            container.Register<ITicketRepository>(
+                () => new TicketRepository(
+                    Configuration["OWSTicketConfig:ConnectionString"]),
+                Lifestyle.Singleton);
 
             var externalloginproviderfactory = new ExternalLoginProviderFactory(container);
 

@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  owsticket:
+    image: valkey/valkey:latest
+    restart: always
+    command:
+      - valkey-server
+      - --save
+      - ''
+      - --appendonly
+      - 'no'
+      - --requirepass
+      - ${OWSTicketValkeyPassword:?Set OWSTicketValkeyPassword before starting Compose}
+    ports:
+      - "127.0.0.1:6380:6379"

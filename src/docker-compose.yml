@@ -61,6 +61,12 @@ services:
       file: .docker/usersessioncache.yml
       service: usersessioncache
 
+  # Short-lived external connection tickets (Valkey)
+  owsticket:
+    extends:
+      file: .docker/owsticket.yml
+      service: owsticket
+
   # OWS Public Api
   owspublicapi:
     image: ${REGISTRY:-ows}/owspublicapi:${PLATFORM:-linux}-${TAG:-latest}
@@ -73,12 +79,15 @@ services:
      - OWSAPIPathConfig__InternalPublicApiURL=${InternalPublicApiURL}
      - OWSAPIPathConfig__InternalInstanceManagementApiURL=${InternalInstanceManagementApiURL}
      - OWSAPIPathConfig__InternalCharacterPersistenceApiURL=${InternalCharacterPersistenceApiURL}
+     - OWSTicketConfig__ConnectionString=owsticket:6379,password=${OWSTicketValkeyPassword:?Set OWSTicketValkeyPassword before starting Compose}
+     - OWS_TICKET_REDEMPTION_API_KEY=${OWSTicketRedemptionApiKey:?Set OWSTicketRedemptionApiKey before starting Compose}
     ports:
       - "44302:80"
       - "44303:443"
     depends_on:
       - database
       - messaging
+      - owsticket
 
   # OWS Instance Management 
   owsinstancemanagement:

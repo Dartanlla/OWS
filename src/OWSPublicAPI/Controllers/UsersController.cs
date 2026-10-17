@@ -20,6 +20,7 @@ using System.Net.Http;
 using OWSData.Models.Tables;
 using Microsoft.Extensions.Logging;
 using OWSPublicAPI.DTOs;
+using OWSPublicAPI.Services;
 
 namespace OWSPublicAPI.Controllers
 {
@@ -36,6 +37,7 @@ namespace OWSPublicAPI.Controllers
         private readonly ILogger _logger;
         private readonly Container _container;
         private readonly IUsersRepository _usersRepository;
+        private readonly ITicketRepository _ticketRepository;
         private readonly IExternalLoginProviderFactory _externalLoginProviderFactory;
         private readonly ICharactersRepository _charactersRepository;
         private readonly IPublicAPIInputValidation _publicAPIInputValidation;
@@ -54,6 +56,7 @@ namespace OWSPublicAPI.Controllers
             ILogger<UsersController> logger,
             Container container, 
             IUsersRepository usersRepository,
+            ITicketRepository ticketRepository,
             IExternalLoginProviderFactory externalLoginProviderFactory,
             ICharactersRepository charactersRepository,
             IPublicAPIInputValidation publicAPIInputValidation,
@@ -65,6 +68,7 @@ namespace OWSPublicAPI.Controllers
             _logger = logger;
             _container = container;
             _usersRepository = usersRepository;
+            _ticketRepository = ticketRepository;
             _externalLoginProviderFactory = externalLoginProviderFactory;
             _charactersRepository = charactersRepository;
             _publicAPIInputValidation = publicAPIInputValidation;
@@ -188,6 +192,105 @@ namespace OWSPublicAPI.Controllers
         {
             request.SetData(_usersRepository, _customerGuid);
             return await request.Handle();
+        }
+
+        /// <summary>
+        /// Issues a short-lived connection ticket for an authenticated OWS session
+        /// and its selected character on the requested Edge server.
+        /// </summary>
+        [HttpPost]
+        [Route("ExternalConnectionTicket")]
+        [Produces(typeof(ExternalConnectionTicketResponse))]
+        public async Task<IActionResult> ExternalConnectionTicket(
+            [FromBody] ExternalConnectionTicketRequest request)
+        {
+            Response.Headers["Cache-Control"] = "no-store";
+            if (!Request.IsHttps)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    "Connection tickets must be requested over HTTPS.");
+            }
+            try
+            {
+                var result = await new ExternalConnectionTicketIssuer(
+                    _usersRepository, _ticketRepository)
+                    .IssueAsync(_customerGuid.CustomerGUID, request);
+                switch (result.Status)
+                {
+                    case TicketIssueStatus.InvalidRequest:
+                        return BadRequest("UserSessionGUID and a positive ServerId are required.");
+                    case TicketIssueStatus.InvalidSession:
+                        return Unauthorized("OWS session or selected character is invalid.");
+                    case TicketIssueStatus.Issued:
+                        return Ok(result.Response);
+                    default:
+                        return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                            "Could not allocate a connection ticket.");
+                }
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Could not store connection ticket for ServerId {ServerId}.",
+                    request?.ServerId);
+                return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                    "The connection ticket store is unavailable.");
+            }
+        }
+
+        /// <summary>
+        /// Allows an authenticated Edge service to inspect and then atomically claim
+        /// an issued connection ticket. This is not a client-facing endpoint.
+        /// </summary>
+        [HttpPost]
+        [Route("RedeemExternalConnectionTicket")]
+        [Produces(typeof(RedeemExternalConnectionTicketResponse))]
+        public async Task<IActionResult> RedeemExternalConnectionTicket(
+            [FromBody] RedeemExternalConnectionTicketRequest request)
+        {
+            Response.Headers["Cache-Control"] = "no-store";
+            if (!Request.IsHttps)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    "Ticket redemption requires HTTPS.");
+            }
+
+            if (string.IsNullOrWhiteSpace(
+                    ExternalConnectionTicketRedemption.GetConfiguredApiKey()))
+            {
+                _logger.LogError("Ticket redemption API key is not configured.");
+                return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                    "Ticket redemption is not configured.");
+            }
+
+            string providedApiKey = Request.Headers[
+                ExternalConnectionTicketRedemption.ApiKeyHeader].FirstOrDefault();
+            if (!ExternalConnectionTicketRedemption.IsAuthorized(providedApiKey))
+            {
+                return Unauthorized("Invalid Edge redemption credentials.");
+            }
+
+            if (!ExternalConnectionTicketRedemption.IsValid(request))
+            {
+                return BadRequest(
+                    "Ticket, a positive ServerId, and ClaimantId when claiming are required.");
+            }
+
+            try
+            {
+                var ticket = await ExternalConnectionTicketRedemption.ExecuteAsync(
+                    _ticketRepository, request);
+                return ticket == null
+                    ? NotFound("The ticket is unavailable, expired, assigned to another server, or already claimed.")
+                    : Ok(ExternalConnectionTicketRedemption.ToResponse(ticket));
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception,
+                    "Could not {Operation} connection ticket for ServerId {ServerId}.",
+                    request.Claim ? "claim" : "inspect", request.ServerId);
+                return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                    "The connection ticket store is unavailable.");
+            }
         }
 
         /// <summary>

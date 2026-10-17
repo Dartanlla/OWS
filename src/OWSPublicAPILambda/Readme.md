@@ -1,49 +1,34 @@
-# AWS Lambda Empty Function Project
+# OWS Public API Lambda
 
-This starter project consists of:
-* Function.cs - class file containing a class with a single function handler method
-* aws-lambda-tools-defaults.json - default argument settings for use with Visual Studio and command line deployment tools for AWS
+This project exposes selected OWS Public API actions through the API Gateway proxy handler in `Function.cs`. The handler does not automatically inherit routes from the ASP.NET `OWSPublicAPI` controller.
 
-You may also have a test project depending on the options selected.
+## Connection ticket endpoint
 
-The generated function handler is a simple method accepting a string argument that returns the uppercase equivalent of the input string. Replace the body of this method, and parameters, to suit your needs. 
+Route API Gateway `POST /api/Users/ExternalConnectionTicket` to this Lambda function. Include the existing `X-CustomerGUID` header and a JSON body:
 
-## Here are some steps to follow from Visual Studio:
-
-To deploy your function to AWS Lambda, right click the project in Solution Explorer and select *Publish to AWS Lambda*.
-
-To view your deployed function open its Function View window by double-clicking the function name shown beneath the AWS Lambda node in the AWS Explorer tree.
-
-To perform testing against your deployed function use the Test Invoke tab in the opened Function View window.
-
-To configure event sources for your deployed function, for example to have your function invoked when an object is created in an Amazon S3 bucket, use the Event Sources tab in the opened Function View window.
-
-To update the runtime configuration of your deployed function use the Configuration tab in the opened Function View window.
-
-To view execution logs of invocations of your function use the Logs tab in the opened Function View window.
-
-## Here are some steps to follow to get started from the command line:
-
-Once you have edited your template and code you can deploy your application using the [Amazon.Lambda.Tools Global Tool](https://github.com/aws/aws-extensions-for-dotnet-cli#aws-lambda-amazonlambdatools) from the command line.
-
-Install Amazon.Lambda.Tools Global Tools if not already installed.
-```
-    dotnet tool install -g Amazon.Lambda.Tools
+```json
+{
+  "UserSessionGUID": "00000000-0000-0000-0000-000000000000",
+  "ServerId": 1
+}
 ```
 
-If already installed check if new version is available.
-```
-    dotnet tool update -g Amazon.Lambda.Tools
-```
+Use a real OWS session GUID and the intended Nilux Edge server ID. The session must have a selected character. The response contains an opaque ticket and a fresh Base64 session secret; both must be treated as credentials. The ticket expires after 45 seconds. The API Gateway endpoint must be HTTPS.
 
-Execute unit tests
-```
-    cd "OWSPublicAPILambda/test/OWSPublicAPILambda.Tests"
-    dotnet test
-```
+Route `POST /api/Users/RedeemExternalConnectionTicket` to the same Lambda for
+Edge-only validation. Edge first sends `Claim: false` to retrieve the secret and
+authenticate the encrypted UDP handshake, then sends `Claim: true` with a stable
+`ClaimantId` to atomically claim the ticket. Both requests must include the
+`X-Edge-Redemption-Key` header.
 
-Deploy function to AWS Lambda
-```
-    cd "OWSPublicAPILambda/src/OWSPublicAPILambda"
-    dotnet lambda deploy-function
-```
+## Lambda environment variables
+
+In the AWS Lambda function configuration, set:
+
+- `OWS_DB_CONNECTION_STRING`: existing OWS PostgreSQL connection string (the handler also accepts `OWSDBConnectionString` or `OWSStorageConfig__OWSDBConnectionString`).
+- `OWSTicketConfig__ConnectionString`: Valkey connection string used by `TicketRepository`, for example `valkey-endpoint:6379,password=REPLACE_ME,ssl=true,abortConnect=false`. Use the actual endpoint, port, authentication, and TLS settings of the AWS Valkey deployment. Do not commit the real connection string to source or `aws-lambda-tools-defaults.json`.
+- `OWS_TICKET_REDEMPTION_API_KEY`: high-entropy shared secret accepted only from Nilux Edge redemption clients. Configure the same value on Edge as `NILUX_OWS_REDEMPTION_API_KEY`.
+
+The ticket settings are optional for other Lambda routes. Missing ticket-store
+or redemption-key configuration causes the corresponding endpoint to return
+HTTP 503. Lambda—not Edge—must have network access to Valkey.
