@@ -287,14 +287,21 @@ before. Postgres, RabbitMQ, and Valkey are loopback-only.
 
 ## Logging
 
-This profile does not run ELK. It overrides hosted services toward console logging and
-replaces the second Serilog sink with console output so services do not depend on Logstash.
+This profile does not run ELK. The OWS API services write one JSON object per line to stdout
+(Serilog `RenderedCompactJsonFormatter`): `@t` is the time, `@m` the message, `@l` the level, and
+`Application` names the service. `@l` is absent on Information events, so treat a missing `@l` as
+Information. `owsmanagement` and the one-shot `migrations` job still write plain text. Docker rotates
+each container's log at 10 MB and keeps 5 files (`x-logging` in the compose file).
 
 Use Docker logs for hosted dev:
 
 ```bash
 docker compose --env-file .env.hetzner-dev -f docker-compose.hetzner-dev.yml logs -f
 ```
+
+Zone server logs: the launcher replaces `{zoneinstanceid}` and `{port}` in
+`OWSInstanceLauncherOptions.OtherCustomFlags`, so `-AbsLog=<dir>/UEServer-{zoneinstanceid}-{port}.log`
+gives each zone instance its own file.
 
 ## Persistence And Backups
 

@@ -20,6 +20,7 @@ using System;
 using Microsoft.Extensions.Hosting;
 using Grpc.AspNetCore.Server;
 using OWSParty;
+using Serilog;
 
 SimpleInjector.Container container = new SimpleInjector.Container();
 
@@ -30,6 +31,10 @@ builder.Configuration
 
     .AddEnvironmentVariables()
     .Build();
+
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services));
 
 builder.WebHost.ConfigureKestrel(options =>
 {

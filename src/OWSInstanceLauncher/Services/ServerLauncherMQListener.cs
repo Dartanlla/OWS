@@ -245,6 +245,14 @@ namespace OWSInstanceLauncher.Services
             //return Task.CompletedTask;
         }
 
+        // OtherCustomFlags never goes through String.Format, so a literal brace in a path cannot break the spin-up.
+        public static string ExpandCustomFlags(string otherCustomFlags, int zoneInstanceID, int port)
+        {
+            return otherCustomFlags.Trim()
+                .Replace("{zoneinstanceid}", zoneInstanceID.ToString())
+                .Replace("{port}", port.ToString());
+        }
+
         private void HandleServerSpinUpMessage(Guid customerGUID, int worldServerID, int zoneInstanceID, string mapName, int port)
         {
             Log.Information($"Starting up {customerGUID} : {worldServerID} : {mapName} : {port}");
@@ -282,10 +290,11 @@ namespace OWSInstanceLauncher.Services
                 + (_owsInstanceLauncherOptions.Value.UseNoSteam ? "-nosteam " : "")
                 + "-port={1} "
                 + "-zoneinstanceid={2}";
+            serverArguments = String.Format(serverArguments, mapName, port, zoneInstanceID);
 
             if (!string.IsNullOrWhiteSpace(_owsInstanceLauncherOptions.Value.OtherCustomFlags))
             {
-                serverArguments += " " + _owsInstanceLauncherOptions.Value.OtherCustomFlags.Trim();
+                serverArguments += " " + ExpandCustomFlags(_owsInstanceLauncherOptions.Value.OtherCustomFlags, zoneInstanceID, port);
             }
 
             System.Diagnostics.Process proc = new System.Diagnostics.Process
@@ -293,7 +302,7 @@ namespace OWSInstanceLauncher.Services
                 StartInfo = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = _owsInstanceLauncherOptions.Value.PathToDedicatedServer,
-                    Arguments = Encoding.Default.GetString(Encoding.UTF8.GetBytes(String.Format(serverArguments, mapName, port, zoneInstanceID))),
+                    Arguments = Encoding.Default.GetString(Encoding.UTF8.GetBytes(serverArguments)),
                     UseShellExecute = false,
                     RedirectStandardOutput = false,
                     CreateNoWindow = false

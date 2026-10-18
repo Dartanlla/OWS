@@ -15,8 +15,13 @@ using OWSChat.Service;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
 using OWSShared.Middleware;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services));
 
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo("./temp/DataProtection-Keys"));

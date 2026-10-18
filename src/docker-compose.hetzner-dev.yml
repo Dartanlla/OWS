@@ -38,16 +38,22 @@ x-ows-common-env: &ows-common-env
   Serilog__MinimumLevel__Default: "Information"
   Serilog__MinimumLevel__Override__Microsoft: "Warning"
   Serilog__MinimumLevel__Override__System: "Warning"
-  Serilog__WriteTo__1__Name: "Console"
   Logging__LogLevel__Default: "Information"
   Logging__LogLevel__Microsoft: "Warning"
   Logging__LogLevel__System: "Warning"
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
 
 services:
   database:
     build:
       context: .docker/postgres
     restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_PASSWORD: "${DATABASE_PASSWORD}"
     command:
@@ -74,6 +80,7 @@ services:
   messaging:
     image: rabbitmq:3.9.0-management-alpine
     restart: unless-stopped
+    logging: *default-logging
     volumes:
       - hetzner-rabbitmq-data:/var/lib/rabbitmq
       - ./.docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
@@ -90,6 +97,7 @@ services:
   usersessioncache:
     image: valkey/valkey:8-alpine
     restart: unless-stopped
+    logging: *default-logging
     command: valkey-server --appendonly yes --requirepass "${UserSessionCacheValkeyPassword}"
     volumes:
       - hetzner-valkey-data:/data
@@ -108,6 +116,7 @@ services:
       context: .
       dockerfile: OWSDatabaseMigrations/Dockerfile
     restart: "no"
+    logging: *default-logging
     environment:
       OWS_DB_CONNECTION_STRING: "${DATABASE_CONNECTION_STRING}"
       # Set to "true" for the first run against a database that already has the schema:
@@ -125,6 +134,7 @@ services:
       context: .
       dockerfile: OWSPublicAPI/Dockerfile
     restart: unless-stopped
+    logging: *default-logging
     environment:
       <<: *ows-common-env
       SteamConfig__WebApiHost: "${STEAM_WEB_API_HOST:-https://api.steampowered.com}"
@@ -160,6 +170,7 @@ services:
       context: .
       dockerfile: OWSInstanceManagement/Dockerfile
     restart: unless-stopped
+    logging: *default-logging
     environment:
       <<: *ows-common-env
     ports:
@@ -179,6 +190,7 @@ services:
       context: .
       dockerfile: OWSCharacterPersistence/Dockerfile
     restart: unless-stopped
+    logging: *default-logging
     environment:
       <<: *ows-common-env
       # Server-to-server key for the PlayerShops endpoints. The API fails closed outside
@@ -201,6 +213,7 @@ services:
       context: .
       dockerfile: OWSGlobalData/Dockerfile
     restart: unless-stopped
+    logging: *default-logging
     environment:
       <<: *ows-common-env
     ports:
@@ -229,6 +242,7 @@ services:
     # tool and does not need to hold memory between sessions.
     profiles: ["admin"]
     restart: unless-stopped
+    logging: *default-logging
     environment:
       <<: *ows-common-env
     ports:
@@ -246,6 +260,7 @@ services:
       context: .
       dockerfile: OWSChat/Dockerfile
     restart: unless-stopped
+    logging: *default-logging
     environment:
       <<: *ows-common-env
       ASPNETCORE_URLS: "http://+:50051"
@@ -267,6 +282,7 @@ services:
       context: .
       dockerfile: OWSParty/Dockerfile
     restart: unless-stopped
+    logging: *default-logging
     environment:
       <<: *ows-common-env
     ports:
@@ -284,6 +300,7 @@ services:
   proxy:
     image: caddy:2-alpine
     restart: unless-stopped
+    logging: *default-logging
     # Opt-in: only starts with `--profile tls`. Until real domains + DNS exist, run without the
     # profile and set OWS_API_BIND=0.0.0.0 to serve the APIs directly over their host ports.
     # To switch to HTTPS: set OWS_PUBLIC_API_DOMAIN/OWS_GLOBAL_DATA_DOMAIN, point DNS at the host,
