@@ -303,6 +303,29 @@ Zone server logs: the launcher replaces `{zoneinstanceid}` and `{port}` in
 `OWSInstanceLauncherOptions.OtherCustomFlags`, so `-AbsLog=<dir>/UEServer-{zoneinstanceid}-{port}.log`
 gives each zone instance its own file.
 
+## Monitoring (Grafana Cloud)
+
+Grafana Alloy runs on the host as a systemd service (not in compose) and ships every container's
+logs to Loki (labels `host`, `service`, and `level` on OWS services) plus host, container (cAdvisor)
+and Postgres metrics. The config is `scripts/hetzner/alloy/api-box.alloy`. Install or update, as root:
+
+```bash
+bash /opt/owsfork/scripts/hetzner/install-alloy.sh api-box.alloy
+```
+
+The script installs Alloy from `apt.grafana.com` and refuses to start until `/etc/default/alloy` sets
+every `sys.env(...)` name the config reads: `GRAFANA_CLOUD_TOKEN` (an access policy token with
+logs:write and metrics:write), `GRAFANA_CLOUD_LOKI_URL`/`_USER`, `GRAFANA_CLOUD_PROM_URL`/`_USER`,
+`ALLOY_INSTANCE`, and `POSTGRES_MONITOR_DSN`. The DSN uses a `pg_monitor` role, created once:
+
+```sql
+CREATE ROLE alloy_monitor LOGIN PASSWORD '<random>'; GRANT pg_monitor TO alloy_monitor;
+```
+
+Health: `curl -s localhost:12345/api/v0/web/components` lists each component's state, and
+`journalctl -u alloy` shows push errors. The metric job names match the Grafana Cloud Linux Server,
+Docker and PostgreSQL integrations, so their prebuilt dashboards work without edits.
+
 ## Persistence And Backups
 
 Postgres and RabbitMQ data are stored in named Docker volumes:

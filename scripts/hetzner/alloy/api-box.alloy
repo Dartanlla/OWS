@@ -1,0 +1,143 @@
+// Grafana Alloy on the OWS API box. Endpoints, users and the token come from /etc/default/alloy.
+// Job names match the Grafana Cloud Linux, Docker and PostgreSQL integrations, so their dashboards work.
+
+loki.write "cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_CLOUD_LOKI_URL") + "/loki/api/v1/push"
+
+    basic_auth {
+      username = sys.env("GRAFANA_CLOUD_LOKI_USER")
+      password = sys.env("GRAFANA_CLOUD_TOKEN")
+    }
+  }
+
+  external_labels = {
+    host = sys.env("ALLOY_INSTANCE"),
+  }
+}
+
+prometheus.remote_write "cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_CLOUD_PROM_URL")
+
+    basic_auth {
+      username = sys.env("GRAFANA_CLOUD_PROM_USER")
+      password = sys.env("GRAFANA_CLOUD_TOKEN")
+    }
+  }
+}
+
+prometheus.relabel "instance" {
+  rule {
+    target_label = "instance"
+    replacement  = sys.env("ALLOY_INSTANCE")
+  }
+
+  forward_to = [prometheus.remote_write.cloud.receiver]
+}
+
+// Container logs, labelled by compose service.
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+}
+
+loki.source.docker "containers" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.docker.containers.targets
+  relabel_rules = discovery.relabel.containers.rules
+  forward_to    = [loki.process.ows.receiver]
+}
+
+// OWS services write Serilog compact JSON, which omits "@l" on Information events.
+loki.process "ows" {
+  stage.match {
+    selector = "{service=~\"ows.+\", service!=\"owsmanagement\"}"
+
+    stage.json {
+      expressions = { level = "\"@l\"" }
+    }
+
+    stage.template {
+      source   = "level"
+      template = "{{ if .Value }}{{ .Value }}{{ else }}Information{{ end }}"
+    }
+
+    stage.labels {
+      values = { level = "" }
+    }
+  }
+
+  // Grafana Cloud rejects entries older than 7 days, e.g. when Alloy first reads a container's history.
+  stage.drop {
+    older_than          = "144h"
+    drop_counter_reason = "too_old"
+  }
+
+  forward_to = [loki.write.cloud.receiver]
+}
+
+// Metrics. Each exporter sets its own job label, which scrape job_name does not override.
+
+prometheus.exporter.unix "host" { }
+
+discovery.relabel "host" {
+  targets = prometheus.exporter.unix.host.targets
+
+  rule {
+    target_label = "job"
+    replacement  = "integrations/node_exporter"
+  }
+}
+
+prometheus.scrape "host" {
+  targets    = discovery.relabel.host.output
+  forward_to = [prometheus.relabel.instance.receiver]
+}
+
+prometheus.exporter.cadvisor "containers" {
+  docker_host      = "unix:///var/run/docker.sock"
+  docker_only      = true
+  storage_duration = "5m"
+}
+
+discovery.relabel "containers_metrics" {
+  targets = prometheus.exporter.cadvisor.containers.targets
+
+  rule {
+    target_label = "job"
+    replacement  = "integrations/docker"
+  }
+}
+
+prometheus.scrape "containers" {
+  targets    = discovery.relabel.containers_metrics.output
+  forward_to = [prometheus.relabel.instance.receiver]
+}
+
+prometheus.exporter.postgres "db" {
+  data_source_names = [sys.env("POSTGRES_MONITOR_DSN")]
+}
+
+discovery.relabel "db" {
+  targets = prometheus.exporter.postgres.db.targets
+
+  rule {
+    target_label = "job"
+    replacement  = "integrations/postgres_exporter"
+  }
+}
+
+prometheus.scrape "db" {
+  targets    = discovery.relabel.db.output
+  forward_to = [prometheus.relabel.instance.receiver]
+}
