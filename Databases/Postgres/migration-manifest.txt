@@ -37,3 +37,4 @@ SamsaraUpdates/AddQuestTable_2026-08-02.sql
 SamsaraUpdates/WidenCharQuestsJournal_2026-08-03.sql
 SamsaraUpdates/AddPlayerClassRows_2026-08-30.sql
 SamsaraUpdates/AddServerRegionRouting_2026-09-16.sql
+SamsaraUpdates/RemoveSeededWandererAbilities_2026-10-19.sql
