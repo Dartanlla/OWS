@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
+using Serilog;
 
 namespace OWSPublicAPI.Requests.Users
 {
@@ -38,14 +39,14 @@ namespace OWSPublicAPI.Requests.Users
                 };
             }
 
-            if (!output.Authenticated || !output.UserSessionGuid.HasValue || output.UserSessionGuid == Guid.Empty)
+            bool loggedIn = output.Authenticated && output.UserSessionGuid.HasValue && output.UserSessionGuid != Guid.Empty;
+            if (!loggedIn && string.IsNullOrWhiteSpace(output.ErrorMessage))
             {
-                if (string.IsNullOrWhiteSpace(output.ErrorMessage))
-                {
-                    output.ErrorMessage = "Invalid email or password";
-                }
+                output.ErrorMessage = "Invalid email or password";
             }
 
+            // No email in the log: the session GUID leads to the account in the database.
+            Log.Information("user_login {Method} {Result} session {UserSessionGuid}", "password", loggedIn ? "ok" : "refused", output.UserSessionGuid);
             return new OkObjectResult(output);
         }
     }

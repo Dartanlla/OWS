@@ -107,6 +107,9 @@ docker compose --env-file .env.hetzner-dev -f docker-compose.hetzner-dev.yml log
 `owsmanagement` serves a REST API plus a Vue SPA for editing accounts and characters:
 account role (`Users.Role`), and the per-character `IsAdmin` / `IsModerator` flags the game
 client reads at login. No schema change is involved — every column it writes already exists.
+Its Zone Instances page (`GET /api/Instances`) lists every `mapinstances` row with its region, status,
+players, the characters on it, and the load its zone server last reported in the heartbeat (world-tick
+ms average / worst, memory, uptime, build; `dev` is an unstamped build), and refreshes every 10 s.
 
 It sits behind the `admin` compose profile, so a plain `up -d` never starts it. Two reasons:
 the other services already reserve 3328 MB of a 4 GB host, and the console is occasional-use.
@@ -192,6 +195,12 @@ changed code:
 docker compose --env-file .env.hetzner-dev -f docker-compose.hetzner-dev.yml run --rm migrations
 docker compose --env-file .env.hetzner-dev -f docker-compose.hetzner-dev.yml up -d --no-deps --build owspublicapi owsinstancemanagement
 ```
+
+Zone server load (`AddMapInstanceServerStats`: five nullable `mapinstances` columns that
+`UpdateNumberOfPlayersSQL` writes) deploys the same way, with the console rebuilt if it is in use:
+migrations, then `up -d --no-deps --build owspublicapi owsinstancemanagement`, then
+`./scripts/hetzner/admin-console.sh rebuild`. Zone servers from before it send no stats (the columns
+stay NULL), and a launcher from before it never reports exits.
 
 The `WorldServers.ServerRegion` column default covers the window between the two commands, in
 which an `owsinstancemanagement` image predating the change can still register a launcher. The
@@ -308,8 +317,20 @@ docker compose --env-file .env.hetzner-dev -f docker-compose.hetzner-dev.yml up 
 This profile does not run ELK. The OWS API services write one JSON object per line to stdout
 (Serilog `RenderedCompactJsonFormatter`): `@t` is the time, `@m` the message, `@l` the level, and
 `Application` names the service. `@l` is absent on Information events, so treat a missing `@l` as
-Information. `owsmanagement` and the one-shot `migrations` job still write plain text. Docker rotates
+Information. Only the one-shot `migrations` job still writes plain text. Docker rotates
 each container's log at 10 MB and keeps 5 files (`x-logging` in the compose file).
+
+Event lines to filter on (the first word of `@m`; the named values are also top-level JSON fields):
+
+- `owspublicapi`: `user_login` (`Method` steam or password, `Result` ok / refused / steam_rejected / banned /
+  unavailable, `SteamId`, `PersonaName`, `UserSessionGuid`; no email), `user_logout` (`UserSessionGuid`), and
+  `zone_join` (`CharacterName`, `ZoneName`, `MapInstanceId`, `Port`) for every successful
+  `GetServerToConnectTo`, so a login and each later zone travel. In Grafana:
+  `{service="owspublicapi"} |= "user_login" | json`.
+- `owsinstancemanagement`: `zone_process_exited` (`ZoneInstanceId`, `MapName`, `Port`, `ExitCode`, `Expected`),
+  reported by the launcher when a zone server process it started exits. `Expected` is true when the
+  instance's row was already shutting down (status 3) or gone, as every deliberate stop does first; an
+  unexpected exit (a crash, or a kill by hand) logs at Warning.
 
 Use Docker logs for hosted dev:
 

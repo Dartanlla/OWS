@@ -76,6 +76,11 @@ ON CONFLICT ON CONSTRAINT ak_zoneservers
 
 		public static readonly string UpdateNumberOfPlayersSQL = @"UPDATE MapInstances
 				SET NumberOfReportedPlayers = @NumberOfReportedPlayers,
+				ServerFrameMsAvg = @ServerFrameMsAvg,
+				ServerFrameMsMax = @ServerFrameMsMax,
+				MemoryUsedMB = @MemoryUsedMB,
+				UptimeSeconds = @UptimeSeconds,
+				BuildCL = @BuildCL,
 				LastUpdateFromServer=NOW(),
 				LastServerEmptyDate=(CASE WHEN @NumberOfReportedPlayers = 0 AND (NumberOfReportedPlayers > 0 OR LastServerEmptyDate IS NULL) THEN NOW() ELSE (CASE WHEN NumberOfReportedPlayers = 0 AND @NumberOfReportedPlayers > 0 THEN NULL ELSE LastServerEmptyDate END) END),
 				Status=2
@@ -259,6 +264,29 @@ ON CONFLICT ON CONSTRAINT ak_zoneservers
 				INNER JOIN MapInstances MI ON MI.MapID = M.MapID
 				WHERE M.CustomerGUID = @CustomerGUID
 				AND MI.WorldServerID = @WorldServerID";
+
+        public static readonly string GetLiveZoneInstances = @"SELECT MI.MapInstanceID,
+                    MI.WorldServerID,
+                    WS.ServerRegion,
+                    M.ZoneName,
+                    MI.Port,
+                    MI.Status,
+                    MI.NumberOfReportedPlayers,
+                    MI.LastUpdateFromServer,
+                    MI.ServerFrameMsAvg,
+                    MI.ServerFrameMsMax,
+                    MI.MemoryUsedMB,
+                    MI.UptimeSeconds,
+                    MI.BuildCL,
+                    (SELECT STRING_AGG(C.CharName, ', ' ORDER BY C.CharName)
+                        FROM CharOnMapInstance CMI
+                        INNER JOIN Characters C ON C.CharacterID = CMI.CharacterID AND C.CustomerGUID = CMI.CustomerGUID
+                        WHERE CMI.CustomerGUID = MI.CustomerGUID AND CMI.MapInstanceID = MI.MapInstanceID) AS OnlineCharacters
+                FROM MapInstances MI
+                INNER JOIN Maps M ON M.MapID = MI.MapID AND M.CustomerGUID = MI.CustomerGUID
+                INNER JOIN WorldServers WS ON WS.WorldServerID = MI.WorldServerID AND WS.CustomerGUID = MI.CustomerGUID
+                WHERE MI.CustomerGUID = @CustomerGUID
+                ORDER BY M.ZoneName, MI.MapInstanceID";
 
         public static readonly string GetZoneInstancesOfZone = @"SELECT M.MapID,
                     M.MapName,

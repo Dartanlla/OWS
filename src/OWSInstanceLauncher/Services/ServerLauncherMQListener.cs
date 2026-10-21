@@ -306,8 +306,10 @@ namespace OWSInstanceLauncher.Services
                     UseShellExecute = false,
                     RedirectStandardOutput = false,
                     CreateNoWindow = false
-                }
+                },
+                EnableRaisingEvents = true
             };
+            proc.Exited += (_, _) => _ = ReportZoneProcessExited(proc, zoneInstanceID, mapName, port);
 
             proc.Start();
             //proc.WaitForInputIdle();
@@ -555,6 +557,41 @@ namespace OWSInstanceLauncher.Services
             var responseMessage = await instanceManagementHttpClient.PostAsync("api/Instance/SetZoneInstanceStatus", setZoneInstanceStatusRequest);
 
             return;
+        }
+
+        // Instance Management decides expected vs unexpected from the instance's row; this only reports the exit code.
+        private async Task ReportZoneProcessExited(System.Diagnostics.Process proc, int zoneInstanceID, string mapName, int port)
+        {
+            try
+            {
+                int exitCode = proc.ExitCode;
+                Log.Information($"{mapName} : {port} : zone instance {zoneInstanceID} exited with code {exitCode}.");
+
+                var instanceManagementHttpClient = _httpClientFactory.CreateClient("OWSInstanceManagement");
+
+                var zoneProcessExitedRequestPayload = new
+                {
+                    request = new ZoneProcessExitedRequestPayload
+                    {
+                        ZoneInstanceID = zoneInstanceID,
+                        ExitCode = exitCode,
+                        MapName = mapName,
+                        Port = port
+                    }
+                };
+
+                var zoneProcessExitedRequest = new StringContent(JsonSerializer.Serialize(zoneProcessExitedRequestPayload), Encoding.UTF8, "application/json");
+
+                var responseMessage = await instanceManagementHttpClient.PostAsync("api/Instance/ZoneProcessExited", zoneProcessExitedRequest);
+                if (!responseMessage.IsSuccessStatusCode)
+                {
+                    Log.Warning($"ZoneProcessExited for zone instance {zoneInstanceID} returned HTTP {(int)responseMessage.StatusCode}.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, $"Could not report the exit of zone instance {zoneInstanceID}.");
+            }
         }
 
         //Returns true if a UDP socket can bind the port (i.e. it is free). Used to avoid starting a server on a port a

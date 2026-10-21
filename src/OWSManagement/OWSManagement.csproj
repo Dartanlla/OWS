@@ -27,6 +27,7 @@
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="10.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="10.0.9" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
     <PackageReference Include="SimpleInjector" Version="5.4.5" />
     <PackageReference Include="SimpleInjector.Integration.AspNetCore.Mvc" Version="5.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.6.1" />

@@ -3,6 +3,7 @@ using OWSData.Repositories.Implementations.MSSQL;
 using OWSData.Repositories.Interfaces;
 using OWSPublicAPI.DTOs;
 using OWSShared.Interfaces;
+using Serilog;
 using System;
 using System.Threading.Tasks;
 
@@ -23,6 +24,7 @@ namespace OWSPublicAPI.Requests.Users
 
         public async Task<SuccessAndErrorMessage> Handle()
         {
+            Log.Information("user_logout session {UserSessionGuid}", _logoutDTO.UserSessionGUID);
             return await _usersRepository.Logout(_customerGuid.CustomerGUID, _logoutDTO.UserSessionGUID);
         }
     }

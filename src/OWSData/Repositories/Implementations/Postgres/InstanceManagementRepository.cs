@@ -282,7 +282,7 @@ namespace OWSData.Repositories.Implementations.Postgres
             return worldServerId;
         }
 
-        public async Task<SuccessAndErrorMessage> UpdateNumberOfPlayers(Guid customerGUID, int zoneInstanceId, int numberOfPlayers)
+        public async Task<SuccessAndErrorMessage> UpdateNumberOfPlayers(Guid customerGUID, int zoneInstanceId, int numberOfPlayers, ZoneServerStats stats)
         {
             using (Connection)
             {
@@ -290,7 +290,12 @@ namespace OWSData.Repositories.Implementations.Postgres
                 {
                     CustomerGUID = customerGUID,
                     ZoneInstanceID = zoneInstanceId,
-                    NumberOfReportedPlayers = numberOfPlayers
+                    NumberOfReportedPlayers = numberOfPlayers,
+                    stats.ServerFrameMsAvg,
+                    stats.ServerFrameMsMax,
+                    stats.MemoryUsedMB,
+                    stats.UptimeSeconds,
+                    stats.BuildCL
                 };
 
                 _ = await Connection.ExecuteAsync(PostgresQueries.UpdateNumberOfPlayersSQL, paremeters);
@@ -499,6 +504,19 @@ namespace OWSData.Repositories.Implementations.Postgres
                 p.Add("@CustomerGUID", customerGUID);
 
                 return await Connection.QueryAsync<ZoneSummary>(GenericQueries.GetZones,
+                    p,
+                    commandType: CommandType.Text);
+            }
+        }
+
+        public async Task<IEnumerable<ZoneInstanceSummary>> GetLiveZoneInstances(Guid customerGUID)
+        {
+            using (Connection)
+            {
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+
+                return await Connection.QueryAsync<ZoneInstanceSummary>(PostgresQueries.GetLiveZoneInstances,
                     p,
                     commandType: CommandType.Text);
             }

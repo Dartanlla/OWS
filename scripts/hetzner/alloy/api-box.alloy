@@ -61,7 +61,7 @@ loki.source.docker "containers" {
 // OWS services write Serilog compact JSON, which omits "@l" on Information events.
 loki.process "ows" {
   stage.match {
-    selector = "{service=~\"ows.+\", service!=\"owsmanagement\"}"
+    selector = "{service=~\"ows.+\"}"
 
     stage.json {
       expressions = { level = "\"@l\"" }

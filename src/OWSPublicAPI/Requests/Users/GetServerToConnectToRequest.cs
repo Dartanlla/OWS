@@ -7,6 +7,7 @@ using OWSShared.Interfaces;
 using OWSShared.Options;
 using OWSShared.RequestPayloads;
 using Microsoft.Extensions.Options;
+using Serilog;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -178,6 +179,8 @@ namespace OWSPublicAPI.Requests.Users
             Output = joinMapByCharacterName;
             Output.Success = true;
             Output.ErrorMessage = "";
+            Log.Information("zone_join {CharacterName} {ZoneName} instance {MapInstanceId} port {Port}",
+                CharacterName, ZoneName, joinMapByCharacterName.MapInstanceID, joinMapByCharacterName.Port);
             return new OkObjectResult(Output);
         }
 

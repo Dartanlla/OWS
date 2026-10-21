@@ -40,11 +40,8 @@ export default {
     deleteZone(mapId: number) {
         return client.delete('/Zones/' + mapId);
     },
-    // Upstream stub. This route does not exist on OWSManagement (it belongs to
-    // OWSInstanceManagement), so the Zone Instances grid remains non-functional.
-    // Kept only so that component still compiles.
-    getZoneInstancesForZone(data: Record<string, unknown>) {
-        return client.post('/Instance/GetZoneInstancesForZone', data);
+    getZoneInstances() {
+        return client.get('/Instances');
     },
     getStatus() {
         return client.get('/System/Status');

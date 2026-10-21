@@ -207,7 +207,8 @@ namespace OWSData.Repositories.Implementations.MSSQL
             return worldServerId;
         }
 
-        public async Task<SuccessAndErrorMessage> UpdateNumberOfPlayers(Guid customerGUID, int zoneInstanceId, int numberOfPlayers)
+        // MSSQL has no server-stat columns (the migration is Postgres-only), so stats are dropped.
+        public async Task<SuccessAndErrorMessage> UpdateNumberOfPlayers(Guid customerGUID, int zoneInstanceId, int numberOfPlayers, ZoneServerStats stats)
         {
             using (Connection)
             {
@@ -406,6 +407,11 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     p,
                     commandType: CommandType.Text);
             }
+        }
+
+        public Task<IEnumerable<ZoneInstanceSummary>> GetLiveZoneInstances(Guid customerGUID)
+        {
+            throw new NotSupportedException("The live zone instances view reads server-stat columns that only the Postgres schema has.");
         }
 
         public async Task<SuccessAndErrorMessage> DeleteZone(Guid customerGUID, int mapId)

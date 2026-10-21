@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace OWSManagement
 {
@@ -20,11 +20,9 @@ namespace OWSManagement
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureLogging((hostContext, builder) =>
-                {
-                    builder.ClearProviders();
-                    builder.AddConsole();
-                })
+                .UseSerilog((hostContext, services, configuration) => configuration
+                    .ReadFrom.Configuration(hostContext.Configuration)
+                    .ReadFrom.Services(services))
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
     }
 }

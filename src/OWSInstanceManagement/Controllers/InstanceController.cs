@@ -234,6 +234,16 @@ namespace OWSInstanceManagement.Controllers
         }
 
         [HttpPost]
+        [Route("ZoneProcessExited")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<IActionResult> ZoneProcessExited([FromBody] ZoneProcessExitedRequest request)
+        {
+            request.SetData(_instanceManagementRepository, _customerGuid);
+
+            return await request.Handle();
+        }
+
+        [HttpPost]
         [Route("GetZoneInstancesForZone")]
         [Produces(typeof(IEnumerable<GetZoneInstancesForZone>))]
         public async Task<IActionResult> GetZoneInstancesForZone([FromBody] GetZoneInstancesForZoneRequest request)

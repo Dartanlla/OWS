@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OWSData.Models.Composites;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 using System;
@@ -15,7 +16,8 @@ namespace OWSInstanceManagement.Requests.Instance
     /// <remarks>
     /// Update the number of players on a zone instance by matching it to the port and IP
     /// </remarks>
-    public class UpdateNumberOfPlayersRequest
+    // The server-stat fields arrive flat in the same JSON body.
+    public class UpdateNumberOfPlayersRequest : ZoneServerStats
     {
         //Request Parameters
         public int ZoneInstanceId { get; set; }
@@ -33,7 +35,7 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            var output = await _instanceMangementRepository.UpdateNumberOfPlayers(CustomerGUID, ZoneInstanceId, NumberOfConnectedPlayers);
+            var output = await _instanceMangementRepository.UpdateNumberOfPlayers(CustomerGUID, ZoneInstanceId, NumberOfConnectedPlayers, this);
 
             return new OkObjectResult(output);
         }

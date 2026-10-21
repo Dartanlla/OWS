@@ -116,5 +116,11 @@
             Update the number of players on a zone instance by matching it to the port and IP
             </remarks>
         </member>
+        <member name="T:OWSInstanceManagement.Requests.Instance.ZoneProcessExitedRequest">
+            <summary>
+            The instance launcher reports that a zone server process it started has exited. Logs
+            zone_process_exited, which the Grafana alert reads when Expected is false.
+            </summary>
+        </member>
     </members>
 </doc>

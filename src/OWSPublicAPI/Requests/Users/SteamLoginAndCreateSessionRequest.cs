@@ -5,6 +5,7 @@ using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSPublicAPI.Services;
 using OWSShared.Interfaces;
+using Serilog;
 
 namespace OWSPublicAPI.Requests.Users
 {
@@ -41,12 +42,12 @@ namespace OWSPublicAPI.Requests.Users
 
             if (!validation.IsValid)
             {
-                return Unauthenticated(string.IsNullOrWhiteSpace(validation.ErrorMessage) ? "Steam authentication failed" : validation.ErrorMessage);
+                return Unauthenticated("steam_rejected", validation.SteamId, string.IsNullOrWhiteSpace(validation.ErrorMessage) ? "Steam authentication failed" : validation.ErrorMessage);
             }
 
             if (validation.VacBanned || validation.PublisherBanned)
             {
-                return Unauthenticated("This Steam account is banned");
+                return Unauthenticated("banned", validation.SteamId, "This Steam account is banned");
             }
 
             string personaName = await steamAuthService.GetPersonaName(validation.SteamId) ?? "SteamUser";
@@ -60,22 +61,28 @@ namespace OWSPublicAPI.Requests.Users
 
             if (output == null)
             {
-                return Unauthenticated("Login service unavailable");
+                return Unauthenticated("unavailable", validation.SteamId, "Login service unavailable");
             }
 
-            if (!output.Authenticated || !output.UserSessionGuid.HasValue || output.UserSessionGuid == Guid.Empty)
+            bool loggedIn = output.Authenticated && output.UserSessionGuid.HasValue && output.UserSessionGuid != Guid.Empty;
+            if (!loggedIn && string.IsNullOrWhiteSpace(output.ErrorMessage))
             {
-                if (string.IsNullOrWhiteSpace(output.ErrorMessage))
-                {
-                    output.ErrorMessage = "Steam authentication failed";
-                }
+                output.ErrorMessage = "Steam authentication failed";
             }
 
+            LogUserLogin(loggedIn ? "ok" : "refused", validation.SteamId, personaName, output.UserSessionGuid);
             return new OkObjectResult(output);
         }
 
-        private IActionResult Unauthenticated(string errorMessage)
+        private static void LogUserLogin(string result, string steamId, string personaName, Guid? userSessionGuid)
         {
+            Log.Information("user_login {Method} {Result} steam {SteamId} {PersonaName} session {UserSessionGuid}",
+                "steam", result, steamId, personaName, userSessionGuid);
+        }
+
+        private IActionResult Unauthenticated(string result, string steamId, string errorMessage)
+        {
+            LogUserLogin(result, steamId, null, null);
             return new OkObjectResult(new PlayerLoginAndCreateSession
             {
                 Authenticated = false,
