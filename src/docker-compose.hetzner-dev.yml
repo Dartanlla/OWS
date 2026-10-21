@@ -38,6 +38,8 @@ x-ows-common-env: &ows-common-env
   Serilog__MinimumLevel__Default: "Information"
   Serilog__MinimumLevel__Override__Microsoft: "Warning"
   Serilog__MinimumLevel__Override__System: "Warning"
+  # One 1.5 KB Information line per refused or dropped gRPC stream; refused clients retry every second.
+  Serilog__MinimumLevel__Override__Grpc: "Warning"
   Logging__LogLevel__Default: "Information"
   Logging__LogLevel__Microsoft: "Warning"
   Logging__LogLevel__System: "Warning"
