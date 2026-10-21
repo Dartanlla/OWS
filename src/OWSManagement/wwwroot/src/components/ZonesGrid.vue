@@ -335,6 +335,7 @@
             </v-alert>
         </div>
     </div>
+</v-container>
 </template>
 
 <style scoped>
