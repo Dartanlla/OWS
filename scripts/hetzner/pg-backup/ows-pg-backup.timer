@@ -1,0 +1,10 @@
+[Unit]
+Description=Hourly OWS Postgres backup
+
+[Timer]
+OnCalendar=hourly
+RandomizedDelaySec=300
+Persistent=true
+
+[Install]
+WantedBy=timers.target

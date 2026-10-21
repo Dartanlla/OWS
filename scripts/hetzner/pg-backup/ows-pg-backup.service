@@ -1,0 +1,8 @@
+[Unit]
+Description=OWS Postgres backup
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/ows-pg-backup

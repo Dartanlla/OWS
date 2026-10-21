@@ -333,19 +333,59 @@ Postgres and RabbitMQ data are stored in named Docker volumes:
 - `ows-hetzner-dev-postgres-data`
 - `ows-hetzner-dev-rabbitmq-data`
 
-Back up Postgres before destructive host changes:
+### Scheduled backups
+
+`ows-pg-backup.timer` runs `/usr/local/sbin/ows-pg-backup` hourly: a `pg_dump -Fc` of `openworldserver` into
+`/var/backups/ows/openworldserver-<UTC time>.dump`, checked with `pg_restore --list`, kept 14 days, and mirrored
+with `rsync --delete` to a Hetzner Storage Box. A failed run posts to the Discord webhook in the settings.
+
+Install or update (from `/opt/owsfork`, as root):
 
 ```bash
-docker compose --env-file .env.hetzner-dev -f docker-compose.hetzner-dev.yml exec database \
-  pg_dump -U postgres openworldserver > openworldserver.sql
+bash scripts/hetzner/install-pg-backup.sh
 ```
 
-Restore into a fresh initialized database:
+The first run writes `/etc/default/ows-pg-backup`, prints the backup SSH public key, and stops. Add that key to
+the Storage Box from this host (SSH support on; it asks for the Storage Box password, and works with External
+Reachability off): `cat /root/.ssh/ows_backup_ed25519.pub | ssh -p 23 u123456@u123456.your-storagebox.de
+install-ssh-key`. Set `OWS_BACKUP_REMOTE` to `u123456@u123456.your-storagebox.de:ows-backups` and
+`OWS_BACKUP_DISCORD_WEBHOOK_URL`, then run the installer again. It enables the timer and takes the first
+backup (rsync creates the remote folder). `OWS_BACKUP_REMOTE=none` keeps dumps on this host only. Turn on the Storage Box's automatic
+snapshots too: `rsync --delete` mirrors this host, so a deletion here reaches the box on the next run.
+
+By hand, before and after a test session or a destructive host change:
 
 ```bash
-docker compose --env-file .env.hetzner-dev -f docker-compose.hetzner-dev.yml exec -T database \
-  psql -U postgres openworldserver < openworldserver.sql
+ows-pg-backup                               # one backup now
+journalctl -u ows-pg-backup -n 20           # last runs
+systemctl list-timers ows-pg-backup.timer   # next run
 ```
+
+### Restore rehearsal
+
+`ows-pg-restore-check [dump]` restores a dump (default: the newest) into a throwaway container of the same
+image with no network, and prints every table's row count next to the live count. Run it right after a backup,
+when the counts should match; it fails if the restore fails or a table is missing:
+`ows-pg-backup && ows-pg-restore-check`.
+
+### Restoring for real
+
+Take a fresh `ows-pg-backup` first, so the restore itself can be undone. Then stop the app services so nothing
+writes, restore into the live database, and start them again:
+
+```bash
+cd /opt/owsfork/src
+DC="docker compose --env-file .env.hetzner-dev -f docker-compose.hetzner-dev.yml"
+APPS="owspublicapi owscharacterpersistence owsinstancemanagement owsglobaldata owschat owsparty"
+$DC stop $APPS
+docker exec -i ows-hetzner-dev-database-1 pg_restore -U postgres --clean --if-exists --no-owner \
+  -d openworldserver < /var/backups/ows/openworldserver-<time>.dump
+$DC start $APPS
+```
+
+A dump on the Storage Box comes back with
+`rsync -e 'ssh -p 23 -i /root/.ssh/ows_backup_ed25519' <remote>/<file> /var/backups/ows/`.
+Point-in-time recovery (WAL-G or pgBackRest) is not set up.
 
 ## Smoke Tests
 
