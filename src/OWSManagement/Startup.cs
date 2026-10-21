@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using OWSData.Health;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
@@ -37,6 +38,7 @@ namespace OWSManagement
         {
 
             services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo("./temp/DataProtection-Keys"));
+            services.AddHealthChecks().AddOWSPostgres(Configuration);
 
             services.AddMemoryCache();
 
@@ -97,6 +99,7 @@ namespace OWSManagement
 
             app.UseSimpleInjector(container);
 
+            app.UseHealthChecks("/health");
             // The SPA's static assets are served from this same pipeline; only the REST API needs the key.
             StoreCustomerGUIDMiddleware.ProtectedPathPrefixes = new[] { "/api" };
             app.UseMiddleware<StoreCustomerGUIDMiddleware>(container);

@@ -14,6 +14,7 @@ using SimpleInjector.Integration.ServiceCollection;
 using SimpleInjector.Integration.AspNetCore;
 using OWSChat;
 using OWSChat.Service;
+using OWSData.Health;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
@@ -34,6 +35,7 @@ builder.Services.AddControllers();
 builder.Services.AddGrpc();
 builder.Services.AddSingleton(typeof(IGrpcServiceActivator<>), typeof(GrpcSimpleInjectorActivator<>));
 builder.Services.Configure<OWSShared.Options.StorageOptions>(builder.Configuration.GetSection(OWSShared.Options.StorageOptions.SectionName));
+builder.Services.AddHealthChecks().AddOWSPostgres(builder.Configuration);
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Chat Auth API", Version = "v1" });
@@ -57,6 +59,8 @@ else
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(50051, lo => lo.Protocols = HttpProtocols.Http2);
+    // Plain HTTP for /health: cleartext 50051 is HTTP/2 only.
+    options.ListenAnyIP(80, lo => lo.Protocols = HttpProtocols.Http1);
 });
 
 builder.Services.AddScoped<StoreCustomerGUIDMiddleware>();
@@ -65,6 +69,7 @@ var app = builder.Build();
 
 ((IApplicationBuilder)app).UseSimpleInjector(container);
 
+app.UseHealthChecks("/health");
 app.UseRouting();
 app.UseSwagger();
 app.UseSwaggerUI(c =>

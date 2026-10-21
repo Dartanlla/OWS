@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Authentication;
 using System.Text.Encodings.Web;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using OWSData.Health;
 using OWSData.Repositories.Interfaces;
 using OWSData.Repositories.Implementations;
 using OWSPublicAPI.Requests;
@@ -62,6 +63,7 @@ namespace OWSPublicAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo("./temp/DataProtection-Keys"));
+            services.AddHealthChecks().AddOWSPostgres(Configuration);
 
             services.AddMemoryCache();
             //services.AddMvc();
@@ -170,6 +172,7 @@ namespace OWSPublicAPI
             forwardedHeadersOptions.KnownProxies.Clear();
             app.UseForwardedHeaders(forwardedHeadersOptions);
 
+            app.UseHealthChecks("/health");
             app.UseRateLimiter();
 
             // The server-selector list is served to the login screen before the client authenticates.

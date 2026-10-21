@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using OWSData.Health;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
@@ -41,6 +42,7 @@ namespace OWSCharacterPersistence
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo("./temp/DataProtection-Keys"));
+            services.AddHealthChecks().AddOWSPostgres(Configuration);
 
             services.AddHttpContextAccessor();
 
@@ -104,6 +106,7 @@ namespace OWSCharacterPersistence
                     "See docs/mvp-hardening-spec.md item 4.");
             }
 
+            app.UseHealthChecks("/health");
             app.UseMiddleware<StoreCustomerGUIDMiddleware>(container);
 
             if (env.IsDevelopment())

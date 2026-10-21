@@ -344,6 +344,18 @@ Health: `curl -s localhost:12345/api/v0/web/components` lists each component's s
 `journalctl -u alloy` shows push errors. The metric job names match the Grafana Cloud Linux Server,
 Docker and PostgreSQL integrations, so their prebuilt dashboards work without edits.
 
+### Service health
+
+Every app service answers `GET /health` with `Healthy` (200) or `Unhealthy` (503). The check logs in to
+Postgres fresh with the service's own connection string, so a stale password fails even while pooled
+connections still work; InstanceManagement also opens a RabbitMQ connection. Results are cached for 10 s,
+so the public `/health` cannot flood the database. `docker ps` shows each container `(healthy)` or
+`(unhealthy)`. Chat serves `/health` on loopback port `44351`, because cleartext 50051 is HTTP/2 only.
+
+Alloy probes each `/health` every 15 s (`probe_success{service="..."}`). The Grafana alert
+`OWS service unhealthy` fires when a service's `probe_success` stays 0 for 1 minute, or when the probes
+stop arriving (the box or Alloy is down), and posts to Discord `#dev-observation`.
+
 ## Persistence And Backups
 
 Postgres and RabbitMQ data are stored in named Docker volumes:

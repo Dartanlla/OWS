@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using OWSData.Health;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
@@ -41,6 +42,7 @@ namespace OWSGlobalData
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo("./temp/DataProtection-Keys"));
+            services.AddHealthChecks().AddOWSPostgres(Configuration);
 
             services.AddHttpContextAccessor();
 
@@ -87,6 +89,7 @@ namespace OWSGlobalData
         {
             app.UseSimpleInjector(container);
 
+            app.UseHealthChecks("/health");
             app.UseMiddleware<StoreCustomerGUIDMiddleware>(container);
 
             if (env.IsDevelopment())

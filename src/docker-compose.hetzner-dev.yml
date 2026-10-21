@@ -50,6 +50,14 @@ x-logging: &default-logging
     max-size: "10m"
     max-file: "5"
 
+# App services answer /health on port 80 (OWSData/Health/OWSHealthChecks.cs); the images have bash, not curl.
+x-app-healthcheck: &app-healthcheck
+  test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/80 && printf 'GET /health HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && head -1 <&3 | grep -q ' 200 '"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 30s
+
 services:
   database:
     build:
@@ -137,6 +145,7 @@ services:
       dockerfile: OWSPublicAPI/Dockerfile
     restart: unless-stopped
     logging: *default-logging
+    healthcheck: *app-healthcheck
     environment:
       <<: *ows-common-env
       SteamConfig__WebApiHost: "${STEAM_WEB_API_HOST:-https://api.steampowered.com}"
@@ -173,6 +182,7 @@ services:
       dockerfile: OWSInstanceManagement/Dockerfile
     restart: unless-stopped
     logging: *default-logging
+    healthcheck: *app-healthcheck
     environment:
       <<: *ows-common-env
     ports:
@@ -193,6 +203,7 @@ services:
       dockerfile: OWSCharacterPersistence/Dockerfile
     restart: unless-stopped
     logging: *default-logging
+    healthcheck: *app-healthcheck
     environment:
       <<: *ows-common-env
       # Server-to-server key for the PlayerShops endpoints. The API fails closed outside
@@ -216,6 +227,7 @@ services:
       dockerfile: OWSGlobalData/Dockerfile
     restart: unless-stopped
     logging: *default-logging
+    healthcheck: *app-healthcheck
     environment:
       <<: *ows-common-env
     ports:
@@ -245,6 +257,7 @@ services:
     profiles: ["admin"]
     restart: unless-stopped
     logging: *default-logging
+    healthcheck: *app-healthcheck
     environment:
       <<: *ows-common-env
     ports:
@@ -263,12 +276,14 @@ services:
       dockerfile: OWSChat/Dockerfile
     restart: unless-stopped
     logging: *default-logging
+    healthcheck: *app-healthcheck
     environment:
       <<: *ows-common-env
       ASPNETCORE_URLS: "http://+:50051"
       Kestrel__EndpointDefaults__Protocols: "Http2"
     ports:
       - "${OWS_CHAT_GRPC_PORT:-50051}:50051"
+      - "127.0.0.1:${OWS_CHAT_HEALTH_PORT:-44351}:80"
     mem_limit: "${OWS_CHAT_MEM_LIMIT:-256m}"
     depends_on:
       database:
@@ -285,6 +300,7 @@ services:
       dockerfile: OWSParty/Dockerfile
     restart: unless-stopped
     logging: *default-logging
+    healthcheck: *app-healthcheck
     environment:
       <<: *ows-common-env
     ports:

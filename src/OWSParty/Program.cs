@@ -10,6 +10,7 @@ using SimpleInjector.Lifestyles;
 using SimpleInjector.Integration.AspNetCore.Mvc;
 using OWSShared.Implementations;
 using System.Configuration;
+using OWSData.Health;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 using OWSShared.Middleware;
@@ -58,6 +59,7 @@ builder.Services.AddMvcCore(config =>
 builder.Services.AddGrpc();
 builder.Services.AddSingleton(typeof(IGrpcServiceActivator<>),
             typeof(GrpcSimpleInjectorActivator<>));
+builder.Services.AddHealthChecks().AddOWSPostgres(builder.Configuration);
 
 builder.Services.AddSimpleInjector(container, options =>
 {
@@ -128,6 +130,7 @@ container.RegisterInstance<IServiceProvider>(app.Services);
 
 app.Services.UseSimpleInjector(container);
 
+app.UseHealthChecks("/health");
 // gRPC requests carry the CustomerGUID in the message (PartyService), not the HTTP header.
 StoreCustomerGUIDMiddleware.ProtectedPathPrefixes = new[] { "/api" };
 app.UseMiddleware<StoreCustomerGUIDMiddleware>(container);

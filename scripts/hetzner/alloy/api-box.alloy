@@ -141,3 +141,73 @@ prometheus.scrape "db" {
   targets    = discovery.relabel.db.output
   forward_to = [prometheus.relabel.instance.receiver]
 }
+
+// Each app service's /health (OWSData/Health/OWSHealthChecks.cs); the Grafana alert reads probe_success.
+prometheus.exporter.blackbox "ows_health" {
+  config = "{ modules: { http_2xx: { prober: http, timeout: 5s } } }"
+
+  target {
+    name    = "owspublicapi"
+    address = "http://127.0.0.1:44302/health"
+    module  = "http_2xx"
+    labels  = { "service" = "owspublicapi" }
+  }
+
+  target {
+    name    = "owsinstancemanagement"
+    address = "http://127.0.0.1:44328/health"
+    module  = "http_2xx"
+    labels  = { "service" = "owsinstancemanagement" }
+  }
+
+  target {
+    name    = "owscharacterpersistence"
+    address = "http://127.0.0.1:44323/health"
+    module  = "http_2xx"
+    labels  = { "service" = "owscharacterpersistence" }
+  }
+
+  target {
+    name    = "owsglobaldata"
+    address = "http://127.0.0.1:44325/health"
+    module  = "http_2xx"
+    labels  = { "service" = "owsglobaldata" }
+  }
+
+  target {
+    name    = "owsmanagement"
+    address = "http://127.0.0.1:44410/health"
+    module  = "http_2xx"
+    labels  = { "service" = "owsmanagement" }
+  }
+
+  target {
+    name    = "owsparty"
+    address = "http://127.0.0.1:44306/health"
+    module  = "http_2xx"
+    labels  = { "service" = "owsparty" }
+  }
+
+  target {
+    name    = "owschat"
+    address = "http://127.0.0.1:44351/health"
+    module  = "http_2xx"
+    labels  = { "service" = "owschat" }
+  }
+}
+
+prometheus.scrape "ows_health" {
+  targets         = prometheus.exporter.blackbox.ows_health.targets
+  scrape_interval = "15s"
+  forward_to      = [prometheus.relabel.ows_health.receiver]
+}
+
+prometheus.relabel "ows_health" {
+  rule {
+    source_labels = ["__name__"]
+    regex         = "probe_success|probe_duration_seconds|probe_http_status_code"
+    action        = "keep"
+  }
+
+  forward_to = [prometheus.relabel.instance.receiver]
+}
