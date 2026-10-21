@@ -354,7 +354,10 @@ so the public `/health` cannot flood the database. `docker ps` shows each contai
 
 Alloy probes each `/health` every 15 s (`probe_success{service="..."}`). The Grafana alert
 `OWS service unhealthy` fires when a service's `probe_success` stays 0 for 1 minute, or when the probes
-stop arriving (the box or Alloy is down), and posts to Discord `#dev-observation`.
+stop arriving (the box or Alloy is down), and posts to Discord `#dev-observation`. It lives only in Grafana: folder
+`OWS API box`, rule group `ows-health` (evaluated every 30 s), contact point `discord-dev-observation` (group wait
+10 s). Tested 2026-10-21: a wrong DB password in `owsmanagement` alerted after 89 s and reached Discord at 120 s
+(before the group wait went from 30 s to 10 s).
 
 ## Persistence And Backups
 
