@@ -12,9 +12,9 @@ x-ows-common-env: &ows-common-env
   UserSessionCacheOptions__Enabled: "${OWS_SESSION_CACHE_ENABLED:-true}"
   UserSessionCacheOptions__ConnectionString: "usersessioncache:6379"
   UserSessionCacheOptions__Password: "${UserSessionCacheValkeyPassword}"
-  # gRPC guard rails (Chat/Party). Caps + rate limits are always enforced. Session auth is
-  # gated OFF: turning it on requires the UE client to send customerguid/usersessionguid
-  # gRPC metadata, otherwise every stream is rejected.
+  # gRPC guard rails (Chat/Party). Caps + rate limits are always enforced. Session auth binds each
+  # stream to its session's character; a game client that sends no usersessionguid metadata loses
+  # chat, so turn it on only after the live Steam build sends it (docs/hosting/hetzner-dev.md).
   OWS_GRPC_MAX_CONNECTIONS: "${OWS_GRPC_MAX_CONNECTIONS:-5000}"
   OWS_GRPC_MSGS_PER_WINDOW: "${OWS_GRPC_MSGS_PER_WINDOW:-20}"
   OWS_GRPC_RATE_WINDOW_SECONDS: "${OWS_GRPC_RATE_WINDOW_SECONDS:-5}"

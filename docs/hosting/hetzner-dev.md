@@ -278,6 +278,24 @@ There are two exposure modes, controlled by `OWS_API_BIND` and the `tls` compose
 Character Persistence and Instance Management stay bound to `127.0.0.1` (SSH-tunnel only), as
 before. Postgres, RabbitMQ, and Valkey are loopback-only.
 
+Those four, plus SSH, are the allow list. After a compose or host change, this must print exactly
+`22 44302 44306 44325 44364 50051`:
+
+```bash
+ss -tlnH | awk '$4 !~ /^(127\.|\[::1\])/ {sub(/.*:/, "", $4); print $4}' | sort -un | tr '\n' ' '
+```
+
+Chat and Party gRPC read the caller's session from call metadata (`customerguid`, `usersessionguid`).
+With `OWS_GRPC_REQUIRE_SESSION_AUTH=true` in `.env.hetzner-dev`, a stream must name a live session and
+speaks as that session's selected character; a game client that sends no session loses chat. Turn it on
+only when the live Steam build sends the session (the client keeps it on the game instance from login),
+then rebuild and recreate both services:
+
+```bash
+cd /opt/owsfork/src
+docker compose --env-file .env.hetzner-dev -f docker-compose.hetzner-dev.yml up -d --no-deps --build owschat owsparty
+```
+
 > **TODO — move to HTTPS via domains.** This box currently serves plaintext over IP because no
 > domains/DNS are set up. To switch: set `OWS_PUBLIC_API_DOMAIN`/`OWS_GLOBAL_DATA_DOMAIN`, point
 > their A-records at this host, set `OWS_API_BIND=127.0.0.1`, and deploy with `--profile tls`.

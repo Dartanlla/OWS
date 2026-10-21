@@ -99,11 +99,10 @@ namespace OWSShared.Grpc
     }
 
     /// <summary>
-    /// Reads and validates the session credentials a client sends as gRPC call metadata.
-    /// Enforcement is gated by OWS_GRPC_REQUIRE_SESSION_AUTH (default false) because the current
-    /// UE client does not yet send these headers; enabling it without the client change would
-    /// reject every stream. When enabled, callers must supply "customerguid" and "usersessionguid"
-    /// metadata and the values must resolve to a valid session in the session store.
+    /// Reads the session credentials a client sends as gRPC call metadata. Enforcement is gated by
+    /// OWS_GRPC_REQUIRE_SESSION_AUTH (default false). When enabled, callers must supply "customerguid"
+    /// and "usersessionguid" metadata, and each service checks that they resolve to a live session
+    /// bound to the stream's character; a client that sends no session loses the stream.
     /// </summary>
     public static class GrpcSessionAuth
     {

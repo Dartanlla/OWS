@@ -4,6 +4,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using ChatServiceApp.Protos;
 using Grpc.Core;
+using OWSData.Repositories.Interfaces;
 using OWSShared.Grpc;
 
 namespace OWSChat.Service
@@ -24,6 +25,13 @@ namespace OWSChat.Service
         private static readonly ConcurrentDictionary<IServerStreamWriter<ServerMessage>, Client> _clients
             = new ConcurrentDictionary<IServerStreamWriter<ServerMessage>, Client>();
 
+        private readonly IUsersRepository _usersRepository;
+
+        public ChatService(IUsersRepository usersRepository)
+        {
+            _usersRepository = usersRepository;
+        }
+
         public override async Task Chat(
             IAsyncStreamReader<ClientMessage> requestStream,
             IServerStreamWriter<ServerMessage> responseStream,
@@ -35,12 +43,13 @@ namespace OWSChat.Service
             if (lease == null)
                 throw new RpcException(new Status(StatusCode.ResourceExhausted, "Chat connection limit reached."));
 
-            // Session auth is gated off by default (the current client sends no session token);
-            // when enabled, the client must supply valid customerguid/usersessionguid metadata.
-            if (GrpcSessionAuth.IsRequired &&
-                !GrpcSessionAuth.TryReadCredentials(context, out _, out _))
+            // With session auth on, the stream speaks as the session's character, not the name the client sends.
+            string sessionCharacterName = null;
+            if (GrpcSessionAuth.IsRequired)
             {
-                throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing session credentials."));
+                sessionCharacterName = await GetSessionCharacterName(context);
+                if (sessionCharacterName == null)
+                    throw new RpcException(new Status(StatusCode.Unauthenticated, "Invalid session for chat."));
             }
 
             // The first frame identifies the client and is not broadcast as chat.
@@ -51,7 +60,7 @@ namespace OWSChat.Service
             if (string.IsNullOrWhiteSpace(first.PlayerName))
                 return;
 
-            var me = new Client { Name = first.PlayerName.Trim() };
+            var me = new Client { Name = sessionCharacterName ?? first.PlayerName.Trim() };
             _clients.TryAdd(responseStream, me);
 
             // Per-connection message rate limit; over-limit messages are dropped, not broadcast.
@@ -86,6 +95,19 @@ namespace OWSChat.Service
                 me.Outbox.Writer.TryComplete();
                 await writerLoop;
             }
+        }
+
+        private async Task<string> GetSessionCharacterName(ServerCallContext context)
+        {
+            if (!GrpcSessionAuth.TryReadCredentials(context, out Guid customerGuid, out Guid userSessionGuid))
+                return null;
+
+            var session = await _usersRepository.GetUserSession(customerGuid, userSessionGuid);
+            if (session == null || !session.UserGuid.HasValue)
+                return null;
+
+            string name = session.SelectedCharacterName?.Trim();
+            return string.IsNullOrEmpty(name) ? null : name;
         }
 
         private Task BroadcastFrom(ClientMessage incoming, Client sender)
