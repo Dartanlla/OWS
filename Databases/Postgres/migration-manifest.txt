@@ -43,3 +43,4 @@ SamsaraUpdates/AddAuditLogAndServerCpu_2026-10-22.sql
 SamsaraUpdates/AddJoinTickets_2026-10-21.sql
 SamsaraUpdates/PIEAccountPurge_2026-10-22.sql
 SamsaraUpdates/AddCharacterOwners_2026-10-22.sql
+SamsaraUpdates/AddCharacterOwnerHandover_2026-10-22.sql

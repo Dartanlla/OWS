@@ -17,6 +17,8 @@ namespace OWSData.Models.Composites
         public Guid OwnerToken { get; set; }
         // The token this claim replaced, or null; the zone server removes a local copy that holds it.
         public Guid? ReplacedOwnerToken { get; set; }
+        // Above 0 when a live owner was replaced: its saves still land this long, and the character loads after it.
+        public int HandoverSeconds { get; set; }
     }
 
     public class CancelJoinTicketResult

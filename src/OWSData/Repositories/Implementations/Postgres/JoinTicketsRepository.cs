@@ -17,11 +17,15 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         private const string DeleteExpiredSql = @"DELETE FROM JoinTickets WHERE ExpiresAt < NOW() - INTERVAL '1 day'";
 
+        // A zone-set start means a zone server asked for this ticket (travel); the owner it froze is recorded so the
+        // claim can hand over without waiting.
         private const string InsertSql = @"INSERT INTO JoinTickets
                 (TicketGUID, CustomerGUID, UserSessionGUID, UserGUID, CharacterID, CharacterName, MapInstanceID,
-                 StartMode, X, Y, Z, RX, RY, RZ, ExpiresAt)
+                 StartMode, X, Y, Z, RX, RY, RZ, ExpiresAt, HandoffOwnerToken)
                 VALUES (@TicketGUID, @CustomerGUID, @UserSessionGUID, @UserGUID, @CharacterID, @CharacterName, @MapInstanceID,
-                 @StartMode, @X, @Y, @Z, @RX, @RY, @RZ, NOW() + make_interval(secs => @LifetimeSeconds))";
+                 @StartMode, @X, @Y, @Z, @RX, @RY, @RZ, NOW() + make_interval(secs => @LifetimeSeconds),
+                 CASE WHEN @StartMode <> 0 THEN (SELECT OwnerToken FROM CharacterOwners
+                     WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID) END)";
 
         // Redeems once: a used, expired or other-zone ticket matches no row. StoredPosition reads the character's
         // position now, not when the ticket was issued.

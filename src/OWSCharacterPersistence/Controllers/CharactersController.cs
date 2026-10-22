@@ -44,8 +44,10 @@ namespace OWSCharacterPersistence.Controllers
 
             foreach (object argument in context.ActionArguments.Values)
             {
+                // A replaced owner's logout would delete the new session's map instance row.
                 if (argument is IOwnedCharacterWrite write && !String.IsNullOrEmpty(write.OwnedCharacterName)
-                    && await _ownersRepository.IsStaleOwnerWrite(_customerGuid.CustomerGUID, write.OwnedCharacterName, write.OwnerToken))
+                    && await _ownersRepository.IsStaleOwnerWrite(_customerGuid.CustomerGUID, write.OwnedCharacterName, write.OwnerToken,
+                        allowPreviousOwner: argument is not PlayerLogoutRequest))
                 {
                     context.Result = new OkObjectResult(new StaleOwnerResult());
                     return;
@@ -295,7 +297,9 @@ namespace OWSCharacterPersistence.Controllers
         public async Task<SuccessAndErrorMessage> PlayerLogout([FromBody] PlayerLogoutRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
-            return await request.Handle();
+            SuccessAndErrorMessage result = await request.Handle();
+            await _ownersRepository.EndOwnerSession(_customerGuid.CustomerGUID, request.CharacterName, request.OwnerToken);
+            return result;
         }
 
         [HttpPost]

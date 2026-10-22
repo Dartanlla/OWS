@@ -16,7 +16,10 @@ namespace OWSData.Repositories.Interfaces
         Task<CancelJoinTicketResult> CancelTicket(Guid customerGUID, Guid ticketGUID);
         Task<List<StaleCharacterOwner>> GetStaleOwners(Guid customerGUID, IEnumerable<CharacterOwnerCheck> owners);
         // True when the character has an owner and ownerToken is not it. A character with no owner row is not stale.
-        Task<bool> IsStaleOwnerWrite(Guid customerGUID, string characterName, Guid? ownerToken);
+        // The owner a running handover replaced still writes, unless allowPreviousOwner is false.
+        Task<bool> IsStaleOwnerWrite(Guid customerGUID, string characterName, Guid? ownerToken, bool allowPreviousOwner = true);
         Task<bool> IsStaleOwnerWrite(Guid customerGUID, int characterID, Guid? ownerToken);
+        // The owner logged out: a login right after it needs no handover.
+        Task EndOwnerSession(Guid customerGUID, string characterName, Guid? ownerToken);
     }
 }
