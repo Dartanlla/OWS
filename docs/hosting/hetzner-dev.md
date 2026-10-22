@@ -415,6 +415,21 @@ adds the machine's CPU, memory, disk and network, and per-process CPU and memory
   `OWS_ZONE_LOG_DIR`. `install-alloy.sh` also installs the modules a config imports from `/etc/alloy`. The `alloy`
   user must be able to read the log folder (or run Alloy as root, as on this box).
 
+Grafana alerts in folder `OWS zone servers`, rule group `zone-servers` (every 60 s), post to Discord
+`#dev-observation` through the same contact point as the service health alert. They live only in Grafana and are
+editable there:
+
+| Alert | Fires when | Source |
+| --- | --- | --- |
+| Zone server CPU high | a zone server process stays above 80 % of one core for 5 minutes | `windows_process_cpu_time_total` (Windows zone hosts) |
+| Zone server memory high | a zone server process's private working set stays above 3 GB for 5 minutes | `windows_process_working_set_private_bytes` |
+| Zone frame time over budget | a zone's average world tick stays above 33 ms for 5 minutes | `ows_zone_frame_ms_avg` (heartbeat) |
+| Zone server exited unexpectedly | the launcher reports an exit that was not a deliberate stop | `zone_process_exited` at Warning in `owsinstancemanagement` |
+
+The CPU and memory alerts read Windows metrics only. On a Linux zone host the process exporter groups every zone
+server into one `zone_server` series, so extend them (per-process grouping or the heartbeat's `ows_zone_cpu_pct` and
+`ows_zone_memory_mb`) when that host gets Alloy.
+
 ### Service health
 
 Every app service answers `GET /health` with `Healthy` (200) or `Unhealthy` (503). The check logs in to
