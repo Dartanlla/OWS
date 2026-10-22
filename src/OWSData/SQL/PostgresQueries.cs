@@ -54,6 +54,14 @@ ON CONFLICT ON CONSTRAINT ak_zoneservers
 	            WHERE US.CustomerGUID=@CustomerGUID::UUID
 	            AND US.UserSessionGUID=@UserSessionGUID";
 
+        // Chat and party trust SelectedCharacterName, so only a character of the session's own user can be selected.
+        public static readonly string SetSelectedOwnedCharacterSQL = @"UPDATE UserSessions US
+	            SET SelectedCharacterName=@SelectedCharacterName
+	            WHERE US.CustomerGUID=@CustomerGUID
+	            AND US.UserSessionGUID=@UserSessionGUID
+	            AND EXISTS (SELECT 1 FROM Characters C
+	                        WHERE C.CustomerGUID=US.CustomerGUID AND C.UserGUID=US.UserGUID AND C.CharName=@SelectedCharacterName)";
+
         public static readonly string GetUserSQL = @"SELECT U.Email, U.FirstName, U.LastName, U.CreateDate, U.LastAccess, U.Role
 	            FROM Users U
 	            WHERE U.CustomerGUID=@CustomerGUID::UUID

@@ -22,12 +22,6 @@ x-ows-common-env: &ows-common-env
   # Require X-Samsara-Service-Key on the CharacterPersistence API (gold/inventory/stats writes).
   # Keep false until the UE persistence calls send the key, or all persistence traffic is 401'd.
   OWS_REQUIRE_CHARACTER_WRITE_KEY: "${OWS_REQUIRE_CHARACTER_WRITE_KEY:-false}"
-  # Require GetServerToConnectTo to prove the session owns the character (by UserGUID). The
-  # shipping client sends UserSessionGUID on every travel path the game uses, so this should be
-  # safe to enable; if a client path still sends an empty session it logs
-  # "no UserSessionGUID" client-side (PlayerCharacterGASController.cpp) and the request is
-  # rejected with "Invalid or expired User Session".
-  OWS_REQUIRE_SESSION_CHARACTER_BINDING: "${OWS_REQUIRE_SESSION_CHARACTER_BINDING:-false}"
   OWSAPIPathConfig__InternalPublicApiURL: "http://owspublicapi/"
   OWSAPIPathConfig__InternalInstanceManagementApiURL: "http://owsinstancemanagement/"
   OWSAPIPathConfig__InternalCharacterPersistenceApiURL: "http://owscharacterpersistence/"
@@ -148,6 +142,8 @@ services:
     healthcheck: *app-healthcheck
     environment:
       <<: *ows-common-env
+      # Zone servers send it on GetServerToConnectTo to choose the zone and start of a travel ticket.
+      OWS_SAMSARA_SERVICE_KEY: "${OWS_SAMSARA_SERVICE_KEY:-}"
       SteamConfig__WebApiHost: "${STEAM_WEB_API_HOST:-https://api.steampowered.com}"
       SteamConfig__WebApiKey: "${STEAM_WEB_API_KEY:-}"
       SteamConfig__AppId: "${STEAM_APP_ID:-}"

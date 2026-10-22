@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
+using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
@@ -22,11 +23,15 @@ namespace OWSPublicAPI.Requests.Users
         public string ZoneName { get; set; }
         public int PlayerGroupType { get; set; }
 
-        //Gate for the session-to-character ownership check below.  Default OFF: the UE plugin does
-        //not yet send UserSessionGUID on the LaunchZoneInstance / TravelToLastZoneServer paths.
-        //Flip to true once every GetServerToConnectTo caller sends the session.
-        private static readonly bool RequireSessionCharacterBinding =
-            string.Equals(Environment.GetEnvironmentVariable("OWS_REQUIRE_SESSION_CHARACTER_BINDING"), "true", StringComparison.OrdinalIgnoreCase);
+        //Where the join ticket starts the character. Only a zone server (service key) sets these, for portal and
+        //staff travel; a client's ticket always starts at the character's stored position.
+        public JoinTicketStartMode StartMode { get; set; }
+        public double StartX { get; set; }
+        public double StartY { get; set; }
+        public double StartZ { get; set; }
+        public double StartRX { get; set; }
+        public double StartRY { get; set; }
+        public double StartRZ { get; set; }
 
         //Private objects
         private JoinMapByCharName Output;
@@ -36,14 +41,19 @@ namespace OWSPublicAPI.Requests.Users
         private ICharactersRepository charactersRepository;
         private IHttpClientFactory httpClientFactory;
         private IAuditRepository auditRepository;
+        private IJoinTicketsRepository joinTicketsRepository;
+        private bool callerIsZoneServer;
 
-        public void SetData(IOptions<PublicAPIOptions> owsGeneralConfig, IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, IHttpClientFactory httpClientFactory, IAuditRepository auditRepository)
+        public void SetData(IOptions<PublicAPIOptions> owsGeneralConfig, IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, IHttpClientFactory httpClientFactory, IAuditRepository auditRepository,
+            IJoinTicketsRepository joinTicketsRepository, bool callerIsZoneServer)
         {
             this.owsGeneralConfig = owsGeneralConfig;
             this.usersRepository = usersRepository;
             this.charactersRepository = charactersRepository;
             this.httpClientFactory = httpClientFactory;
             this.auditRepository = auditRepository;
+            this.joinTicketsRepository = joinTicketsRepository;
+            this.callerIsZoneServer = callerIsZoneServer;
             CustomerGUID = customerGuid.CustomerGUID;
         }
 
@@ -53,51 +63,31 @@ namespace OWSPublicAPI.Requests.Users
 
             //Bind the session to the character.  Without this the caller can place any character by
             //name, take over its CharOnMapInstance row, and drive zone spin-ups for characters it
-            //does not own.
-            //
-            //OPT-IN, and default OFF, because the UE plugin does not send UserSessionGUID on every
-            //path that reaches here: LaunchZoneInstance and TravelToLastZoneServer serialize only
-            //CharacterName/ZoneName/PlayerGroupType, so the field arrives as Guid.Empty and any
-            //unconditional check rejects the whole login flow.  Enabling this before the client
-            //sends the session on all four call sites breaks PIE and zone travel.
-            //
-            //Ownership is checked against the session's UserGUID rather than SelectedCharacterName:
-            //the selection step is a separate call that several paths legitimately skip, so keying
-            //off it would reject valid logins while adding no real authority.
-            if (RequireSessionCharacterBinding)
+            //does not own.  Ownership is checked against the session's UserGUID rather than
+            //SelectedCharacterName: the selection step is a separate call that several paths skip.
+            GetUserSession userSession = await usersRepository.GetUserSession(CustomerGUID, UserSessionGUID);
+
+            if (userSession == null || !userSession.UserGuid.HasValue)
             {
-                GetUserSession userSession = await usersRepository.GetUserSession(CustomerGUID, UserSessionGUID);
-
-                if (userSession == null || !userSession.UserGuid.HasValue)
-                {
-                    Output.Success = false;
-                    Output.ErrorMessage = "GetServerToConnectTo: Invalid or expired User Session.";
-                    return new OkObjectResult(Output);
-                }
-
-                GetCharByCharName ownedCharacter = await charactersRepository.GetCharByCharName(CustomerGUID, CharacterName);
-
-                if (ownedCharacter == null || !ownedCharacter.UserGuid.HasValue
-                    || ownedCharacter.UserGuid.Value != userSession.UserGuid.Value)
-                {
-                    Output.Success = false;
-                    Output.ErrorMessage = "GetServerToConnectTo: CharacterName does not belong to this User Session.";
-                    return new OkObjectResult(Output);
-                }
+                Output.Success = false;
+                Output.ErrorMessage = "GetServerToConnectTo: Invalid or expired User Session.";
+                return new OkObjectResult(Output);
             }
 
-            //If ZoneName is empty, look it up from the character.  This is used for the inital login.
+            GetCharByCharName ownedCharacter = await charactersRepository.GetCharByCharName(CustomerGUID, CharacterName);
+
+            if (ownedCharacter == null || !ownedCharacter.UserGuid.HasValue
+                || ownedCharacter.UserGuid.Value != userSession.UserGuid.Value)
+            {
+                Output.Success = false;
+                Output.ErrorMessage = "GetServerToConnectTo: CharacterName does not belong to this User Session.";
+                return new OkObjectResult(Output);
+            }
+
+            //If ZoneName is empty, use the character's last zone.  This is used for the inital login.
             if (String.IsNullOrEmpty(ZoneName) || ZoneName == "GETLASTZONENAME")
             {
-                GetCharByCharName character = await charactersRepository.GetCharByCharName(CustomerGUID, CharacterName);
-
-                //If we can't find the character by name, then return BadRequest.
-                if (character == null)
-                {
-                    return new BadRequestResult();
-                }
-
-                ZoneName = character.MapName;
+                ZoneName = ownedCharacter.MapName;
             }
 
             //If the ZoneName is empty, return an error
@@ -178,7 +168,13 @@ namespace OWSPublicAPI.Requests.Users
                 return await ReleaseReservationAndReturnFailure(joinMapByCharacterName, "GetServerToConnectTo: Zone server did not become ready before the timeout.");
             }
 
+            JoinTicketStart start = callerIsZoneServer
+                ? new JoinTicketStart { Mode = StartMode, X = StartX, Y = StartY, Z = StartZ, RX = StartRX, RY = StartRY, RZ = StartRZ }
+                : new JoinTicketStart { Mode = JoinTicketStartMode.StoredPosition };
+
             Output = joinMapByCharacterName;
+            Output.JoinTicket = await joinTicketsRepository.IssueTicket(CustomerGUID, UserSessionGUID, userSession.UserGuid.Value,
+                ownedCharacter.CharacterId, ownedCharacter.CharName, joinMapByCharacterName.MapInstanceID, start);
             Output.Success = true;
             Output.ErrorMessage = "";
             Log.Information("zone_join {CharacterName} {ZoneName} instance {MapInstanceId} port {Port}",

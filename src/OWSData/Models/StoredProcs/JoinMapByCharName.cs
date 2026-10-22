@@ -26,6 +26,8 @@ namespace OWSData.Models.StoredProcs
         public bool EnableAutoLoopback { get; set; }
         public bool NoPortForwarding { get; set; }
         public string ZoneName { get; set; }
+        // The single-use ticket the game travels with (?Ticket=); the zone server redeems it to learn who joins.
+        public Guid JoinTicket { get; set; }
         public bool Success { get; set; }
         public string ErrorMessage { get; set; }
     }

@@ -18,12 +18,15 @@ namespace OWSCharacterPersistence.Controllers
     public class CharactersController : Controller
     {
         private readonly ICharactersRepository _charactersRepository;
+        private readonly IJoinTicketsRepository _joinTicketsRepository;
         private readonly IHeaderCustomerGUID _customerGuid;
 
         public CharactersController(ICharactersRepository charactersRepository,
+            IJoinTicketsRepository joinTicketsRepository,
             IHeaderCustomerGUID customerGuid)
         {
             _charactersRepository = charactersRepository;
+            _joinTicketsRepository = joinTicketsRepository;
             _customerGuid = customerGuid;
         }
 
@@ -125,6 +128,18 @@ namespace OWSCharacterPersistence.Controllers
         public async Task<IActionResult> GetByName([FromBody] GetByNameRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
+        // The zone server learns who joins from this reply, so the service key is required whatever
+        // OWS_REQUIRE_CHARACTER_WRITE_KEY says.
+        [HttpPost]
+        [Route("RedeemJoinTicket")]
+        [Produces(typeof(RedeemJoinTicketResult))]
+        public async Task<IActionResult> RedeemJoinTicket([FromBody] RedeemJoinTicketRequest request)
+        {
+            if (!SamsaraServiceKey.IsValid(Request)) return Unauthorized();
+            request.SetData(_joinTicketsRepository, _customerGuid);
             return await request.Handle();
         }
 

@@ -391,6 +391,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
             try
             {
+                int updated;
                 using (Connection)
                 {
                     var p = new DynamicParameters();
@@ -398,13 +399,13 @@ namespace OWSData.Repositories.Implementations.Postgres
                     p.Add("@UserSessionGUID", userSessionGUID);
                     p.Add("@SelectedCharacterName", selectedCharacterName);
 
-                    await Connection.ExecuteAsync("call UserSessionSetSelectedCharacter(@CustomerGUID, @UserSessionGUID, @SelectedCharacterName)",
+                    updated = await Connection.ExecuteAsync(PostgresQueries.SetSelectedOwnedCharacterSQL,
                         p,
                         commandType: CommandType.Text);
                 }
 
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
+                outputObject.Success = updated == 1;
+                outputObject.ErrorMessage = updated == 1 ? "" : "The character does not belong to this user session.";
 
                 return outputObject;
             }

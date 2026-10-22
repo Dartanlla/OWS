@@ -46,6 +46,7 @@ namespace OWSPublicAPI.Controllers
         private readonly Services.ISteamAuthService _steamAuthService;
         private readonly IOptions<OWSPublicAPI.Options.GameServersOptions> _gameServersOptions;
         private readonly IAuditRepository _auditRepository;
+        private readonly IJoinTicketsRepository _joinTicketsRepository;
 
         /// <summary>
         /// Constructor for Public User related API calls.
@@ -66,7 +67,8 @@ namespace OWSPublicAPI.Controllers
             IHttpClientFactory httpClientFactory,
             Services.ISteamAuthService steamAuthService,
             IOptions<OWSPublicAPI.Options.GameServersOptions> gameServersOptions,
-            IAuditRepository auditRepository)
+            IAuditRepository auditRepository,
+            IJoinTicketsRepository joinTicketsRepository)
         {
             _logger = logger;
             _container = container;
@@ -81,6 +83,7 @@ namespace OWSPublicAPI.Controllers
             _steamAuthService = steamAuthService;
             _gameServersOptions = gameServersOptions;
             _auditRepository = auditRepository;
+            _joinTicketsRepository = joinTicketsRepository;
         }
 
         /// <summary>
@@ -147,7 +150,9 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(GetServerToConnectTo))]
         public async Task<IActionResult> GetServerToConnectTo([FromBody] GetServerToConnectToRequest request)
         {
-            request.SetData(_owsGeneralConfig, _usersRepository, _charactersRepository, _customerGuid, _httpClientFactory, _auditRepository);
+            Request.Headers.TryGetValue(OWSShared.SamsaraServiceKeyCheck.Header, out var serviceKey);
+            request.SetData(_owsGeneralConfig, _usersRepository, _charactersRepository, _customerGuid, _httpClientFactory, _auditRepository,
+                _joinTicketsRepository, OWSShared.SamsaraServiceKeyCheck.IsValid(serviceKey.ToString()));
             return await request.Handle();
         }
 

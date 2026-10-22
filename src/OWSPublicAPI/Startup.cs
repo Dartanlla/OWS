@@ -230,8 +230,9 @@ namespace OWSPublicAPI
                         container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Transient);
                         break;
                 }
-                // AuditLog is Postgres-only, like player shops.
+                // AuditLog and join tickets are Postgres-only, like player shops.
                 container.Register<IAuditRepository, OWSData.Repositories.Implementations.Postgres.AuditRepository>(Lifestyle.Transient);
+                container.Register<IJoinTicketsRepository, OWSData.Repositories.Implementations.Postgres.JoinTicketsRepository>(Lifestyle.Transient);
             }
 
             container.RegisterSingleton<IUserSessionRepository, OWSData.Repositories.Implementations.ValKey.UserSessionRepository>();

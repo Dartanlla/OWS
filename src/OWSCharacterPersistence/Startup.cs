@@ -165,8 +165,9 @@ namespace OWSCharacterPersistence
                         container.Register<IPlayerShopsRepository, OWSData.Repositories.Implementations.Postgres.PlayerShopsRepository>(Lifestyle.Scoped);
                         break;
                 }
-                // AuditLog is Postgres-only, like player shops.
+                // AuditLog and join tickets are Postgres-only, like player shops.
                 container.Register<IAuditRepository, OWSData.Repositories.Implementations.Postgres.AuditRepository>(Lifestyle.Scoped);
+                container.Register<IJoinTicketsRepository, OWSData.Repositories.Implementations.Postgres.JoinTicketsRepository>(Lifestyle.Scoped);
             }
             container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
 
