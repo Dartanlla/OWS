@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using OWSData.Models.Composites;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
@@ -14,15 +15,37 @@ namespace OWSCharacterPersistence.Controllers
     public class PlayerShopsController : Controller
     {
         private readonly IPlayerShopsRepository _repo;
+        private readonly ICharacterOwnersRepository _ownersRepository;
         private readonly IHeaderCustomerGUID _customerGuid;
 
-        public PlayerShopsController(IPlayerShopsRepository repo, IHeaderCustomerGUID customerGuid)
+        public PlayerShopsController(IPlayerShopsRepository repo, ICharacterOwnersRepository ownersRepository, IHeaderCustomerGUID customerGuid)
         {
             _repo = repo;
+            _ownersRepository = ownersRepository;
             _customerGuid = customerGuid;
         }
 
         private bool ServiceKeyOk() => SamsaraServiceKey.IsValid(Request);
+
+        // A shop write for a character that has an owner must come from that owner. Callers without the key are left
+        // to the action's own 401.
+        public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        {
+            if (ServiceKeyOk())
+            {
+                foreach (object argument in context.ActionArguments.Values)
+                {
+                    if (argument is IOwnedCharacterIdWrite write && write.OwnedCharacterID > 0
+                        && await _ownersRepository.IsStaleOwnerWrite(_customerGuid.CustomerGUID, write.OwnedCharacterID, write.OwnerToken))
+                    {
+                        context.Result = new OkObjectResult(new StaleOwnerResult());
+                        return;
+                    }
+                }
+            }
+
+            await base.OnActionExecutionAsync(context, next);
+        }
 
         [HttpPost]
         [Route("CreateShop")]

@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 
 namespace OWSCharacterPersistence.Requests.Characters
 {
-    public class UpdateCharacterCurrencyRequest
+    public class UpdateCharacterCurrencyRequest : IOwnedCharacterWrite
     {
         public string CharacterName { get; set; }
+        public Guid? OwnerToken { get; set; }
+        string IOwnedCharacterWrite.OwnedCharacterName => CharacterName;
 
         public int Gold { get; set; }
 

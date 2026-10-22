@@ -19,15 +19,40 @@ namespace OWSCharacterPersistence.Controllers
     {
         private readonly ICharactersRepository _charactersRepository;
         private readonly IJoinTicketsRepository _joinTicketsRepository;
+        private readonly ICharacterOwnersRepository _ownersRepository;
         private readonly IHeaderCustomerGUID _customerGuid;
 
         public CharactersController(ICharactersRepository charactersRepository,
             IJoinTicketsRepository joinTicketsRepository,
+            ICharacterOwnersRepository ownersRepository,
             IHeaderCustomerGUID customerGuid)
         {
             _charactersRepository = charactersRepository;
             _joinTicketsRepository = joinTicketsRepository;
+            _ownersRepository = ownersRepository;
             _customerGuid = customerGuid;
+        }
+
+        // Every save names its character; once the character has an owner, only the owner's token may write it.
+        public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        {
+            OnActionExecuting(context);
+            if (context.Result != null)
+            {
+                return;
+            }
+
+            foreach (object argument in context.ActionArguments.Values)
+            {
+                if (argument is IOwnedCharacterWrite write && !String.IsNullOrEmpty(write.OwnedCharacterName)
+                    && await _ownersRepository.IsStaleOwnerWrite(_customerGuid.CustomerGUID, write.OwnedCharacterName, write.OwnerToken))
+                {
+                    context.Result = new OkObjectResult(new StaleOwnerResult());
+                    return;
+                }
+            }
+
+            OnActionExecuted(await next());
         }
 
         // Server-to-server gate for the persistence API (mirrors PlayerShopsController). These
@@ -144,11 +169,41 @@ namespace OWSCharacterPersistence.Controllers
         }
 
         [HttpPost]
+        [Route("ClaimCharacter")]
+        [Produces(typeof(ClaimCharacterResult))]
+        public async Task<IActionResult> ClaimCharacter([FromBody] ClaimCharacterRequest request)
+        {
+            if (!SamsaraServiceKey.IsValid(Request)) return Unauthorized();
+            request.SetData(_ownersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
+        [HttpPost]
+        [Route("CancelJoinTicket")]
+        [Produces(typeof(CancelJoinTicketResult))]
+        public async Task<IActionResult> CancelJoinTicket([FromBody] CancelJoinTicketRequest request)
+        {
+            if (!SamsaraServiceKey.IsValid(Request)) return Unauthorized();
+            request.SetData(_ownersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
+        [HttpPost]
+        [Route("CheckOwners")]
+        [Produces(typeof(CheckOwnersResult))]
+        public async Task<IActionResult> CheckOwners([FromBody] CheckOwnersRequest request)
+        {
+            if (!SamsaraServiceKey.IsValid(Request)) return Unauthorized();
+            request.SetData(_ownersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
+        [HttpPost]
         [Route("UpdateAllPlayerPositions")]
         [Produces(typeof(SuccessAndErrorMessage))]
         public async Task<SuccessAndErrorMessage> UpdateAllPlayerPositions([FromBody] UpdateAllPlayerPositionsRequest request)
         {
-            request.SetData(_charactersRepository, _customerGuid);
+            request.SetData(_charactersRepository, _ownersRepository, _customerGuid);
             return await request.Handle();
         }
 

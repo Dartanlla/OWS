@@ -10,9 +10,11 @@ using System.Threading.Tasks;
 
 namespace OWSCharacterPersistence.Requests.Characters
 {
-    public class UpdateCharacterStatsRequest
+    public class UpdateCharacterStatsRequest : IOwnedCharacterWrite
     {
         public string CharacterName { get; set; }
+        public Guid? OwnerToken { get; set; }
+        string IOwnedCharacterWrite.OwnedCharacterName => CharacterName;
        
         public IEnumerable<UpdateCharacterStats> CharacterStats { get; set; }
 

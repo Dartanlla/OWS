@@ -9,9 +9,11 @@ using System.Threading.Tasks;
 
 namespace OWSCharacterPersistence.Requests.Characters
 {
-    public class PlayerLogoutRequest
+    public class PlayerLogoutRequest : IOwnedCharacterWrite
     {
         public string CharacterName { get; set; }
+        public Guid? OwnerToken { get; set; }
+        string IOwnedCharacterWrite.OwnedCharacterName => CharacterName;
 
         private SuccessAndErrorMessage output;
         private Guid customerGUID;

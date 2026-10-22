@@ -12,9 +12,19 @@ namespace OWSCharacterPersistence.Requests.PlayerShops
     // pattern: SetData(repo, customerGuid) then Handle(). Backend is authoritative; requests
     // carry stable CharacterIDs and OperationIds (see the transaction-contract doc).
 
-    public class CreateShopRequest
+    // A shop write for one character. Once the character has an owner (CharacterOwners), PlayerShopsController
+    // refuses it with stale_owner unless OwnerToken is the current owner's token.
+    public interface IOwnedCharacterIdWrite
+    {
+        int OwnedCharacterID { get; }
+        Guid? OwnerToken { get; }
+    }
+
+    public class CreateShopRequest : IOwnedCharacterIdWrite
     {
         public CreateShopInput Input { get; set; }
+        public Guid? OwnerToken { get; set; }
+        int IOwnedCharacterIdWrite.OwnedCharacterID => Input?.OwnerCharacterID ?? 0;
 
         private Guid customerGUID;
         private IPlayerShopsRepository repo;
@@ -68,9 +78,11 @@ namespace OWSCharacterPersistence.Requests.PlayerShops
         public async Task<IEnumerable<PlayerShopView>> Handle() => await repo.GetShopsForOwner(customerGUID, OwnerCharacterID);
     }
 
-    public class PurchaseRequest
+    public class PurchaseRequest : IOwnedCharacterIdWrite
     {
         public PurchaseInput Input { get; set; }
+        public Guid? OwnerToken { get; set; }
+        int IOwnedCharacterIdWrite.OwnedCharacterID => Input?.BuyerCharacterID ?? 0;
 
         private Guid customerGUID;
         private IPlayerShopsRepository repo;
@@ -82,9 +94,11 @@ namespace OWSCharacterPersistence.Requests.PlayerShops
         public async Task<PurchaseResult> Handle() => await repo.Purchase(customerGUID, Input);
     }
 
-    public class ConfirmDeliveryRequest
+    public class ConfirmDeliveryRequest : IOwnedCharacterIdWrite
     {
         public ConfirmDeliveryInput Input { get; set; }
+        public Guid? OwnerToken { get; set; }
+        int IOwnedCharacterIdWrite.OwnedCharacterID => Input?.BuyerCharacterID ?? 0;
 
         private Guid customerGUID;
         private IPlayerShopsRepository repo;
@@ -124,11 +138,13 @@ namespace OWSCharacterPersistence.Requests.PlayerShops
         public async Task<IEnumerable<PendingDeliveryView>> Handle() => await repo.GetPendingDeliveries(customerGUID, BuyerCharacterID);
     }
 
-    public class CloseShopRequest
+    public class CloseShopRequest : IOwnedCharacterIdWrite
     {
         public Guid OperationId { get; set; }
         public long PlayerShopID { get; set; }
         public int OwnerCharacterID { get; set; }
+        public Guid? OwnerToken { get; set; }
+        int IOwnedCharacterIdWrite.OwnedCharacterID => OwnerCharacterID;
 
         private Guid customerGUID;
         private IPlayerShopsRepository repo;
@@ -154,9 +170,11 @@ namespace OWSCharacterPersistence.Requests.PlayerShops
         public async Task<IEnumerable<PendingClaimView>> Handle() => await repo.GetPendingClaims(customerGUID, OwnerCharacterID);
     }
 
-    public class ClaimEscrowRequest
+    public class ClaimEscrowRequest : IOwnedCharacterIdWrite
     {
         public ClaimEscrowInput Input { get; set; }
+        public Guid? OwnerToken { get; set; }
+        int IOwnedCharacterIdWrite.OwnedCharacterID => Input?.OwnerCharacterID ?? 0;
 
         private Guid customerGUID;
         private IPlayerShopsRepository repo;
@@ -168,9 +186,11 @@ namespace OWSCharacterPersistence.Requests.PlayerShops
         public async Task<ClaimEscrowResult> Handle() => await repo.ClaimEscrow(customerGUID, Input);
     }
 
-    public class VendorTradeRequest
+    public class VendorTradeRequest : IOwnedCharacterIdWrite
     {
         public VendorTradeInput Input { get; set; }
+        public Guid? OwnerToken { get; set; }
+        int IOwnedCharacterIdWrite.OwnedCharacterID => Input?.CharacterID ?? 0;
 
         private Guid customerGUID;
         private IPlayerShopsRepository repo;

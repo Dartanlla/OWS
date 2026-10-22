@@ -16,10 +16,12 @@ namespace OWSCharacterPersistence.Requests.Characters
 
         private Guid customerGUID;
         private ICharactersRepository charactersRepository;
+        private ICharacterOwnersRepository ownersRepository;
 
-        public void SetData(ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
+        public void SetData(ICharactersRepository charactersRepository, ICharacterOwnersRepository ownersRepository, IHeaderCustomerGUID customerGuid)
         {
             this.charactersRepository = charactersRepository;
+            this.ownersRepository = ownersRepository;
             customerGUID = customerGuid.CustomerGUID;
         }
 
@@ -62,8 +64,18 @@ namespace OWSCharacterPersistence.Requests.Characters
                     continue;
                 }
 
+                // The 8th field is the owner token; a character with an owner takes its position only from that owner.
+                Guid? ownerToken = PlayerDataValues.Length > 7 && Guid.TryParse(PlayerDataValues[7], out Guid parsedToken)
+                    ? parsedToken
+                    : null;
+
                 try
                 {
+                    if (await ownersRepository.IsStaleOwnerWrite(customerGUID, PlayerName, ownerToken))
+                    {
+                        skipped.Add(PlayerName);
+                        continue;
+                    }
                     await charactersRepository.UpdatePosition(customerGUID, PlayerName, MapName, X, Y, Z, RX, RY, RZ);
                 }
                 catch

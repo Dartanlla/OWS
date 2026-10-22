@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using OWSData.Repositories.Interfaces;
@@ -9,10 +10,12 @@ using OWSData.Models.Composites;
 
 namespace OWSCharacterPersistence.Requests.Characters
 {
-    public class UpdateCharacterAbilitiesRequest
+    public class UpdateCharacterAbilitiesRequest : IOwnedCharacterWrite
     {
         // Payload from Unreal
         public string CharacterName { get; set; } = default!;
+        public Guid? OwnerToken { get; set; }
+        string IOwnedCharacterWrite.OwnedCharacterName => CharacterName;
         public List<CharacterAbilityDto> CharacterAbilities { get; set; } = new();
 
         private ICharactersRepository _repo = default!;

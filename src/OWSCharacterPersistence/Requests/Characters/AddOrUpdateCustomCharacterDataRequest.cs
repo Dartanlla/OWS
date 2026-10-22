@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 
 namespace OWSCharacterPersistence.Requests.Characters
 {
-    public class AddOrUpdateCustomDataRequest
+    public class AddOrUpdateCustomDataRequest : IOwnedCharacterWrite
     {
         public AddOrUpdateCustomCharacterData addOrUpdateCustomCharacterData { get; set; }
+        public Guid? OwnerToken { get; set; }
+        string IOwnedCharacterWrite.OwnedCharacterName => addOrUpdateCustomCharacterData?.CharacterName;
 
         private Guid customerGUID;
         private ICharactersRepository charactersRepository;
