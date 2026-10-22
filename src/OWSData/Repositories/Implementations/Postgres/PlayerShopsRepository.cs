@@ -437,7 +437,8 @@ namespace OWSData.Repositories.Implementations.Postgres
                     XpCredited = (int)xp
                 };
             }
-            catch (PostgresException pg) when (pg.SqlState == "23505")
+            catch (PostgresException pg) when (pg.SqlState == "23505"
+                && (IsOperationIdTaken(pg) || string.Equals(pg.TableName, "playershoppurchases", StringComparison.OrdinalIgnoreCase)))
             {
                 // The OperationId is taken: a concurrent retry of this purchase committed first (replay it), or the
                 // zone abandoned it.
