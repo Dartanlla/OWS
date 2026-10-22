@@ -153,5 +153,15 @@ namespace OWSCharacterPersistence.Controllers
             request.SetData(_repo, _customerGuid);
             return Ok(await request.Handle());
         }
+
+        [HttpPost]
+        [Route("AbandonOperation")]
+        [Produces(typeof(OperationResultView))]
+        public async Task<IActionResult> AbandonOperation([FromBody] AbandonOperationRequest request)
+        {
+            if (!ServiceKeyOk()) return Unauthorized();
+            request.SetData(_repo, _customerGuid);
+            return Ok(await request.Handle());
+        }
     }
 }

@@ -20,5 +20,6 @@ namespace OWSData.Repositories.Interfaces
         Task<ClaimEscrowResult> ClaimEscrow(Guid customerGUID, ClaimEscrowInput input);
         Task<VendorTradeResult> VendorTrade(Guid customerGUID, VendorTradeInput input);
         Task<OperationResultView> GetOperationResult(Guid customerGUID, Guid operationId);
+        Task<OperationResultView> AbandonOperation(Guid customerGUID, Guid operationId);
     }
 }

@@ -68,6 +68,15 @@ namespace OWSData.SQL
                 (OperationId, CustomerGUID, OpType, State, ResultJson)
                 VALUES (@OperationId, @CustomerGUID, @OpType, 'committed', @ResultJson)";
 
+        // Tombstone for an operation whose reply the zone lost: every operation records its OperationId as the
+        // last statement of its transaction, so once this row exists a late commit fails on the primary key.
+        // No row returned = the OperationId is already taken (the operation committed).
+        public static readonly string AbandonOperation = @"INSERT INTO PlayerShopOperations
+                (OperationId, CustomerGUID, OpType, State, ResultJson)
+                VALUES (@OperationId, @CustomerGUID, 'Abandoned', 'abandoned', @ResultJson)
+                ON CONFLICT (OperationId) DO NOTHING
+                RETURNING OperationId";
+
         // ---- Shop lifecycle ----
 
         // Reopen guards: 0 rows returned = clear to open.

@@ -239,6 +239,11 @@ namespace OWSData.Repositories.Implementations.Postgres
                 await tx.CommitAsync();
                 return result;
             }
+            catch (PostgresException pg) when (pg.SqlState == "23505" && IsOperationIdTaken(pg))
+            {
+                await SafeRollback(tx);
+                return await ReplayOperation<PlayerShopResult>(conn, customerGUID, input.OperationId) ?? FailResult("abandoned");
+            }
             catch (PostgresException pg) when (pg.SqlState == "23505")
             {
                 // Unique violation on the open-per-account index = raced another open.
@@ -414,6 +419,9 @@ namespace OWSData.Repositories.Implementations.Postgres
                         transaction: tx, commandType: CommandType.Text);
                 }
 
+                // Only claims the OperationId, so an AbandonOperation tombstone makes this commit fail. The result
+                // is read from the purchase row (GetOperationResult).
+                await RecordOperation(conn, tx, customerGUID, input.OperationId, "Purchase", new { });
                 await tx.CommitAsync();
                 return new PurchaseResult
                 {
@@ -428,6 +436,17 @@ namespace OWSData.Repositories.Implementations.Postgres
                     ProceedsCredited = (int)total,
                     XpCredited = (int)xp
                 };
+            }
+            catch (PostgresException pg) when (pg.SqlState == "23505")
+            {
+                // The OperationId is taken: a concurrent retry of this purchase committed first (replay it), or the
+                // zone abandoned it.
+                await SafeRollback(tx);
+                var committed = await conn.QuerySingleOrDefaultAsync(
+                    PlayerShopQueries.GetPurchaseByOperationId,
+                    new { OperationId = input.OperationId, CustomerGUID = customerGUID },
+                    commandType: CommandType.Text);
+                return committed != null ? PurchaseResultFromRow(committed) : PurchaseFail("abandoned");
             }
             catch
             {
@@ -536,7 +555,22 @@ namespace OWSData.Repositories.Implementations.Postgres
                     transaction: tx, commandType: CommandType.Text);
                 if (purchase == null) { await tx.RollbackAsync(); return new ResolveUndeliveredResult { Success = false, ReasonCode = "bad_request" }; }
                 string state = (string)purchase.state;
-                if (state == "restocked") { await tx.CommitAsync(); return new ResolveUndeliveredResult { Success = true, ReasonCode = "restocked" }; }
+                if (state == "restocked")
+                {
+                    // The zone retries only after a lost reply, so it has not mirrored the refund yet: repeat it.
+                    CharLockRow refundedBuyer = await conn.QuerySingleOrDefaultAsync<CharLockRow>(
+                        PlayerShopQueries.LockCharacterForUpdate,
+                        new { CustomerGUID = customerGUID, CharacterID = (int)purchase.buyercharacterid },
+                        transaction: tx, commandType: CommandType.Text);
+                    await tx.CommitAsync();
+                    return new ResolveUndeliveredResult
+                    {
+                        Success = true,
+                        ReasonCode = "restocked",
+                        NewBuyerRevision = refundedBuyer?.EconomyRevision ?? 0,
+                        GoldRefunded = checked((int)purchase.unitpricegold * (int)purchase.quantity + (int)purchase.taxpaid)
+                    };
+                }
                 if (state != "paid") { await tx.RollbackAsync(); return new ResolveUndeliveredResult { Success = false, ReasonCode = "already_resolved" }; }
 
                 int buyerCharacterID = (int)purchase.buyercharacterid;
@@ -624,6 +658,11 @@ namespace OWSData.Repositories.Implementations.Postgres
                 await RecordOperation(conn, tx, customerGUID, operationId, "CloseShop", result);
                 await tx.CommitAsync();
                 return result;
+            }
+            catch (PostgresException pg) when (pg.SqlState == "23505" && IsOperationIdTaken(pg))
+            {
+                await SafeRollback(tx);
+                return await ReplayOperation<PlayerShopResult>(conn, customerGUID, operationId) ?? FailResult("abandoned");
             }
             catch
             {
@@ -742,6 +781,12 @@ namespace OWSData.Repositories.Implementations.Postgres
                 await tx.CommitAsync();
                 return result;
             }
+            catch (PostgresException pg) when (pg.SqlState == "23505" && IsOperationIdTaken(pg))
+            {
+                await SafeRollback(tx);
+                return await ReplayOperation<ClaimEscrowResult>(conn, customerGUID, input.OperationId)
+                    ?? new ClaimEscrowResult { Success = false, ReasonCode = "abandoned" };
+            }
             catch
             {
                 await SafeRollback(tx);
@@ -836,12 +881,12 @@ namespace OWSData.Repositories.Implementations.Postgres
             using DbConnection conn = CreateConnection();
             await conn.OpenAsync();
 
-            // Non-purchase operations.
+            // Non-purchase operations and tombstones. A purchase's own row only claims the OperationId.
             OperationResultView op = await conn.QuerySingleOrDefaultAsync<OperationResultView>(
                 PlayerShopQueries.GetOperation,
                 new { OperationId = operationId, CustomerGUID = customerGUID },
                 commandType: CommandType.Text);
-            if (op != null) { op.Found = true; return op; }
+            if (op != null && op.OpType != "Purchase") { op.Found = true; return op; }
 
             // Purchase operations.
             var purchase = await conn.QuerySingleOrDefaultAsync(
@@ -861,6 +906,29 @@ namespace OWSData.Repositories.Implementations.Postgres
 
             return new OperationResultView { Found = false };
         }
+
+        // The zone's answer to a lost reply: the committed result if the operation committed, otherwise a tombstone
+        // that stops it from ever committing. Either way the answer is final.
+        public async Task<OperationResultView> AbandonOperation(Guid customerGUID, Guid operationId)
+        {
+            string abandonedJson = JsonSerializer.Serialize(FailResult("abandoned"));
+            using (DbConnection conn = CreateConnection())
+            {
+                await conn.OpenAsync();
+                Guid? tombstone = await conn.ExecuteScalarAsync<Guid?>(
+                    PlayerShopQueries.AbandonOperation,
+                    new { OperationId = operationId, CustomerGUID = customerGUID, ResultJson = abandonedJson },
+                    commandType: CommandType.Text);
+                if (tombstone.HasValue)
+                {
+                    return new OperationResultView { Found = true, OpType = "Abandoned", State = "abandoned", ResultJson = abandonedJson };
+                }
+            }
+            return await GetOperationResult(customerGUID, operationId);
+        }
+
+        private static bool IsOperationIdTaken(PostgresException pg) =>
+            string.Equals(pg.TableName, "playershopoperations", StringComparison.OrdinalIgnoreCase);
 
         // ------------------------------------------------------------------
         private static PlayerShopResult FailResult(string reason) => new PlayerShopResult { Success = false, ReasonCode = reason };

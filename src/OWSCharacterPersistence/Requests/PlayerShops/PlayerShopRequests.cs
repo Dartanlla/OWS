@@ -195,4 +195,18 @@ namespace OWSCharacterPersistence.Requests.PlayerShops
         }
         public async Task<OperationResultView> Handle() => await repo.GetOperationResult(customerGUID, OperationId);
     }
+
+    public class AbandonOperationRequest
+    {
+        public Guid OperationId { get; set; }
+
+        private Guid customerGUID;
+        private IPlayerShopsRepository repo;
+        public void SetData(IPlayerShopsRepository repo, IHeaderCustomerGUID customerGuid)
+        {
+            this.repo = repo;
+            customerGUID = customerGuid.CustomerGUID;
+        }
+        public async Task<OperationResultView> Handle() => await repo.AbandonOperation(customerGUID, OperationId);
+    }
 }
