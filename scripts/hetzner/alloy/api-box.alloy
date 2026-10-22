@@ -142,6 +142,29 @@ prometheus.scrape "db" {
   forward_to = [prometheus.relabel.instance.receiver]
 }
 
+// Zone and player load (ows_zone_*, ows_online_*) from the game database, for the "OWS load" dashboard.
+prometheus.exporter.postgres "ows_load" {
+  data_source_names          = [string.replace(sys.env("POSTGRES_MONITOR_DSN"), "/postgres?", "/openworldserver?")]
+  custom_queries_config_path = "/etc/alloy/ows-load-queries.yaml"
+  disable_default_metrics    = true
+  disable_settings_metrics   = true
+}
+
+discovery.relabel "ows_load" {
+  targets = prometheus.exporter.postgres.ows_load.targets
+
+  rule {
+    target_label = "job"
+    replacement  = "ows_load"
+  }
+}
+
+prometheus.scrape "ows_load" {
+  targets         = discovery.relabel.ows_load.output
+  scrape_interval = "15s"
+  forward_to      = [prometheus.relabel.instance.receiver]
+}
+
 // Each app service's /health (OWSData/Health/OWSHealthChecks.cs); the Grafana alert reads probe_success.
 prometheus.exporter.blackbox "ows_health" {
   config = "{ modules: { http_2xx: { prober: http, timeout: 5s } } }"

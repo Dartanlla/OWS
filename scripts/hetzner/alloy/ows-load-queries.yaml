@@ -1,0 +1,57 @@
+# Zone and player load from the game database, for the "OWS load" Grafana dashboard. Read by the
+# prometheus.exporter.postgres "ows_load" component in api-box.alloy (postgres_exporter query format).
+# Zone columns are NULL (NaN) until a zone server built with the heartbeat stats reports.
+# The alloy_monitor role needs the column grants in docs/hosting/hetzner-dev.md (Load dashboard).
+ows_zone:
+  query: |
+    SELECT MI.MapInstanceID::text AS zone_instance,
+           M.ZoneName AS zone,
+           WS.ServerRegion AS region,
+           MI.Status AS status,
+           MI.NumberOfReportedPlayers AS players,
+           MI.ServerFrameMsAvg AS frame_ms_avg,
+           MI.ServerFrameMsMax AS frame_ms_max,
+           MI.MemoryUsedMB AS memory_mb,
+           MI.UptimeSeconds AS uptime_seconds,
+           EXTRACT(EPOCH FROM LOCALTIMESTAMP - MI.LastUpdateFromServer) AS heartbeat_age_seconds
+    FROM MapInstances MI
+    INNER JOIN Maps M ON M.MapID = MI.MapID AND M.CustomerGUID = MI.CustomerGUID
+    INNER JOIN WorldServers WS ON WS.WorldServerID = MI.WorldServerID AND WS.CustomerGUID = MI.CustomerGUID
+  metrics:
+    - zone_instance:
+        usage: "LABEL"
+        description: "MapInstanceID"
+    - zone:
+        usage: "LABEL"
+        description: "Zone name"
+    - region:
+        usage: "LABEL"
+        description: "World server region"
+    - status:
+        usage: "GAUGE"
+        description: "1 starting, 2 ready, 3 shutting down"
+    - players:
+        usage: "GAUGE"
+        description: "Players the zone server reported in its last heartbeat"
+    - frame_ms_avg:
+        usage: "GAUGE"
+        description: "World-tick mean over the last heartbeat interval, ms"
+    - frame_ms_max:
+        usage: "GAUGE"
+        description: "Worst world tick over the last heartbeat interval, ms"
+    - memory_mb:
+        usage: "GAUGE"
+        description: "Zone server process memory, MB"
+    - uptime_seconds:
+        usage: "GAUGE"
+        description: "Zone server process uptime"
+    - heartbeat_age_seconds:
+        usage: "GAUGE"
+        description: "Seconds since the zone server's last heartbeat"
+
+ows_online:
+  query: "SELECT COUNT(*) AS characters_in_zones FROM CharOnMapInstance"
+  metrics:
+    - characters_in_zones:
+        usage: "GAUGE"
+        description: "Characters placed on a zone instance (CharOnMapInstance rows)"

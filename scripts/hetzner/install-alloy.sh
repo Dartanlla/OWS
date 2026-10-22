@@ -35,6 +35,10 @@ chgrp alloy /etc/default/alloy
 
 alloy fmt "$config" >/dev/null
 install -m 644 "$config" /etc/alloy/config.alloy
+# Files the configs read by path, such as the postgres exporter's custom queries.
+for extra in "$(dirname "$config")"/*.yaml; do
+  if [ -e "$extra" ]; then install -m 644 "$extra" /etc/alloy/; fi
+done
 systemctl enable --now alloy
 systemctl restart alloy
 sleep 5

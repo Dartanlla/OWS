@@ -380,6 +380,28 @@ stop arriving (the box or Alloy is down), and posts to Discord `#dev-observation
 10 s). Tested 2026-10-21: a wrong DB password in `owsmanagement` alerted after 89 s and reached Discord at 120 s
 (before the group wait went from 30 s to 10 s).
 
+### Load dashboard
+
+`scripts/hetzner/grafana/ows-load.json` is the "OWS load" dashboard for load tests and alpha sessions. Import it
+once in Grafana (Dashboards, New, Import, upload the file; pick the stack's Prometheus and Loki data sources). It
+shows players and logins, each zone server's heartbeat load, the box's CPU, memory and swap, per-service container
+CPU and memory, Postgres connections (the server allows 40) and transactions, errors and warnings per service, and
+health check times.
+
+The zone and player panels read `ows_zone_*` (per instance: `players`, `frame_ms_avg`, `frame_ms_max`, `memory_mb`,
+`uptime_seconds`, `heartbeat_age_seconds`, `status`; labels `zone`, `zone_instance`, `region`) and
+`ows_online_characters_in_zones`, which a second Alloy postgres exporter (`ows_load`) reads from the game database
+with the queries in `scripts/hetzner/alloy/ows-load-queries.yaml` (installed next to the config by
+`install-alloy.sh`). The frame and memory columns stay empty until zone servers send the heartbeat stats. The
+monitor role needs read access to those columns only, granted once, as `postgres`, in `openworldserver`:
+
+```sql
+GRANT SELECT ON mapinstances TO alloy_monitor;
+GRANT SELECT (mapid, customerguid, zonename) ON maps TO alloy_monitor;
+GRANT SELECT (worldserverid, customerguid, serverregion) ON worldservers TO alloy_monitor;
+GRANT SELECT (mapinstanceid) ON charonmapinstance TO alloy_monitor;
+```
+
 ## Persistence And Backups
 
 Postgres and RabbitMQ data are stored in named Docker volumes:
