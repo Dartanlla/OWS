@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily OWS zone log archive
+
+[Timer]
+OnCalendar=*-*-* 18:00:00 UTC
+RandomizedDelaySec=600
+Persistent=true
+
+[Install]
+WantedBy=timers.target

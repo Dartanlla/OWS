@@ -529,6 +529,25 @@ A dump on the Storage Box comes back with
 `rsync -e 'ssh -p 23 -i /root/.ssh/ows_backup_ed25519' <remote>/<file> /var/backups/ows/`.
 Point-in-time recovery (WAL-G or pgBackRest) is not set up.
 
+### Log archive
+
+Raw zone server logs, with their `SSEVENT` event lines, are kept 90 days (Loki keeps about 14). Each zone host
+uploads one zip per UTC day to `/var/backups/ows-logs/<host>/zone-logs-<host>-<yyyymmdd>.zip`; a log belongs to the
+day of its last write, so a day is uploaded once it is over. `ows-log-archive.timer` (daily, 18:00 UTC) runs
+`/usr/local/sbin/ows-log-archive`: it deletes zips whose day is more than 90 days old and mirrors the folder with
+`rsync --delete` to the backups' Storage Box, folder `ows-logs` (`OWS_LOG_ARCHIVE_REMOTE` overrides it). A failed run
+posts to the backup webhook. `install-pg-backup.sh` installs it with the backup.
+
+- Windows zone host (Julian's PC): `scripts\hetzner\Archive-ZoneLogs.ps1` zips every `*.log` in `C:\OWS\Logs` (zone
+  servers, their `-backup-` copies, the launcher's daily log) by day, skips days already on the box, and uploads with
+  the same SSH key as the admin console. `-Register` adds the daily task `OWS zone log archive` (10:00, or at the next
+  logon when the PC was off). Local logs are not deleted.
+- Linux zone host: not written yet; it needs the same upload from the deploy bundle (a daily timer with `zip` and
+  `scp`, or `rsync` of finished days).
+
+Read an archived day: `unzip -l /var/backups/ows-logs/<host>/zone-logs-<host>-<day>.zip`, or from the Storage Box
+with the same `rsync -e 'ssh -p 23 -i /root/.ssh/ows_backup_ed25519'` as a dump, from `<storage box>:ows-logs/`.
+
 ## Smoke Tests
 
 ```bash

@@ -1,0 +1,6 @@
+[Unit]
+Description=OWS zone log archive: 90-day retention and off-box mirror
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/ows-log-archive
