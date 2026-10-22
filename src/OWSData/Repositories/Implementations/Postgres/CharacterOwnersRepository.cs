@@ -170,8 +170,9 @@ namespace OWSData.Repositories.Implementations.Postgres
                 return new CancelJoinTicketResult { Success = true, ErrorMessage = "", Cancelled = true };
             }
 
+            // Already void, or unknown: neither can be claimed, so a retried cancel still reads as cancelled.
             bool claimed = await connection.QuerySingleOrDefaultAsync<bool>(TicketClaimedSql, key);
-            return new CancelJoinTicketResult { Success = true, ErrorMessage = "", Cancelled = false, Claimed = claimed };
+            return new CancelJoinTicketResult { Success = true, ErrorMessage = "", Cancelled = !claimed, Claimed = claimed };
         }
 
         public async Task<List<StaleCharacterOwner>> GetStaleOwners(Guid customerGUID, IEnumerable<CharacterOwnerCheck> owners)

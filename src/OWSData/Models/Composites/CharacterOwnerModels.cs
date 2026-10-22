@@ -23,7 +23,7 @@ namespace OWSData.Models.Composites
     {
         public bool Success { get; set; }
         public string ErrorMessage { get; set; }
-        // True when the ticket was voided; false when it was already claimed (the character has moved) or unknown.
+        // True when the ticket can never be claimed (voided now or earlier, or unknown); false when it was claimed.
         public bool Cancelled { get; set; }
         public bool Claimed { get; set; }
     }
