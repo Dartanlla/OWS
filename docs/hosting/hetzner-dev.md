@@ -545,8 +545,9 @@ posts to the backup webhook. `install-pg-backup.sh` installs it with the backup.
 - Linux zone host: not written yet; it needs the same upload from the deploy bundle (a daily timer with `zip` and
   `scp`, or `rsync` of finished days).
 
-Read an archived day: `unzip -l /var/backups/ows-logs/<host>/zone-logs-<host>-<day>.zip`, or from the Storage Box
-with the same `rsync -e 'ssh -p 23 -i /root/.ssh/ows_backup_ed25519'` as a dump, from `<storage box>:ows-logs/`.
+Read an archived day on the box (no `unzip` there): `python3 -m zipfile -l <zip>` lists it, `python3 -m zipfile -e <zip>
+<dir>` extracts it. From the Storage Box, fetch it with the same `rsync -e 'ssh -p 23 -i /root/.ssh/ows_backup_ed25519'`
+as a dump, from `<storage box>:ows-logs/<host>/`.
 
 ## Smoke Tests
 
