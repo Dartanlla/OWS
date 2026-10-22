@@ -1,0 +1,8 @@
+[Unit]
+Description=OWS PIE account purge
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/ows-pie-purge

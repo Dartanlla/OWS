@@ -41,3 +41,4 @@ SamsaraUpdates/RemoveSeededWandererAbilities_2026-10-19.sql
 SamsaraUpdates/AddMapInstanceServerStats_2026-10-21.sql
 SamsaraUpdates/AddAuditLogAndServerCpu_2026-10-22.sql
 SamsaraUpdates/AddJoinTickets_2026-10-21.sql
+SamsaraUpdates/PIEAccountPurge_2026-10-22.sql

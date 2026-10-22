@@ -549,6 +549,19 @@ Read an archived day on the box (no `unzip` there): `python3 -m zipfile -l <zip>
 <dir>` extracts it. From the Storage Box, fetch it with the same `rsync -e 'ssh -p 23 -i /root/.ssh/ows_backup_ed25519'`
 as a dump, from `<storage box>:ows-logs/<host>/`.
 
+### PIE account purge
+
+The editor's PIE character provisioning registers a new account for each PIE client on every run
+(`pie_player_<run>_<n>@samsara.local`, first name `PIE`) and removes only its character at the end. The
+`PurgePIEAccounts(age)` function (migration `PIEAccountPurge_2026-10-22.sql`) deletes accounts with an
+`@samsara.local` email and first name `PIE` older than `age`, with their characters and everything under them, the
+shops they own, their sessions, queue entries, join tickets and audit rows. It also deletes stats, abilities, quests,
+party and group memberships and inventory items of characters that no longer exist, and parties with no members. One
+transaction; real accounts (Steam, other emails) are never matched, whatever their character names.
+`ows-pie-purge.timer` (daily, 08:00 UTC) runs `/usr/local/sbin/ows-pie-purge` with `OWS_PIE_PURGE_AGE` (default
+`6 hours`, so a PIE session running at the time keeps its account) and logs what it removed; a failed run posts to the
+backup webhook. `install-pg-backup.sh` installs it. By hand: `ows-pg-backup && ows-pie-purge`.
+
 ## Smoke Tests
 
 ```bash

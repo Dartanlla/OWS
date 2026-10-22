@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Install or update the hourly OWS Postgres backup and the daily zone log archive, as root: install-pg-backup.sh
+# Install or update the hourly OWS Postgres backup, the daily zone log archive and the daily PIE account purge, as
+# root: install-pg-backup.sh. The purge's first run waits for its timer, or run ows-pie-purge after a backup.
 # Settings live in /etc/default/ows-pg-backup; the first run writes a template there and stops.
 set -euo pipefail
 
@@ -34,12 +35,14 @@ chmod 600 "$settings"
 install -m 755 "$here/ows-pg-backup.sh" /usr/local/sbin/ows-pg-backup
 install -m 755 "$here/ows-pg-restore-check.sh" /usr/local/sbin/ows-pg-restore-check
 install -m 755 "$here/ows-log-archive.sh" /usr/local/sbin/ows-log-archive
+install -m 755 "$here/ows-pie-purge.sh" /usr/local/sbin/ows-pie-purge
 install -m 644 "$here/ows-pg-backup.service" "$here/ows-pg-backup.timer" \
-  "$here/ows-log-archive.service" "$here/ows-log-archive.timer" /etc/systemd/system/
+  "$here/ows-log-archive.service" "$here/ows-log-archive.timer" \
+  "$here/ows-pie-purge.service" "$here/ows-pie-purge.timer" /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable --now ows-pg-backup.timer ows-log-archive.timer
+systemctl enable --now ows-pg-backup.timer ows-log-archive.timer ows-pie-purge.timer
 
 systemctl start ows-pg-backup.service ows-log-archive.service
 journalctl -u ows-pg-backup.service -n 3 --no-pager
 journalctl -u ows-log-archive.service -n 2 --no-pager
-systemctl list-timers ows-pg-backup.timer ows-log-archive.timer --no-pager
+systemctl list-timers ows-pg-backup.timer ows-log-archive.timer ows-pie-purge.timer --no-pager
