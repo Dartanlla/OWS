@@ -1,0 +1,71 @@
+// Grafana Alloy on a Windows machine that runs zone servers through the OWS instance launcher. Ships the zone logs
+// (zone-logs.alloy) to Loki, and host plus zone server process CPU and memory to Prometheus. Install or update with
+// scripts/hetzner/Install-ZoneHostAlloy.ps1, which sets every sys.env name below in the service's environment.
+
+loki.write "cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_CLOUD_LOKI_URL") + "/loki/api/v1/push"
+
+    basic_auth {
+      username = sys.env("GRAFANA_CLOUD_LOKI_USER")
+      password = sys.env("GRAFANA_CLOUD_TOKEN")
+    }
+  }
+
+  external_labels = {
+    host = sys.env("ALLOY_INSTANCE"),
+  }
+}
+
+prometheus.remote_write "cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_CLOUD_PROM_URL")
+
+    basic_auth {
+      username = sys.env("GRAFANA_CLOUD_PROM_USER")
+      password = sys.env("GRAFANA_CLOUD_TOKEN")
+    }
+  }
+}
+
+prometheus.relabel "instance" {
+  rule {
+    target_label = "instance"
+    replacement  = sys.env("ALLOY_INSTANCE")
+  }
+
+  forward_to = [prometheus.remote_write.cloud.receiver]
+}
+
+import.file "zone_logs" {
+  filename = "C:/Program Files/GrafanaLabs/Alloy/zone-logs.alloy"
+}
+
+zone_logs.pipeline "zone" {
+  log_dir    = sys.env("OWS_ZONE_LOG_DIR")
+  forward_to = [loki.write.cloud.receiver]
+}
+
+// The job name matches the Grafana Cloud Windows integration, so its dashboards work. The process collector covers
+// zone server processes only: windows_process_cpu_time_total and windows_process_working_set_private_bytes per PID.
+prometheus.exporter.windows "host" {
+  enabled_collectors = ["cpu", "logical_disk", "memory", "net", "os", "process", "system"]
+
+  process {
+    include = "SamsaraSagaServer.*"
+  }
+}
+
+discovery.relabel "host" {
+  targets = prometheus.exporter.windows.host.targets
+
+  rule {
+    target_label = "job"
+    replacement  = "integrations/windows_exporter"
+  }
+}
+
+prometheus.scrape "host" {
+  targets    = discovery.relabel.host.output
+  forward_to = [prometheus.relabel.instance.receiver]
+}

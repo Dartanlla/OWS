@@ -95,7 +95,7 @@
             Contains user related API calls that are all publicly accessible.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.#ctor(Microsoft.Extensions.Logging.ILogger{OWSPublicAPI.Controllers.UsersController},SimpleInjector.Container,OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IPublicAPIInputValidation,OWSShared.Interfaces.IHeaderCustomerGUID,Microsoft.Extensions.Options.IOptions{OWSShared.Options.PublicAPIOptions},Microsoft.Extensions.Options.IOptions{OWSShared.Options.APIPathOptions},System.Net.Http.IHttpClientFactory,OWSPublicAPI.Services.ISteamAuthService,Microsoft.Extensions.Options.IOptions{OWSPublicAPI.Options.GameServersOptions})">
+        <member name="M:OWSPublicAPI.Controllers.UsersController.#ctor(Microsoft.Extensions.Logging.ILogger{OWSPublicAPI.Controllers.UsersController},SimpleInjector.Container,OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IPublicAPIInputValidation,OWSShared.Interfaces.IHeaderCustomerGUID,Microsoft.Extensions.Options.IOptions{OWSShared.Options.PublicAPIOptions},Microsoft.Extensions.Options.IOptions{OWSShared.Options.APIPathOptions},System.Net.Http.IHttpClientFactory,OWSPublicAPI.Services.ISteamAuthService,Microsoft.Extensions.Options.IOptions{OWSPublicAPI.Options.GameServersOptions},OWSData.Repositories.Interfaces.IAuditRepository)">
             <summary>
             Constructor for Public User related API calls.
             </summary>

@@ -35,13 +35,15 @@ namespace OWSPublicAPI.Requests.Users
         private IUsersRepository usersRepository;
         private ICharactersRepository charactersRepository;
         private IHttpClientFactory httpClientFactory;
+        private IAuditRepository auditRepository;
 
-        public void SetData(IOptions<PublicAPIOptions> owsGeneralConfig, IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, IHttpClientFactory httpClientFactory)
+        public void SetData(IOptions<PublicAPIOptions> owsGeneralConfig, IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, IHttpClientFactory httpClientFactory, IAuditRepository auditRepository)
         {
             this.owsGeneralConfig = owsGeneralConfig;
             this.usersRepository = usersRepository;
             this.charactersRepository = charactersRepository;
             this.httpClientFactory = httpClientFactory;
+            this.auditRepository = auditRepository;
             CustomerGUID = customerGuid.CustomerGUID;
         }
 
@@ -181,6 +183,8 @@ namespace OWSPublicAPI.Requests.Users
             Output.ErrorMessage = "";
             Log.Information("zone_join {CharacterName} {ZoneName} instance {MapInstanceId} port {Port}",
                 CharacterName, ZoneName, joinMapByCharacterName.MapInstanceID, joinMapByCharacterName.Port);
+            await auditRepository.Add(CustomerGUID, "publicapi", CharacterName, "zone_join", joinMapByCharacterName.ZoneName ?? ZoneName,
+                new { mapInstanceId = joinMapByCharacterName.MapInstanceID, port = joinMapByCharacterName.Port });
             return new OkObjectResult(Output);
         }
 

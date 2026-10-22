@@ -1,0 +1,78 @@
+// Grafana Alloy on a Linux machine that runs zone servers through the OWS instance launcher, such as a regional
+// zone server. Ships the zone logs (zone-logs.alloy) to Loki, and host plus zone server process CPU and memory to
+// Prometheus. Install or update, as root: install-alloy.sh zone-host-linux.alloy (Endpoints, users, the token and
+// OWS_ZONE_LOG_DIR come from /etc/default/alloy). The alloy user must be able to read OWS_ZONE_LOG_DIR.
+
+loki.write "cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_CLOUD_LOKI_URL") + "/loki/api/v1/push"
+
+    basic_auth {
+      username = sys.env("GRAFANA_CLOUD_LOKI_USER")
+      password = sys.env("GRAFANA_CLOUD_TOKEN")
+    }
+  }
+
+  external_labels = {
+    host = sys.env("ALLOY_INSTANCE"),
+  }
+}
+
+prometheus.remote_write "cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_CLOUD_PROM_URL")
+
+    basic_auth {
+      username = sys.env("GRAFANA_CLOUD_PROM_USER")
+      password = sys.env("GRAFANA_CLOUD_TOKEN")
+    }
+  }
+}
+
+prometheus.relabel "instance" {
+  rule {
+    target_label = "instance"
+    replacement  = sys.env("ALLOY_INSTANCE")
+  }
+
+  forward_to = [prometheus.remote_write.cloud.receiver]
+}
+
+import.file "zone_logs" {
+  filename = "/etc/alloy/zone-logs.alloy"
+}
+
+zone_logs.pipeline "zone" {
+  log_dir    = sys.env("OWS_ZONE_LOG_DIR")
+  forward_to = [loki.write.cloud.receiver]
+}
+
+// Job names match the Grafana Cloud Linux integration, so its dashboards work.
+prometheus.exporter.unix "host" { }
+
+discovery.relabel "host" {
+  targets = prometheus.exporter.unix.host.targets
+
+  rule {
+    target_label = "job"
+    replacement  = "integrations/node_exporter"
+  }
+}
+
+prometheus.scrape "host" {
+  targets    = discovery.relabel.host.output
+  forward_to = [prometheus.relabel.instance.receiver]
+}
+
+// Zone server processes, grouped as one "zone_server" (namedprocess_namegroup_cpu_seconds_total and friends).
+prometheus.exporter.process "zone" {
+  matcher {
+    name    = "zone_server"
+    cmdline = [".*SamsaraSagaServer.*"]
+  }
+}
+
+prometheus.scrape "zone_process" {
+  targets    = prometheus.exporter.process.zone.targets
+  forward_to = [prometheus.relabel.instance.receiver]
+}

@@ -43,6 +43,9 @@ export default {
     getZoneInstances() {
         return client.get('/Instances');
     },
+    getAudit(search: string, limit: number) {
+        return client.get('/Audit', { params: { search, limit } });
+    },
     getStatus() {
         return client.get('/System/Status');
     },

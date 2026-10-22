@@ -86,6 +86,40 @@ loki.process "ows" {
   forward_to = [loki.write.cloud.receiver]
 }
 
+// SSH logins and sudo use, from the systemd journal: who reached the box and what ran as root.
+loki.source.journal "auth" {
+  max_age       = "12h"
+  labels        = { job = "auth" }
+  relabel_rules = loki.relabel.auth.rules
+  forward_to    = [loki.process.auth.receiver]
+}
+
+loki.relabel "auth" {
+  forward_to = []
+
+  rule {
+    source_labels = ["__journal_syslog_identifier"]
+    target_label  = "identifier"
+  }
+}
+
+// sshd also logs every scanner's failed attempt; keep accepted logins and session opens and closes.
+loki.process "auth" {
+  stage.match {
+    selector            = "{job=\"auth\", identifier!~\"sshd|sudo\"}"
+    action              = "drop"
+    drop_counter_reason = "not_auth"
+  }
+
+  stage.match {
+    selector            = "{job=\"auth\", identifier=\"sshd\"} !~ \"Accepted |session opened|session closed\""
+    action              = "drop"
+    drop_counter_reason = "ssh_noise"
+  }
+
+  forward_to = [loki.write.cloud.receiver]
+}
+
 // Metrics. Each exporter sets its own job label, which scrape job_name does not override.
 
 prometheus.exporter.unix "host" { }

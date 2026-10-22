@@ -45,6 +45,7 @@ namespace OWSPublicAPI.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly Services.ISteamAuthService _steamAuthService;
         private readonly IOptions<OWSPublicAPI.Options.GameServersOptions> _gameServersOptions;
+        private readonly IAuditRepository _auditRepository;
 
         /// <summary>
         /// Constructor for Public User related API calls.
@@ -64,7 +65,8 @@ namespace OWSPublicAPI.Controllers
             IOptions<APIPathOptions> owsApiPathConfig,
             IHttpClientFactory httpClientFactory,
             Services.ISteamAuthService steamAuthService,
-            IOptions<OWSPublicAPI.Options.GameServersOptions> gameServersOptions)
+            IOptions<OWSPublicAPI.Options.GameServersOptions> gameServersOptions,
+            IAuditRepository auditRepository)
         {
             _logger = logger;
             _container = container;
@@ -78,6 +80,7 @@ namespace OWSPublicAPI.Controllers
             _httpClientFactory = httpClientFactory;
             _steamAuthService = steamAuthService;
             _gameServersOptions = gameServersOptions;
+            _auditRepository = auditRepository;
         }
 
         /// <summary>
@@ -144,7 +147,7 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(GetServerToConnectTo))]
         public async Task<IActionResult> GetServerToConnectTo([FromBody] GetServerToConnectToRequest request)
         {
-            request.SetData(_owsGeneralConfig, _usersRepository, _charactersRepository, _customerGuid, _httpClientFactory);
+            request.SetData(_owsGeneralConfig, _usersRepository, _charactersRepository, _customerGuid, _httpClientFactory, _auditRepository);
             return await request.Handle();
         }
 
@@ -174,7 +177,7 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(PlayerLoginAndCreateSession))]
         public async Task<IActionResult> LoginAndCreateSession([FromBody] LoginAndCreateSessionRequest request)
         {
-            request.SetData(_usersRepository, _customerGuid);
+            request.SetData(_usersRepository, _customerGuid, _auditRepository);
             return await request.Handle();
         }
 
@@ -202,7 +205,7 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(PlayerLoginAndCreateSession))]
         public async Task<IActionResult> SteamLoginAndCreateSession([FromBody] SteamLoginAndCreateSessionRequest request)
         {
-            request.SetData(_usersRepository, _steamAuthService, _customerGuid);
+            request.SetData(_usersRepository, _steamAuthService, _customerGuid, _auditRepository);
             return await request.Handle();
         }
 
@@ -217,7 +220,7 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(SuccessAndErrorMessage))]
         public async Task<SuccessAndErrorMessage> Logout([FromBody] LogoutDTO request)
         {
-            LogoutRequest logoutRequest = new LogoutRequest(request, _usersRepository, _customerGuid);
+            LogoutRequest logoutRequest = new LogoutRequest(request, _usersRepository, _customerGuid, _auditRepository);
             return await logoutRequest.Handle();
         }
 

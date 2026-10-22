@@ -22,6 +22,7 @@
             { title: 'Players', key: 'numberOfReportedPlayers' },
             { title: 'Characters', key: 'onlineCharacters', sortable: false },
             { title: 'Frame ms (avg / max)', key: 'serverFrameMsAvg' },
+            { title: 'CPU (% of a core)', key: 'serverCpuPct' },
             { title: 'Memory MB', key: 'memoryUsedMB' },
             { title: 'Uptime', key: 'uptimeSeconds' },
             { title: 'Build', key: 'buildCL' },
@@ -103,6 +104,9 @@
                 </template>
                 <template v-slot:item.serverFrameMsAvg="{ item }">
                     <span v-if="item.raw.serverFrameMsAvg != null">{{ item.raw.serverFrameMsAvg.toFixed(1) }} / {{ item.raw.serverFrameMsMax?.toFixed(1) }}</span>
+                </template>
+                <template v-slot:item.serverCpuPct="{ item }">
+                    <span v-if="item.raw.serverCpuPct != null">{{ Math.round(item.raw.serverCpuPct) }}</span>
                 </template>
                 <template v-slot:item.uptimeSeconds="{ item }">
                     {{ formatUptime(item.raw.uptimeSeconds) }}

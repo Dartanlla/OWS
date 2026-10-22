@@ -18,12 +18,14 @@ namespace OWSPublicAPI.Requests.Users
         private PlayerLoginAndCreateSession output;
         private Guid customerGUID;
         private IUsersRepository usersRepository;
+        private IAuditRepository auditRepository;
 
-        public void SetData(IUsersRepository usersRepository, IHeaderCustomerGUID customerGuid)
+        public void SetData(IUsersRepository usersRepository, IHeaderCustomerGUID customerGuid, IAuditRepository auditRepository)
         {
             //CustomerGUID = new Guid("56FB0902-6FE7-4BFE-B680-E3C8E497F016");
             this.customerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
+            this.auditRepository = auditRepository;
         }
 
         public async Task<IActionResult> Handle()
@@ -45,8 +47,11 @@ namespace OWSPublicAPI.Requests.Users
                 output.ErrorMessage = "Invalid email or password";
             }
 
-            // No email in the log: the session GUID leads to the account in the database.
-            Log.Information("user_login {Method} {Result} session {UserSessionGuid}", "password", loggedIn ? "ok" : "refused", output.UserSessionGuid);
+            // No email in the log, which leaves the box; the audit row, in our own database, keeps it.
+            string result = loggedIn ? "ok" : "refused";
+            Log.Information("user_login {Method} {Result} session {UserSessionGuid}", "password", result, output.UserSessionGuid);
+            await auditRepository.Add(customerGUID, "publicapi", Email, "user_login", "password",
+                new { method = "password", result, userSessionGuid = output.UserSessionGuid });
             return new OkObjectResult(output);
         }
     }

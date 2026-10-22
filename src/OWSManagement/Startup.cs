@@ -44,7 +44,7 @@ namespace OWSManagement
 
             services.AddHttpContextAccessor();
 
-            services.AddControllers();
+            services.AddControllers(options => options.Filters.Add(new Filters.AdminAuditFilter(container)));
 
             services.AddSimpleInjector(container, options => {
                 options.AddAspNetCore()
@@ -147,6 +147,8 @@ namespace OWSManagement
                         container.Register<IInstanceManagementRepository, OWSData.Repositories.Implementations.MSSQL.InstanceManagementRepository>(Lifestyle.Transient);
                         break;
                 }
+                // AuditLog is Postgres-only, like player shops.
+                container.Register<IAuditRepository, OWSData.Repositories.Implementations.Postgres.AuditRepository>(Lifestyle.Transient);
             }
 
             container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);

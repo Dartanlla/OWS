@@ -109,7 +109,9 @@ account role (`Users.Role`), and the per-character `IsAdmin` / `IsModerator` fla
 client reads at login. No schema change is involved — every column it writes already exists.
 Its Zone Instances page (`GET /api/Instances`) lists every `mapinstances` row with its region, status,
 players, the characters on it, and the load its zone server last reported in the heartbeat (world-tick
-ms average / worst, memory, uptime, build; `dev` is an unstamped build), and refreshes every 10 s.
+ms average / worst, CPU in percent of one core, memory, uptime, build; `dev` is an unstamped build), and refreshes
+every 10 s. Its Audit Log page (`GET /api/Audit?search=&limit=`) lists the newest `AuditLog` rows, searchable by
+actor, action and target (see Audit log, below). Every change made through the console writes one.
 
 It sits behind the `admin` compose profile, so a plain `up -d` never starts it. Two reasons:
 the other services already reserve 3328 MB of a 4 GB host, and the console is occasional-use.
@@ -340,7 +342,30 @@ docker compose --env-file .env.hetzner-dev -f docker-compose.hetzner-dev.yml log
 
 Zone server logs: the launcher replaces `{zoneinstanceid}` and `{port}` in
 `OWSInstanceLauncherOptions.OtherCustomFlags`, so `-AbsLog=<dir>/UEServer-{zoneinstanceid}-{port}.log`
-gives each zone instance its own file.
+gives each zone instance its own file. Alloy on the zone host ships part of each file (Zone hosts, below).
+
+### Audit log
+
+`AuditLog` in the game database is the permanent record of who did what; Loki keeps logs about 14 days. The
+services only add rows. Columns: `CreateDate`, `Source`, `Actor`, `Action`, `Target`, `Detail` (a JSON object
+whose shape depends on `Action`), and `ClientIP`, which only the admin console fills: no player IP is stored.
+
+| Source | Action | Actor | Target | Detail |
+| --- | --- | --- | --- | --- |
+| `publicapi` | `user_login` | Steam persona name (else Steam id), or the email for a password login | `steam:<id>` or `password` | `method`, `result` (as the `user_login` log line), `userSessionGuid` |
+| `publicapi` | `user_logout` | the account's first name | the selected character | `userSessionGuid` |
+| `publicapi` | `zone_join` | character | zone | `mapInstanceId`, `port` |
+| `management` | `admin_change` | `admin-console` (the console has no login) | `METHOD /api/path` | the call's arguments without any password field, and `outcome` |
+| `zone` | `staff_action` | staff character | action id | `role`, `source`, `scope`, `result`, `detail`, `raw` (the typed command), `userSession`. Staff callers only; a player's attempt stays in the zone log |
+| `zone` | `trade_completed` | the trade's first player | the second player | `actorGave` / `targetGave` (item tag, quantity, refine, instanceId) and `actorJuri` / `targetJuri` |
+
+Zone servers write through `OWSCharacterPersistence` `POST api/Audit/Add` with the service key. A write that fails
+is logged as `audit_write_failed` (zone log, or the service's log) and is not retried. Read it on the console's
+Audit Log page, or in SQL:
+
+```sql
+SELECT CreateDate, Source, Actor, Action, Target, Detail FROM AuditLog ORDER BY AuditLogID DESC LIMIT 50;
+```
 
 ## Monitoring (Grafana Cloud)
 
@@ -365,6 +390,31 @@ Health: `curl -s localhost:12345/api/v0/web/components` lists each component's s
 `journalctl -u alloy` shows push errors. The metric job names match the Grafana Cloud Linux Server,
 Docker and PostgreSQL integrations, so their prebuilt dashboards work without edits.
 
+SSH logins and sudo use come from the systemd journal as `{job="auth"}`, labelled `identifier` (`sshd` or `sudo`).
+Of sshd's lines only accepted logins (with the key fingerprint and source IP) and session opens and closes are kept;
+the scanners' failed attempts are dropped. In Grafana: `{job="auth"} |= "Accepted"`.
+
+### Zone hosts
+
+A machine that runs zone servers through the instance launcher runs Alloy too: `scripts/hetzner/alloy/zone-logs.alloy`
+ships the zone server logs as `{job="zone_server"}` (labels `host`, `zone_instance`, `level`), keeping only game
+events (`SSEVENT`), `StaffActionAudit` lines, warnings, errors and fatals, at most 20 lines/s per host. The host config
+adds the machine's CPU, memory, disk and network, and per-process CPU and memory of the zone servers
+(`SamsaraSagaServer*`):
+
+- Windows (Julian's PC, today): `zone-host-windows.alloy`, job `integrations/windows_exporter`, per-process
+  `windows_process_*`. From an elevated PowerShell in the repo:
+  `powershell -ExecutionPolicy Bypass -File scripts\hetzner\Install-ZoneHostAlloy.ps1` (`-LogDir`, default
+  `C:/OWS/Logs`; `-Instance`, default the computer name). It installs Alloy if needed, copies the Grafana Cloud
+  settings from this box's `/etc/default/alloy` over SSH into the service environment without showing them, installs
+  both files and restarts the `Alloy` service. Run it again after a config change. The token is then in
+  `HKLM\SOFTWARE\GrafanaLabs\Alloy` (`Environment`), which every local user can read.
+- Linux (a regional zone server): `zone-host-linux.alloy`, job `integrations/node_exporter`, per-process
+  `namedprocess_namegroup_*{groupname="zone_server"}`. As root: `bash scripts/hetzner/install-alloy.sh
+  zone-host-linux.alloy`, after `/etc/default/alloy` sets the `GRAFANA_CLOUD_*` values, `ALLOY_INSTANCE` and
+  `OWS_ZONE_LOG_DIR`. `install-alloy.sh` also installs the modules a config imports from `/etc/alloy`. The `alloy`
+  user must be able to read the log folder (or run Alloy as root, as on this box).
+
 ### Service health
 
 Every app service answers `GET /health` with `Healthy` (200) or `Unhealthy` (503). The check logs in to
@@ -384,15 +434,16 @@ stop arriving (the box or Alloy is down), and posts to Discord `#dev-observation
 
 `scripts/hetzner/grafana/ows-load.json` is the "OWS load" dashboard for load tests and alpha sessions. Import it
 once in Grafana (Dashboards, New, Import, upload the file; pick the stack's Prometheus and Loki data sources). It
-shows players and logins, each zone server's heartbeat load, the box's CPU, memory and swap, per-service container
-CPU and memory, Postgres connections (the server allows 40) and transactions, errors and warnings per service, and
-health check times.
+shows players and logins, each zone server's heartbeat load and CPU, every host's CPU, zone log warnings and errors,
+the box's CPU, memory and swap, per-service container CPU and memory, Postgres connections (the server allows 40) and
+transactions, errors and warnings per service, and health check times.
 
-The zone and player panels read `ows_zone_*` (per instance: `players`, `frame_ms_avg`, `frame_ms_max`, `memory_mb`,
-`uptime_seconds`, `heartbeat_age_seconds`, `status`; labels `zone`, `zone_instance`, `region`) and
+The zone and player panels read `ows_zone_*` (per instance: `players`, `frame_ms_avg`, `frame_ms_max`, `cpu_pct`,
+`memory_mb`, `uptime_seconds`, `heartbeat_age_seconds`, `status`; labels `zone`, `zone_instance`, `region`) and
 `ows_online_characters_in_zones`, which a second Alloy postgres exporter (`ows_load`) reads from the game database
 with the queries in `scripts/hetzner/alloy/ows-load-queries.yaml` (installed next to the config by
-`install-alloy.sh`). The frame and memory columns stay empty until zone servers send the heartbeat stats. The
+`install-alloy.sh`). A column stays empty until zone servers built with that heartbeat field report (`cpu_pct`, in
+percent of one core, came after the others). The
 monitor role needs read access to those columns only, granted once, as `postgres`, in `openworldserver`:
 
 ```sql

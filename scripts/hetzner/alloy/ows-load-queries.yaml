@@ -11,6 +11,7 @@ ows_zone:
            MI.NumberOfReportedPlayers AS players,
            MI.ServerFrameMsAvg AS frame_ms_avg,
            MI.ServerFrameMsMax AS frame_ms_max,
+           MI.ServerCpuPct AS cpu_pct,
            MI.MemoryUsedMB AS memory_mb,
            MI.UptimeSeconds AS uptime_seconds,
            EXTRACT(EPOCH FROM LOCALTIMESTAMP - MI.LastUpdateFromServer) AS heartbeat_age_seconds
@@ -39,6 +40,9 @@ ows_zone:
     - frame_ms_max:
         usage: "GAUGE"
         description: "Worst world tick over the last heartbeat interval, ms"
+    - cpu_pct:
+        usage: "GAUGE"
+        description: "Zone server process CPU over the last heartbeat interval, percent of one core"
     - memory_mb:
         usage: "GAUGE"
         description: "Zone server process memory, MB"

@@ -1,0 +1,80 @@
+// Zone server log pipeline, a module that zone-host-windows.alloy and zone-host-linux.alloy import. The launcher's
+// -AbsLog flag gives each zone instance <log_dir>/UEServer-<zoneinstanceid>-<port>.log. Ships game events (SSEVENT),
+// staff audit lines, warnings, errors and fatals, labelled zone_instance and level; drops every other line.
+declare "pipeline" {
+  argument "log_dir" { }
+
+  argument "forward_to" { }
+
+  loki.source.file "zone" {
+    targets = [{
+      __path__ = argument.log_dir.value + "/UEServer-*.log",
+      job      = "zone_server",
+    }]
+    forward_to = [loki.process.zone.receiver]
+
+    file_match {
+      enabled           = true
+      ignore_older_than = "144h"
+    }
+  }
+
+  loki.process "zone" {
+    stage.match {
+      selector            = "{job=\"zone_server\"} !~ \"SSEVENT |StaffActionAudit |: (Warning|Error|Fatal): \""
+      action              = "drop"
+      drop_counter_reason = "zone_filter"
+    }
+
+    stage.regex {
+      source     = "filename"
+      expression = "UEServer-(?P<zone_instance>\\d+)-\\d+\\.log$"
+    }
+
+    // UE stamps each line in UTC: [2026.10.21-23.49.50:727][frame]Category: Verbosity: message. Lines from before
+    // the log is set up have no stamp.
+    stage.regex {
+      expression = "^(?:\\[(?P<ts>\\d{4}\\.\\d{2}\\.\\d{2}-\\d{2}\\.\\d{2}\\.\\d{2}):(?P<ms>\\d{3})\\]\\[[ \\d]+\\])?\\w+: (?:(?P<level>Warning|Error|Fatal|Display): )?"
+    }
+
+    stage.template {
+      source   = "ts"
+      template = "{{ if .Value }}{{ .Value }}.{{ .ms }}{{ end }}"
+    }
+
+    stage.timestamp {
+      source            = "ts"
+      format            = "2006.01.02-15.04.05.000"
+      location          = "UTC"
+      action_on_failure = "skip"
+    }
+
+    stage.template {
+      source   = "level"
+      template = "{{ if .Value }}{{ .Value }}{{ else }}Log{{ end }}"
+    }
+
+    stage.labels {
+      values = { zone_instance = "", level = "" }
+    }
+
+    stage.label_drop {
+      values = ["filename"]
+    }
+
+    // Grafana Cloud rejects entries older than 7 days.
+    stage.drop {
+      older_than          = "144h"
+      drop_counter_reason = "too_old"
+    }
+
+    // A warning logged every tick must not use up the free tier's log quota.
+    stage.limit {
+      rate  = 20
+      burst = 500
+      drop  = true
+    }
+
+    forward_to = argument.forward_to.value
+  }
+}

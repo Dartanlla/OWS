@@ -39,6 +39,11 @@ install -m 644 "$config" /etc/alloy/config.alloy
 for extra in "$(dirname "$config")"/*.yaml; do
   if [ -e "$extra" ]; then install -m 644 "$extra" /etc/alloy/; fi
 done
+# Modules the config imports from /etc/alloy, such as zone-logs.alloy.
+for module in $(grep -o 'filename = "/etc/alloy/[^"]*"' "$config" | sed 's|.*/etc/alloy/\(.*\)"|\1|'); do
+  alloy fmt "$(dirname "$config")/$module" >/dev/null
+  install -m 644 "$(dirname "$config")/$module" /etc/alloy/
+done
 systemctl enable --now alloy
 systemctl restart alloy
 sleep 5

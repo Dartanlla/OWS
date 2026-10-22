@@ -4,6 +4,19 @@
         <name>OWSCharacterPersistence</name>
     </assembly>
     <members>
+        <member name="T:OWSCharacterPersistence.Controllers.AuditController">
+            <summary>
+            Zone servers record staff actions and player trades in AuditLog. Service key only: players cannot reach this
+            service, and the key keeps a stray caller from writing audit rows.
+            </summary>
+        </member>
+        <member name="T:OWSCharacterPersistence.Controllers.SamsaraServiceKey">
+            <summary>
+            The zone servers' server-to-server key (X-Samsara-Service-Key), read from a server-only env var and never present
+            in client configs. Fail closed: outside the Development environment, an unset key rejects every request rather than
+            opening the gate, so a missing env var on a deploy surfaces as 401s.
+            </summary>
+        </member>
         <member name="T:OWSCharacterPersistence.Controllers.SystemController">
             <summary>
             Public System API calls.

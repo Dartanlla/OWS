@@ -560,22 +560,191 @@
       ]
     },
     {
+      "type": "timeseries",
+      "title": "Zone server CPU",
+      "id": 12,
+      "description": "Process CPU in percent of one core (200 = two cores busy): from the heartbeat (zone #id), and from Windows zone hosts' Alloy per process (pid), which also covers servers built before the heartbeat field. The game thread is one core, so read it with frame ms.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 26
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "max by (zone, zone_instance) (ows_zone_cpu_pct)",
+          "legendFormat": "{{zone}} #{{zone_instance}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "expr": "100 * sum by (instance, process_id) (rate(windows_process_cpu_time_total{process=~\"SamsaraSagaServer.*\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} pid {{process_id}}",
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Host CPU, every machine",
+      "id": 13,
+      "description": "Every machine Alloy runs on: Windows and Linux zone hosts, and the API box.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 26
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * (1 - avg by (instance) (rate(windows_cpu_time_total{mode=\"idle\"}[$__rate_interval])))",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{job=\"integrations/node_exporter\", mode=\"idle\"}[$__rate_interval])))",
+          "legendFormat": "{{instance}}",
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Zone log warnings and errors per minute",
+      "id": 14,
+      "description": "Zone server log lines shipped by zone hosts' Alloy (zone-logs.alloy), capped at 20 lines/s per host.",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 26
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (host, level) (count_over_time({job=\"zone_server\", level=~\"Warning|Error|Fatal\"} [1m]))",
+          "legendFormat": "{{host}} {{level}}",
+          "queryType": "range",
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          }
+        }
+      ]
+    },
+    {
       "type": "row",
       "title": "API box",
-      "id": 12,
+      "id": 15,
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 34
       },
       "panels": []
     },
     {
       "type": "timeseries",
       "title": "Host CPU",
-      "id": 13,
+      "id": 16,
       "description": "3 shared vCPUs (CPX21).",
       "datasource": {
         "type": "prometheus",
@@ -585,7 +754,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 27
+        "y": 35
       },
       "fieldConfig": {
         "defaults": {
@@ -625,7 +794,7 @@
     {
       "type": "timeseries",
       "title": "Host memory",
-      "id": 14,
+      "id": 17,
       "description": "4 GB box. Swap use that grows under load is the resize signal (item 19).",
       "datasource": {
         "type": "prometheus",
@@ -635,7 +804,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 27
+        "y": 35
       },
       "fieldConfig": {
         "defaults": {
@@ -684,7 +853,7 @@
     {
       "type": "timeseries",
       "title": "Container CPU",
-      "id": 15,
+      "id": 18,
       "description": "CPU cores used per compose service.",
       "datasource": {
         "type": "prometheus",
@@ -694,7 +863,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 27
+        "y": 35
       },
       "fieldConfig": {
         "defaults": {
@@ -734,7 +903,7 @@
     {
       "type": "timeseries",
       "title": "Container memory",
-      "id": 16,
+      "id": 19,
       "description": "",
       "datasource": {
         "type": "prometheus",
@@ -744,7 +913,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 35
+        "y": 43
       },
       "fieldConfig": {
         "defaults": {
@@ -784,7 +953,7 @@
     {
       "type": "timeseries",
       "title": "Postgres connections",
-      "id": 17,
+      "id": 20,
       "description": "Connections to the game database by state, against the server limit (40).",
       "datasource": {
         "type": "prometheus",
@@ -794,7 +963,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 35
+        "y": 43
       },
       "fieldConfig": {
         "defaults": {
@@ -843,7 +1012,7 @@
     {
       "type": "timeseries",
       "title": "Postgres transactions per second",
-      "id": 18,
+      "id": 21,
       "description": "",
       "datasource": {
         "type": "prometheus",
@@ -853,7 +1022,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 35
+        "y": 43
       },
       "fieldConfig": {
         "defaults": {
@@ -902,7 +1071,7 @@
     {
       "type": "timeseries",
       "title": "Errors and warnings per minute",
-      "id": 19,
+      "id": 22,
       "description": "",
       "datasource": {
         "type": "loki",
@@ -912,7 +1081,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 43
+        "y": 51
       },
       "fieldConfig": {
         "defaults": {
@@ -953,7 +1122,7 @@
     {
       "type": "timeseries",
       "title": "Health check time",
-      "id": 20,
+      "id": 23,
       "description": "Alloy's /health probes every 15 s; each check result is cached for 10 s.",
       "datasource": {
         "type": "prometheus",
@@ -963,7 +1132,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 43
+        "y": 51
       },
       "fieldConfig": {
         "defaults": {

@@ -293,6 +293,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     NumberOfReportedPlayers = numberOfPlayers,
                     stats.ServerFrameMsAvg,
                     stats.ServerFrameMsMax,
+                    stats.ServerCpuPct,
                     stats.MemoryUsedMB,
                     stats.UptimeSeconds,
                     stats.BuildCL

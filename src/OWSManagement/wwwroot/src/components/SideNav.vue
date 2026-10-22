@@ -13,6 +13,7 @@
         <v-list-item href="/zones" prepend-icon="mdi-map" title="Zones"></v-list-item>
         <v-list-item href="/zoneinstances" prepend-icon="mdi-animation" title="Zone Instances"></v-list-item>
         <v-list-item href="/globaldata" prepend-icon="mdi-database" title="Global Data"></v-list-item>
+        <v-list-item href="/audit" prepend-icon="mdi-history" title="Audit Log"></v-list-item>
         <v-list-item href="/settings" prepend-icon="mdi-cog" title="Settings"></v-list-item>
     </v-list>
 </template>

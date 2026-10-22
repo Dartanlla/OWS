@@ -10,6 +10,8 @@ namespace OWSData.Models.Composites
         public float? ServerFrameMsAvg { get; set; }
         /// <summary>Worst single world tick over the heartbeat interval, in ms.</summary>
         public float? ServerFrameMsMax { get; set; }
+        /// <summary>Process CPU over the heartbeat interval, in percent of one core (200 = two cores busy).</summary>
+        public float? ServerCpuPct { get; set; }
         public int? MemoryUsedMB { get; set; }
         public int? UptimeSeconds { get; set; }
         /// <summary>The server build's changelist; 0 is an unstamped dev build.</summary>

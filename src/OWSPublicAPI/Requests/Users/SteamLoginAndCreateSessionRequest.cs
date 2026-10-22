@@ -28,12 +28,14 @@ namespace OWSPublicAPI.Requests.Users
         private Guid customerGUID;
         private IUsersRepository usersRepository;
         private ISteamAuthService steamAuthService;
+        private IAuditRepository auditRepository;
 
-        public void SetData(IUsersRepository usersRepository, ISteamAuthService steamAuthService, IHeaderCustomerGUID customerGuid)
+        public void SetData(IUsersRepository usersRepository, ISteamAuthService steamAuthService, IHeaderCustomerGUID customerGuid, IAuditRepository auditRepository)
         {
             this.customerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
             this.steamAuthService = steamAuthService;
+            this.auditRepository = auditRepository;
         }
 
         public async Task<IActionResult> Handle()
@@ -42,12 +44,12 @@ namespace OWSPublicAPI.Requests.Users
 
             if (!validation.IsValid)
             {
-                return Unauthenticated("steam_rejected", validation.SteamId, string.IsNullOrWhiteSpace(validation.ErrorMessage) ? "Steam authentication failed" : validation.ErrorMessage);
+                return await Unauthenticated("steam_rejected", validation.SteamId, string.IsNullOrWhiteSpace(validation.ErrorMessage) ? "Steam authentication failed" : validation.ErrorMessage);
             }
 
             if (validation.VacBanned || validation.PublisherBanned)
             {
-                return Unauthenticated("banned", validation.SteamId, "This Steam account is banned");
+                return await Unauthenticated("banned", validation.SteamId, "This Steam account is banned");
             }
 
             string personaName = await steamAuthService.GetPersonaName(validation.SteamId) ?? "SteamUser";
@@ -61,7 +63,7 @@ namespace OWSPublicAPI.Requests.Users
 
             if (output == null)
             {
-                return Unauthenticated("unavailable", validation.SteamId, "Login service unavailable");
+                return await Unauthenticated("unavailable", validation.SteamId, "Login service unavailable");
             }
 
             bool loggedIn = output.Authenticated && output.UserSessionGuid.HasValue && output.UserSessionGuid != Guid.Empty;
@@ -70,19 +72,21 @@ namespace OWSPublicAPI.Requests.Users
                 output.ErrorMessage = "Steam authentication failed";
             }
 
-            LogUserLogin(loggedIn ? "ok" : "refused", validation.SteamId, personaName, output.UserSessionGuid);
+            await RecordUserLogin(loggedIn ? "ok" : "refused", validation.SteamId, personaName, output.UserSessionGuid);
             return new OkObjectResult(output);
         }
 
-        private static void LogUserLogin(string result, string steamId, string personaName, Guid? userSessionGuid)
+        private async Task RecordUserLogin(string result, string steamId, string personaName, Guid? userSessionGuid)
         {
             Log.Information("user_login {Method} {Result} steam {SteamId} {PersonaName} session {UserSessionGuid}",
                 "steam", result, steamId, personaName, userSessionGuid);
+            await auditRepository.Add(customerGUID, "publicapi", personaName ?? steamId, "user_login", "steam:" + steamId,
+                new { method = "steam", result, userSessionGuid });
         }
 
-        private IActionResult Unauthenticated(string result, string steamId, string errorMessage)
+        private async Task<IActionResult> Unauthenticated(string result, string steamId, string errorMessage)
         {
-            LogUserLogin(result, steamId, null, null);
+            await RecordUserLogin(result, steamId, null, null);
             return new OkObjectResult(new PlayerLoginAndCreateSession
             {
                 Authenticated = false,
