@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using OWSData.Models.Composites;
 using OWSData.Repositories.Interfaces;
@@ -46,6 +48,8 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public string InitialPersistentData { get; set; }
 
+        private const string NewCharacterFieldName = "bIsNewCharacter";
+
         private CreateCharacter Output;
         private Guid CustomerGUID;
         private IUsersRepository usersRepository;
@@ -89,6 +93,37 @@ namespace OWSPublicAPI.Requests.Users
                 createCharacterErrorMessage.ErrorMessage = "InitialPersistentData is required.";
                 return new OkObjectResult(createCharacterErrorMessage);
             }
+
+            // The zone server keeps only the creation-screen fields of a new character's data, so the client must not be
+            // able to mark it as saved. Unreal matches JSON keys ignoring case, so every spelling of the flag goes.
+            JsonObject persistentData = null;
+            List<string> newFlagKeys = null;
+            try
+            {
+                persistentData = JsonNode.Parse(InitialPersistentData) as JsonObject;
+                newFlagKeys = persistentData?.Select(property => property.Key)
+                    .Where(name => String.Equals(name, NewCharacterFieldName, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+            catch (Exception exception) when (exception is JsonException || exception is ArgumentException)
+            {
+                persistentData = null;
+            }
+
+            if (persistentData == null)
+            {
+                CreateCharacter createCharacterErrorMessage = new CreateCharacter();
+                createCharacterErrorMessage.Success = false;
+                createCharacterErrorMessage.ErrorMessage = "InitialPersistentData must be a JSON object.";
+                return new OkObjectResult(createCharacterErrorMessage);
+            }
+
+            foreach (string newFlagKey in newFlagKeys)
+            {
+                persistentData.Remove(newFlagKey);
+            }
+            persistentData[NewCharacterFieldName] = true;
+            InitialPersistentData = persistentData.ToJsonString();
 
             Output = await usersRepository.CreateSamsaraCharacter(CustomerGUID, UserSessionGUID, CharacterName, ClassName, InitialPersistentData);
 
