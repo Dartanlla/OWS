@@ -35,5 +35,9 @@ namespace OWSData.Repositories.Interfaces
 
         /// <summary>Newest first. Empty characterName or eventName means any; beforeID pages backwards.</summary>
         Task<IEnumerable<GameEventRow>> GetEvents(Guid customerGUID, string characterName, string eventName, long beforeID, int limit);
+        /// <summary>Replaces the instance's players' positions with these; players no longer sent are removed.</summary>
+        Task SetPositions(Guid customerGUID, int mapInstanceID, string mapName, IReadOnlyCollection<LivePositionIn> positions);
+        /// <summary>Positions sent in the last 30 s. Empty mapName means every map.</summary>
+        Task<IEnumerable<LivePosition>> GetPositions(Guid customerGUID, string mapName);
     }
 }

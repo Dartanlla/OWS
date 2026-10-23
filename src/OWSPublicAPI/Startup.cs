@@ -236,6 +236,7 @@ namespace OWSPublicAPI
                 container.Register<ISanctionsRepository, OWSData.Repositories.Implementations.Postgres.SanctionsRepository>(Lifestyle.Transient);
                 container.Register<IConsoleSettingsRepository, OWSData.Repositories.Implementations.Postgres.ConsoleSettingsRepository>(Lifestyle.Transient);
                 container.Register<Services.LoginGate>(Lifestyle.Transient);
+                container.Register<ILoginQueueRepository, OWSData.Repositories.Implementations.Postgres.LoginQueueRepository>(Lifestyle.Transient);
             }
 
             container.RegisterSingleton<IUserSessionRepository, OWSData.Repositories.Implementations.ValKey.UserSessionRepository>();

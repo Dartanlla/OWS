@@ -7,7 +7,7 @@ using OWSManagement.Auth;
 
 namespace OWSManagement.Controllers
 {
-    /// <summary>Sanctions across all accounts, the staff action log and chat search.</summary>
+    /// <summary>Player reports, sanctions across all accounts, the staff action log and chat search.</summary>
     [Route("api/[controller]")]
     [ApiController]
     public class ModerationController : Controller
@@ -15,10 +15,13 @@ namespace OWSManagement.Controllers
         private readonly ISanctionsRepository _sanctions;
         private readonly IConsoleQueriesRepository _queries;
         private readonly IChatLogRepository _chatLog;
+        private readonly IPlayerReportsRepository _reports;
         private readonly ConsoleCustomer _customer;
 
-        public ModerationController(ISanctionsRepository sanctions, IConsoleQueriesRepository queries, IChatLogRepository chatLog, ConsoleCustomer customer)
+        public ModerationController(ISanctionsRepository sanctions, IConsoleQueriesRepository queries, IChatLogRepository chatLog,
+            IPlayerReportsRepository reports, ConsoleCustomer customer)
         {
+            _reports = reports;
             _sanctions = sanctions;
             _queries = queries;
             _chatLog = chatLog;
@@ -37,6 +40,26 @@ namespace OWSManagement.Controllers
         public async Task<IEnumerable<AuditEntry>> StaffActions([FromQuery] string search)
         {
             return await _queries.GetAudit(_customer.CustomerGUID, "zone", "staff_action", search, 200);
+        }
+
+        [HttpGet]
+        [Route("Reports")]
+        public async Task<IEnumerable<PlayerReport>> Reports([FromQuery] bool open = false)
+        {
+            return await _reports.List(_customer.CustomerGUID, open, 200);
+        }
+
+        public class ResolveInput
+        {
+            public string Note { get; set; }
+        }
+
+        [HttpPost]
+        [Route("Reports/{reportId:long}/Resolve")]
+        public async Task<IActionResult> Resolve(long reportId, [FromBody] ResolveInput input)
+        {
+            bool resolved = await _reports.Resolve(_customer.CustomerGUID, reportId, ConsoleAuth.Actor(User), input?.Note);
+            return Ok(new SuccessAndErrorMessage { Success = resolved, ErrorMessage = resolved ? "" : "The report is already resolved." });
         }
 
         [HttpGet]

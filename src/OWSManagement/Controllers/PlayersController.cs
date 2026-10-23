@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using OWSShared.Options;
+using Microsoft.Extensions.Options;
 using OWSData.Models;
 using OWSData.Models.Composites;
 using OWSData.Repositories.Interfaces;
@@ -31,11 +33,18 @@ namespace OWSManagement.Controllers
         private readonly IChatLogRepository _chatLog;
         private readonly IUsersRepository _users;
         private readonly ICharactersRepository _characters;
+        private readonly IPlayerReportsRepository _reports;
+        private readonly IConsoleInsightRepository _insight;
+        private readonly string _sentryUrl;
         private readonly ConsoleCustomer _customer;
 
         public PlayersController(IConsoleQueriesRepository queries, ISanctionsRepository sanctions, IZoneOpsRepository zoneOps,
-            IChatLogRepository chatLog, IUsersRepository users, ICharactersRepository characters, ConsoleCustomer customer)
+            IChatLogRepository chatLog, IUsersRepository users, ICharactersRepository characters, IPlayerReportsRepository reports,
+            IConsoleInsightRepository insight, IOptions<ManagementOptions> options, ConsoleCustomer customer)
         {
+            _sentryUrl = options.Value.SentryUrl;
+            _reports = reports;
+            _insight = insight;
             _characters = characters;
             _queries = queries;
             _sanctions = sanctions;
@@ -92,8 +101,25 @@ namespace OWSManagement.Controllers
             {
                 Character = character,
                 Commands = await _zoneOps.GetRecentCommands(CustomerGUID, character.CharName, 50),
-                Audit = await _queries.GetAuditForCharacter(CustomerGUID, character.CharName, 100)
+                Audit = await _queries.GetAuditForCharacter(CustomerGUID, character.CharName, 100),
+                Reports = await _reports.ForCharacter(CustomerGUID, character.CharName, 50),
+                Trades = await _insight.GetTradePartners(CustomerGUID, character.CharName),
+                SentrySearch = SentrySearch(character.CharName)
             });
+        }
+
+        /// <summary>
+        /// Sentry's issue search for the character tag (bug reports and crashes), from the configured Sentry link: an
+        /// org subdomain (https://org.sentry.io/...) or an /organizations/org/ path. Null when no link is configured.
+        /// </summary>
+        private string SentrySearch(string characterName)
+        {
+            if (!Uri.TryCreate(_sentryUrl, UriKind.Absolute, out Uri sentry)) return null;
+            string query = "?query=" + Uri.EscapeDataString($"character:\"{characterName}\"") + "&statsPeriod=90d";
+            System.Text.RegularExpressions.Match org = System.Text.RegularExpressions.Regex.Match(sentry.AbsolutePath, "/organizations/([^/]+)");
+            return org.Success
+                ? $"{sentry.GetLeftPart(UriPartial.Authority)}/organizations/{org.Groups[1].Value}/issues/{query}"
+                : $"{sentry.GetLeftPart(UriPartial.Authority)}/issues/{query}";
         }
 
         [HttpGet]

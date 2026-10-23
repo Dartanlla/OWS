@@ -10,3 +10,9 @@
 {$OWS_GLOBAL_DATA_DOMAIN} {
 	reverse_proxy owsglobaldata:80
 }
+
+# The staff console (profile admin). Steam sign-in returns here; the console reads X-Forwarded-Proto.
+{$OWS_CONSOLE_DOMAIN} {
+	encode gzip
+	reverse_proxy owsmanagement:80
+}

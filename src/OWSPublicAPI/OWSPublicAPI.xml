@@ -682,15 +682,22 @@
         </member>
         <member name="T:OWSPublicAPI.Services.LoginGate">
             <summary>
-            Decides whether an account may play: an active ban refuses it, and so does maintenance (ConsoleSettings
-            logins_open=false) for anyone below Moderator. The staff console sets both.
+            Decides whether an account may play: an active ban refuses it, and so does maintenance for anyone below
+            Moderator: ConsoleSettings logins_open=false, or a scheduled maintenance window that has started. The staff
+            console sets all three.
             </summary>
         </member>
         <member name="M:OWSPublicAPI.Services.LoginGate.RefusalForSession(System.Guid,System.Guid,System.Boolean)">
             <summary>The refusal for this session's account, or null. A session that does not resolve is left to the caller's own checks.</summary>
         </member>
+        <member name="M:OWSPublicAPI.Services.LoginGate.PlayerCap">
+            <summary>The console's player cap for entering the world; 0 when off.</summary>
+        </member>
         <member name="M:OWSPublicAPI.Services.LoginGate.ClosedForMaintenance(System.String)">
             <summary>True while logins are closed for maintenance to this role (staff stay allowed).</summary>
+        </member>
+        <member name="M:OWSPublicAPI.Services.LoginGate.MaintenanceRefusal(System.String)">
+            <summary>The message for a role that maintenance keeps out, or null.</summary>
         </member>
     </members>
 </doc>

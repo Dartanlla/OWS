@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -110,6 +111,13 @@ namespace OWSManagement
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Behind Caddy the request arrives over http; Steam's return URL and the Secure cookie need the original scheme.
+            // The port is reachable only from the compose network and the SSH tunnel, so any proxy is trusted.
+            ForwardedHeadersOptions forwarded = new() { ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto };
+            forwarded.KnownNetworks.Clear();
+            forwarded.KnownProxies.Clear();
+            app.UseForwardedHeaders(forwarded);
+
             app.UseSimpleInjector(container);
 
             app.UseHealthChecks("/health");
@@ -173,6 +181,9 @@ namespace OWSManagement
                 container.Register<IChatLogRepository, OWSData.Repositories.Implementations.Postgres.ChatLogRepository>(Lifestyle.Transient);
                 container.Register<IConsoleSettingsRepository, OWSData.Repositories.Implementations.Postgres.ConsoleSettingsRepository>(Lifestyle.Transient);
                 container.Register<IPlayerShopsRepository, OWSData.Repositories.Implementations.Postgres.PlayerShopsRepository>(Lifestyle.Transient);
+                container.Register<IPlayerReportsRepository, OWSData.Repositories.Implementations.Postgres.PlayerReportsRepository>(Lifestyle.Transient);
+                container.Register<ILoginQueueRepository, OWSData.Repositories.Implementations.Postgres.LoginQueueRepository>(Lifestyle.Transient);
+                container.Register<IConsoleInsightRepository, OWSData.Repositories.Implementations.Postgres.ConsoleInsightRepository>(Lifestyle.Transient);
             }
 
             container.RegisterSingleton(() => new ConsoleCustomer(managementOptions.CustomerGUID, container.GetInstance<IConsoleQueriesRepository>()));

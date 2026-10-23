@@ -20,5 +20,14 @@ namespace OWSShared.Options
 
         /// <summary>A juri change at least this large shows as an Overview signal.</summary>
         public long LargeJuriChange { get; set; } = 100000;
+
+        /// <summary>
+        /// Shared with the host's staging loader (scripts/hetzner/staging): the console writes request.json there and
+        /// reads status.json.
+        /// </summary>
+        public string StagingDir { get; set; } = "/staging";
+
+        /// <summary>The staging database a backup is loaded into for a character restore. Empty: restore is off.</summary>
+        public string StagingConnectionString { get; set; }
     }
 }

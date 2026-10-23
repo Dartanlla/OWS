@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { http, can, errorText, type Result, type ZoneCommand, type ZoneInstance } from '../api';
-import { num, duration, instanceStatus } from '../format';
+import { http, can, errorText, type MaintenanceWindow, type RateEvent, type Result, type ZoneCommand, type ZoneInstance } from '../api';
+import { num, duration, instanceStatus, toDate, utc } from '../format';
 import Ago from '../components/Ago.vue';
 import ActionDialog from '../components/ActionDialog.vue';
 
@@ -40,6 +40,64 @@ const stopping = ref<ZoneInstance | null>(null);
 const editing = ref<Zone | null>(null);
 const removing = ref<Zone | null>(null);
 
+const maintenance = ref<MaintenanceWindow | null>(null);
+const rates = ref<RateEvent | null>(null);
+const playerCap = ref(0);
+const waiting = ref(0);
+const capInput = ref(0);
+const maintenanceAt = ref('');
+const maintenanceText = ref('');
+const rateForm = ref({ name: '', exp: 1, drop: 1, startsAt: '', endsAt: '' });
+const multipliers = Array.from({ length: 17 }, (_, i) => 1 + i * 0.25);
+
+const maintenanceStarted = computed(() => {
+	const start = toDate(maintenance.value?.startsAt);
+	return start !== null && start.getTime() <= Date.now();
+});
+const rateState = computed(() => {
+	if (!rates.value) return '';
+	const now = Date.now();
+	if ((toDate(rates.value.endsAt)?.getTime() ?? 0) <= now) return 'ended';
+	return (toDate(rates.value.startsAt)?.getTime() ?? 0) <= now ? 'running' : 'scheduled';
+});
+
+/** A datetime-local value is the viewer's local time; the server stores UTC. */
+function localToIso(value: string): string {
+	return value ? new Date(value).toISOString() : '';
+}
+
+async function call(run: () => Promise<unknown>, done: string) {
+	try {
+		await run();
+		await load();
+		message.value = done;
+	} catch (e) {
+		message.value = errorText(e);
+	}
+}
+
+function scheduleMaintenance() {
+	call(() => http.put('/World/Maintenance', { startsAt: localToIso(maintenanceAt.value), message: maintenanceText.value }),
+		'Maintenance scheduled. Zones warn players 15, 5 and 1 minutes before it starts.');
+}
+
+function endMaintenance() {
+	call(() => http.delete('/World/Maintenance'), 'Maintenance ended. Players can log in again.');
+}
+
+function startRateEvent() {
+	const f = rateForm.value;
+	call(() => http.put('/World/RateEvent', { ...f, startsAt: localToIso(f.startsAt), endsAt: localToIso(f.endsAt) }), `${f.name} saved.`);
+}
+
+function endRateEvent() {
+	call(() => http.delete('/World/RateEvent'), 'Rate event ended. Zones return to normal rates within 10 s.');
+}
+
+function saveCap() {
+	call(() => http.put('/World/PlayerCap', { cap: capInput.value || 0 }), capInput.value ? `Player cap set to ${capInput.value}.` : 'Player cap off.');
+}
+
 const setting = (key: string) => settings.value.find((s) => s.settingKey === key);
 const loginsOpen = computed(() => setting('logins_open')?.settingValue !== 'false');
 const allRegions = computed(() => {
@@ -55,6 +113,11 @@ async function load() {
 		settings.value = data.settings;
 		commands.value = data.commands;
 		motd.value = setting('motd')?.settingValue ?? '';
+		maintenance.value = data.maintenance;
+		rates.value = data.rates;
+		playerCap.value = data.playerCap;
+		capInput.value = data.playerCap;
+		waiting.value = data.waiting;
 		zones.value = (await http.get<Zone[]>('/Zones')).data;
 		error.value = '';
 	} catch (e) {
@@ -160,6 +223,52 @@ onMounted(load);
 			</section>
 		</div>
 
+		<div class="grid-2">
+			<section>
+				<h2>Scheduled maintenance</h2>
+				<p v-if="maintenance" class="notice" :class="{ bad: maintenanceStarted }">
+					<template v-if="maintenanceStarted">Started {{ utc(maintenance.startsAt) }}. Players below Moderator are kept out.</template>
+					<template v-else>Starts {{ utc(maintenance.startsAt) }}.</template>
+					<span class="muted"> “{{ maintenance.message || 'The servers are closed for maintenance. Try again later.' }}”</span>
+				</p>
+				<form v-if="can('Admin')" class="stack" @submit.prevent="scheduleMaintenance">
+					<div class="row">
+						<label class="field">Start, your local time <input v-model="maintenanceAt" type="datetime-local" required /></label>
+						<button v-if="maintenance" type="button" class="danger" @click="endMaintenance">End maintenance</button>
+					</div>
+					<textarea v-model="maintenanceText" maxlength="300" placeholder="The servers are closed for maintenance. Try again later." aria-label="Message to players"></textarea>
+					<div class="row">
+						<span class="muted">Warnings at 15, 5 and 1 minutes, then a kick and closed logins</span>
+						<button type="submit" class="primary" :disabled="!maintenanceAt">{{ maintenance ? 'Reschedule' : 'Schedule' }}</button>
+					</div>
+				</form>
+			</section>
+
+			<section>
+				<h2>Rate event</h2>
+				<p v-if="rates && rateState !== 'ended'" class="notice" :class="{ ok: rateState === 'running' }">
+					{{ rates.name }}: EXP ×{{ rates.exp }}, drops ×{{ rates.drop }},
+					{{ rateState === 'running' ? 'until' : `from ${utc(rates.startsAt)} to` }} {{ utc(rates.endsAt) }}.
+				</p>
+				<form v-if="can('Admin')" class="stack" @submit.prevent="startRateEvent">
+					<div class="row">
+						<label class="field grow">Name <input v-model="rateForm.name" maxlength="60" placeholder="Weekend double EXP" required /></label>
+						<label class="field">EXP <select v-model.number="rateForm.exp"><option v-for="m in multipliers" :key="m" :value="m">×{{ m }}</option></select></label>
+						<label class="field">Drops <select v-model.number="rateForm.drop"><option v-for="m in multipliers" :key="m" :value="m">×{{ m }}</option></select></label>
+					</div>
+					<div class="row">
+						<label class="field">Start <input v-model="rateForm.startsAt" type="datetime-local" required /></label>
+						<label class="field">End <input v-model="rateForm.endsAt" type="datetime-local" required /></label>
+					</div>
+					<div class="row">
+						<button v-if="rates && rateState !== 'ended'" type="button" class="danger" @click="endRateEvent">End event</button>
+						<span v-else class="muted">One event at a time; a new one replaces it</span>
+						<button type="submit" class="primary">Save event</button>
+					</div>
+				</form>
+			</section>
+		</div>
+
 		<h2>Access</h2>
 		<div class="table-wrap">
 			<table>
@@ -174,6 +283,20 @@ onMounted(load);
 								@click="save('logins_open', loginsOpen ? 'false' : '', loginsOpen ? 'Logins closed. Players below Moderator cannot log in.' : 'Logins open.')">
 								{{ loginsOpen ? 'Close logins' : 'Open logins' }}
 							</button>
+						</td>
+					</tr>
+					<tr>
+						<td>Player cap</td>
+						<td>
+							<template v-if="playerCap">{{ num(playerCap) }} in the world<span v-if="waiting" class="tag warn">{{ waiting }} waiting</span></template>
+							<span v-else class="muted">Off</span>
+						</td>
+						<td class="muted"><template v-if="setting('player_cap')"><Ago :at="setting('player_cap')?.updatedAt" /> {{ changed('player_cap') }}</template></td>
+						<td class="num">
+							<form v-if="can('Admin')" class="inline" @submit.prevent="saveCap">
+								<input v-model.number="capInput" type="number" min="0" max="10000" aria-label="Player cap, 0 for off" />
+								<button type="submit">Save</button>
+							</form>
 						</td>
 					</tr>
 					<tr v-for="region in allRegions" :key="region">
@@ -195,7 +318,7 @@ onMounted(load);
 			</table>
 		</div>
 
-		<h2>Running instances</h2>
+		<h2>Running instances <RouterLink to="/world/map" class="aside">Live map</RouterLink></h2>
 		<div class="table-wrap">
 			<table>
 				<thead><tr><th>Zone</th><th>Region</th><th>Instance</th><th>State</th><th class="num">Players</th><th>Characters</th><th class="num">Up</th><th></th></tr></thead>
@@ -303,5 +426,27 @@ onMounted(load);
 }
 .row .field input {
 	width: 110px;
+}
+.row .field input[type='datetime-local'] {
+	width: auto;
+}
+.grow {
+	flex: 1;
+}
+.row .grow input {
+	width: 100%;
+}
+.inline {
+	display: inline-flex;
+	gap: 6px;
+}
+.inline input {
+	width: 80px;
+}
+.aside {
+	margin-left: 12px;
+	text-transform: none;
+	letter-spacing: 0;
+	font-size: 13px;
 }
 </style>

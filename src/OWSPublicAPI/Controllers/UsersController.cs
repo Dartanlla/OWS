@@ -152,7 +152,8 @@ namespace OWSPublicAPI.Controllers
         {
             Request.Headers.TryGetValue(OWSShared.SamsaraServiceKeyCheck.Header, out var serviceKey);
             request.SetData(_owsGeneralConfig, _usersRepository, _charactersRepository, _customerGuid, _httpClientFactory, _auditRepository,
-                _joinTicketsRepository, OWSShared.SamsaraServiceKeyCheck.IsValid(serviceKey.ToString()), _container.GetInstance<Services.LoginGate>());
+                _joinTicketsRepository, OWSShared.SamsaraServiceKeyCheck.IsValid(serviceKey.ToString()), _container.GetInstance<Services.LoginGate>(),
+                _container.GetInstance<ILoginQueueRepository>());
             return await request.Handle();
         }
 

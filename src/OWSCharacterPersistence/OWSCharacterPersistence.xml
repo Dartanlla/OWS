@@ -10,6 +10,15 @@
             service, and the key keeps a stray caller from writing audit rows.
             </summary>
         </member>
+        <member name="T:OWSCharacterPersistence.Controllers.ReportsController">
+            <summary>
+            Player reports, filed by the zone server for a player's /report. The zone checks the reporter and limits how
+            often one player reports. Service key only.
+            </summary>
+        </member>
+        <member name="P:OWSCharacterPersistence.Controllers.ReportsController.AddRequest.Details">
+            <summary>Positions of both players, when the target is on the same zone.</summary>
+        </member>
         <member name="T:OWSCharacterPersistence.Controllers.SamsaraServiceKey">
             <summary>
             The X-Samsara-Service-Key check (<see cref="T:OWSShared.SamsaraServiceKeyCheck"/>) for a controller's request.
@@ -42,9 +51,19 @@
         </member>
         <member name="T:OWSCharacterPersistence.Controllers.ZoneSyncController">
             <summary>
-            A zone server's 5 s check-in with the staff console: it sends its queued game events and the results of the
-            commands it ran, and gets its pending commands and the message of the day. Service key only.
+            A zone server's 5 s check-in with the staff console: it sends its queued game events, the results of the
+            commands it ran and its players' positions, and gets its pending commands, the message of the day, the rate
+            multipliers in force and any scheduled maintenance. Service key only.
             </summary>
+        </member>
+        <member name="P:OWSCharacterPersistence.Controllers.ZoneSyncController.ZoneSyncRequest.Positions">
+            <summary>Null from a zone that does not send positions; empty when no player is on the zone.</summary>
+        </member>
+        <member name="P:OWSCharacterPersistence.Controllers.ZoneSyncController.ZoneSyncRates.EndsInSeconds">
+            <summary>Seconds until the event ends, so a zone that loses the backend keeps it until then. 0 with no event.</summary>
+        </member>
+        <member name="P:OWSCharacterPersistence.Controllers.ZoneSyncController.ZoneSyncMaintenance.StartsInSeconds">
+            <summary>Negative once maintenance has started. Relative, so zone clocks do not matter.</summary>
         </member>
         <member name="T:OWSCharacterPersistence.Requests.Characters.GetCustomDataRequest">
             <summary>
@@ -91,6 +110,17 @@
             A zone save for one character. Once the character has an owner (CharacterOwners), CharactersController refuses
             it with stale_owner unless OwnerToken is the current owner's token.
             </summary>
+        </member>
+        <member name="T:OWSCharacterPersistence.Services.StaffAlertsWorker">
+            <summary>
+            Posts staff alerts to Discord (OWS_STAFF_DISCORD_WEBHOOK_URL) once a minute: new player reports, bans and
+            unbans, staff gifts, unexpected zone exits, failing saves, newly seen duplicate items, and maintenance and rate
+            events starting and ending. Cursors live in ConsoleSettings, so a restart does not post anything twice.
+            Without a webhook it does nothing.
+            </summary>
+        </member>
+        <member name="M:OWSCharacterPersistence.Services.StaffAlertsWorker.AddTransition(System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.String,System.ValueTuple{System.String,System.String})">
+            <summary>Posts the state's line when the state ("" for none) differs from the one last stored.</summary>
         </member>
     </members>
 </doc>

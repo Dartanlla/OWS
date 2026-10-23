@@ -12,6 +12,7 @@ let timer = 0;
 const nav = [
 	{ to: '/', label: 'Overview' },
 	{ to: '/players', label: 'Players' },
+	{ to: '/insight', label: 'Insight' },
 	{ to: '/moderation', label: 'Moderation' },
 	{ to: '/economy', label: 'Economy' },
 	{ to: '/world', label: 'World' },
@@ -68,6 +69,8 @@ onUnmounted(() => window.clearInterval(timer));
 						<span><span class="dot live"></span>{{ status.overview.onlineNow }} online</span>
 						<span><span class="dot" :class="status.overview.zonesUp > 0 ? 'ok' : 'bad'"></span>{{ status.overview.zonesUp }} zones up</span>
 						<span v-if="!status.loginsOpen" class="tag warn">Logins closed</span>
+						<span v-if="status.waiting" class="tag warn">{{ status.waiting }} in line</span>
+						<RouterLink v-if="status.openReports" to="/moderation" class="tag bad">{{ status.openReports }} open report{{ status.openReports === 1 ? '' : 's' }}</RouterLink>
 					</div>
 				</header>
 				<RouterView />

@@ -44,11 +44,13 @@ namespace OWSPublicAPI.Requests.Users
         private IJoinTicketsRepository joinTicketsRepository;
         private bool callerIsZoneServer;
         private Services.LoginGate loginGate;
+        private ILoginQueueRepository loginQueueRepository;
 
         public void SetData(IOptions<PublicAPIOptions> owsGeneralConfig, IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, IHttpClientFactory httpClientFactory, IAuditRepository auditRepository,
-            IJoinTicketsRepository joinTicketsRepository, bool callerIsZoneServer, Services.LoginGate loginGate)
+            IJoinTicketsRepository joinTicketsRepository, bool callerIsZoneServer, Services.LoginGate loginGate, ILoginQueueRepository loginQueueRepository)
         {
             this.loginGate = loginGate;
+            this.loginQueueRepository = loginQueueRepository;
             this.owsGeneralConfig = owsGeneralConfig;
             this.usersRepository = usersRepository;
             this.charactersRepository = charactersRepository;
@@ -76,7 +78,8 @@ namespace OWSPublicAPI.Requests.Users
                 return new OkObjectResult(Output);
             }
 
-            (string refusal, string refusalMessage) = await loginGate.RefusalForUser(CustomerGUID, userSession.UserGuid.Value, userSession.Role, checkMaintenance: false);
+            //A zone change is never refused for maintenance or the player cap: the zone handles maintenance itself.
+            (string refusal, string refusalMessage) = await loginGate.RefusalForUser(CustomerGUID, userSession.UserGuid.Value, userSession.Role, checkMaintenance: !callerIsZoneServer);
             if (refusal != null)
             {
                 Output.Success = false;
@@ -92,6 +95,21 @@ namespace OWSPublicAPI.Requests.Users
                 Output.Success = false;
                 Output.ErrorMessage = "GetServerToConnectTo: CharacterName does not belong to this User Session.";
                 return new OkObjectResult(Output);
+            }
+
+            if (!callerIsZoneServer && !OWSData.Models.UserRoles.IsStaff(userSession.Role))
+            {
+                int cap = await loginGate.PlayerCap();
+                int position = cap > 0
+                    ? await loginQueueRepository.Check(CustomerGUID, UserSessionGUID, userSession.UserGuid.Value, ownedCharacter.CharName, cap)
+                    : 0;
+                if (position > 0)
+                {
+                    Output.Success = false;
+                    Output.QueuePosition = position;
+                    Output.ErrorMessage = $"The server is full. You are number {position} in line.";
+                    return new OkObjectResult(Output);
+                }
             }
 
             //If ZoneName is empty, use the character's last zone.  This is used for the inital login.

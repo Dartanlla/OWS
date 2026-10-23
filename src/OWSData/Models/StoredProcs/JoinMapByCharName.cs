@@ -28,6 +28,8 @@ namespace OWSData.Models.StoredProcs
         public string ZoneName { get; set; }
         // The single-use ticket the game travels with (?Ticket=); the zone server redeems it to learn who joins.
         public Guid JoinTicket { get; set; }
+        // Above 0 when the player cap holds the player in line; the game asks again until it is let in.
+        public int QueuePosition { get; set; }
         public bool Success { get; set; }
         public string ErrorMessage { get; set; }
     }

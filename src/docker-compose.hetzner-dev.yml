@@ -205,6 +205,8 @@ services:
       # Server-to-server key for the PlayerShops endpoints. The API fails closed outside
       # Development when this is unset; the UE zone server reads the same variable.
       OWS_SAMSARA_SERVICE_KEY: "${OWS_SAMSARA_SERVICE_KEY:-}"
+      # Staff alerts (reports, bans, gifts, zone crashes) go to this Discord webhook; empty turns them off.
+      OWS_STAFF_DISCORD_WEBHOOK_URL: "${OWS_STAFF_DISCORD_WEBHOOK_URL:-}"
     ports:
       - "127.0.0.1:${OWS_CHARACTER_PERSISTENCE_HOST_PORT:-44323}:80"
     mem_limit: "${OWS_CHARACTER_PERSISTENCE_MEM_LIMIT:-384m}"
@@ -258,12 +260,16 @@ services:
       OWSManagementOptions__CustomerGUID: "${OWS_CUSTOMER_GUID:-}"
       OWSManagementOptions__GrafanaUrl: "${OWS_GRAFANA_URL:-}"
       OWSManagementOptions__SentryUrl: "${OWS_SENTRY_URL:-}"
+      # Character restore: the staging database scripts/install-staging.sh sets up.
+      OWSManagementOptions__StagingConnectionString: "Host=ows-staging-db;Port=5432;Database=staging;Username=postgres;Password=${OWS_STAGING_DB_PASSWORD:-};Timeout=5;Pooling=false"
       OWS_GIT_COMMIT: "${OWS_GIT_COMMIT:-}"
     volumes:
       # Session cookie keys survive a rebuild, so staff stay signed in.
       - hetzner-management-keys:/app/temp/DataProtection-Keys
       # The System page shows the newest hourly backup.
       - /var/backups/ows:/backups:ro
+      # Restore requests to the host's staging loader, and its status.
+      - /var/lib/ows-staging:/staging
     ports:
       - "127.0.0.1:${OWS_MANAGEMENT_HOST_PORT:-44410}:80"
     mem_limit: "${OWS_MANAGEMENT_MEM_LIMIT:-256m}"
@@ -341,6 +347,8 @@ services:
       # host to get Let's Encrypt certificates; the .localhost defaults use internal certs.
       OWS_PUBLIC_API_DOMAIN: "${OWS_PUBLIC_API_DOMAIN:-api.localhost}"
       OWS_GLOBAL_DATA_DOMAIN: "${OWS_GLOBAL_DATA_DOMAIN:-globaldata.localhost}"
+      # The staff console over HTTPS, e.g. 87-99-150-89.sslip.io (docs/hosting/hetzner-dev.md, Admin Console).
+      OWS_CONSOLE_DOMAIN: "${OWS_CONSOLE_DOMAIN:-console.localhost}"
     mem_limit: "${PROXY_MEM_LIMIT:-128m}"
     depends_on:
       - owspublicapi

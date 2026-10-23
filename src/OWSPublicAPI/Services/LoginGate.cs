@@ -9,8 +9,9 @@ using OWSData.Repositories.Interfaces;
 namespace OWSPublicAPI.Services
 {
     /// <summary>
-    /// Decides whether an account may play: an active ban refuses it, and so does maintenance (ConsoleSettings
-    /// logins_open=false) for anyone below Moderator. The staff console sets both.
+    /// Decides whether an account may play: an active ban refuses it, and so does maintenance for anyone below
+    /// Moderator: ConsoleSettings logins_open=false, or a scheduled maintenance window that has started. The staff
+    /// console sets all three.
     /// </summary>
     public class LoginGate
     {
@@ -46,23 +47,36 @@ namespace OWSPublicAPI.Services
                 return ("banned", active.Ban.PlayerMessage());
             }
 
-            if (checkMaintenance && await ClosedForMaintenance(role))
-            {
-                return ("maintenance", MaintenanceMessage);
-            }
-            return (null, null);
+            string maintenance = checkMaintenance ? await MaintenanceRefusal(role) : null;
+            return maintenance != null ? ("maintenance", maintenance) : (null, null);
+        }
+
+        /// <summary>The console's player cap for entering the world; 0 when off.</summary>
+        public async Task<int> PlayerCap()
+        {
+            return ConsoleSettingValues.PlayerCap(await _settings.GetAll());
         }
 
         /// <summary>True while logins are closed for maintenance to this role (staff stay allowed).</summary>
         public async Task<bool> ClosedForMaintenance(string role)
         {
+            return await MaintenanceRefusal(role) != null;
+        }
+
+        /// <summary>The message for a role that maintenance keeps out, or null.</summary>
+        private async Task<string> MaintenanceRefusal(string role)
+        {
             if (UserRoles.IsStaff(role))
             {
-                return false;
+                return null;
             }
             IReadOnlyDictionary<string, string> settings = await _settings.GetAll();
-            return settings.TryGetValue(ConsoleSettingKeys.LoginsOpen, out string open)
-                && string.Equals(open, "false", StringComparison.OrdinalIgnoreCase);
+            if (settings.TryGetValue(ConsoleSettingKeys.LoginsOpen, out string open) && string.Equals(open, "false", StringComparison.OrdinalIgnoreCase))
+            {
+                return MaintenanceMessage;
+            }
+            MaintenanceWindow window = ConsoleSettingValues.Maintenance(settings);
+            return window != null && window.Started(DateTime.UtcNow) ? window.PlayerMessage() : null;
         }
     }
 }

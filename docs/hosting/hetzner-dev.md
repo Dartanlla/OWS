@@ -108,11 +108,12 @@ docker compose --env-file .env.hetzner-dev -f docker-compose.hetzner-dev.yml log
 
 | Page | What it shows and does |
 | --- | --- |
-| Overview | Players online, zones up, today's logins and new characters, 24 h signals (failed saves, rejected requests, large juri changes, zone crashes, duplicate items), each zone server's heartbeat load and build |
-| Players | Search accounts and characters; account page (sanctions, notes, logins, role); character page (items with refine and cards, ledger of game events, chat, quests, trades, zone commands, stats) |
-| Moderation | Active bans and mutes, in-game staff commands, chat search |
-| Economy | Juri held and its flows by source, item census, possible duplicates, player shop health |
-| World | Broadcast to every zone, message of the day, logins open or closed, region status, instances, zone config |
+| Overview | Players online, zones up, today's logins and new characters, 24 h signals (failed saves, rejected requests, large juri changes, zone crashes, duplicate items), each zone server's heartbeat load and build; maintenance, rate event, player cap, players in line, open reports |
+| Players | Search accounts and characters; account page (sanctions, notes, logins, role); character page (items with refine and cards, ledger of game events, chat, quests, trades and trade partners, reports, zone commands, stats, a Sentry search link, restore from backup) |
+| Moderation | Player reports (with the chat around them), active bans and mutes, in-game staff commands, chat search |
+| Economy | Juri held and its flows by source, item census, possible duplicates, player shop health, trade pairs and one-way trades, drop rates against the configured chance |
+| Insight | New players by signup day (level 5 and 10, day 1 and day 7 return), where new characters stopped, quest funnel, outliers |
+| World | Broadcast to every zone, message of the day, logins open or closed, scheduled maintenance, rate event, player cap, live map, region status, instances, zone config |
 | Audit, System | `AuditLog` with filters; service health, newest backup, migrations |
 
 **Sign-in.** Staff sign in through Steam (OpenID 2.0, checked with Steam's `check_authentication`). The Steam ID must
@@ -135,12 +136,48 @@ giving it again.
 **Switches** (`ConsoleSettings`): `motd`, `logins_open` (`false` refuses logins below Moderator, and registration) and
 `region_status:<Region>`, which overrides that region's status on the login screen's server list.
 
+**Reports.** Any player types `/report <name> <reason>` (or clicks a name in chat). The zone posts it to
+CharacterPersistence `api/Reports/Add` with both positions; the backend copies the last 10 minutes of both players'
+chat into `PlayerReports`. One report a minute and five an hour per player in game, 20 a day on the backend.
+
+**Live operations** (`ConsoleSettings`, returned by every `ZoneSync`):
+- `maintenance` `{StartsAt, Message}`: zones warn at 15, 5 and 1 minutes and kick players below Moderator at the
+  start; from then `LoginGate` refuses logins and first entries below Moderator. "End maintenance" deletes it.
+- `rate_event` `{Name, Exp, Drop, StartsAt, EndsAt}`: zones scale kill EXP and drop chances (1 to 5, drops capped at
+  100%) and announce the start and end.
+- `player_cap`: above 0, a first entry below Moderator waits in `LoginQueue` while the players in the world plus the
+  live entries ahead reach the cap. The game asks again every 5 s; an entry not asked about for 30 s drops out; a
+  character that left in the last 90 s skips the line. Zone changes are never held.
+
+Zones also send their players' positions (`LivePositions`, the World page's map) and, every 5 minutes, loot roll
+counts per mob (`loot_stats` events, the Economy page's drop check). Map images are the minimap bakes, exported from
+the editor into `src/OWSManagement/wwwroot/public/maps/` with `maps.json`; a map without one shows a grid.
+
+**Staff alerts.** CharacterPersistence checks every 60 s and posts to `OWS_STAFF_DISCORD_WEBHOOK_URL` (unset = off):
+new reports, bans and unbans, large juri gifts and any item gift, new duplicate items, unexpected zone exits, more
+than 5 failed saves in 10 minutes, and maintenance and rate events starting and ending. One message per check;
+cursors in `ConsoleSettings` (`alerts_cursor:<kind>`) keep a restart from posting again. The box uses the ops webhook
+of the backup scripts; copy it without printing it, then recreate `owscharacterpersistence`:
+
+```bash
+. /etc/default/ows-pg-backup && grep -q '^OWS_STAFF_DISCORD_WEBHOOK_URL=' src/.env.hetzner-dev \
+  || printf '\nOWS_STAFF_DISCORD_WEBHOOK_URL=%s\n' "$OWS_BACKUP_DISCORD_WEBHOOK_URL" >> src/.env.hetzner-dev
+```
+
+**Restore a character** (Admin, character page). The console writes `/var/lib/ows-staging/request.json`;
+`ows-staging.path` runs `ows-stage-backup`, which loads that hourly dump into the container `ows-staging-db`
+(compose network, no published port, 384 MB) and removes it after 2 hours. The console then shows what differs and,
+with the character offline and its name typed, copies its rows from staging in one transaction. Install once:
+`scripts/hetzner/install-staging.sh`, then `admin-console.sh rebuild`.
+
 **Retention**: `PurgeSamsaraLogs()` (run by `ows-pie-purge.timer`) keeps game events 180 days, chat 30 days and
-finished zone commands 30 days.
+finished zone commands 30 days, and clears login queue entries and live positions older than a day.
 
 It sits behind the `admin` compose profile, so a plain `up -d` never starts it: the other services already reserve
-3328 MB of a 4 GB host. It stays bound to `127.0.0.1` behind the SSH tunnel; moving it onto the Caddy proxy needs a
-domain and TLS first. Optional `.env.hetzner-dev` keys: `OWS_CUSTOMER_GUID` (else the only `Customers` row),
+3328 MB of a 4 GB host. It binds `127.0.0.1`; staff reach it through the SSH tunnel, or over HTTPS at
+`https://87-99-150-89.sslip.io` while the Caddy proxy runs (`OWS_CONSOLE_DOMAIN=87-99-150-89.sslip.io` in
+`.env.hetzner-dev`, then `$C --profile tls up -d --no-deps proxy`). Caddy gets a Let's Encrypt certificate for the
+name and passes `X-Forwarded-Proto`, so the Steam return URL is the HTTPS one. Optional `.env.hetzner-dev` keys: `OWS_CUSTOMER_GUID` (else the only `Customers` row),
 `OWS_GRAFANA_URL` and `OWS_SENTRY_URL` (links on the System page). `admin-console.sh` passes the checkout's commit
 as `OWS_GIT_COMMIT`, the version the System page shows.
 
@@ -310,8 +347,8 @@ There are two exposure modes, controlled by `OWS_API_BIND` and the `tls` compose
 Character Persistence and Instance Management stay bound to `127.0.0.1` (SSH-tunnel only), as
 before. Postgres, RabbitMQ, and Valkey are loopback-only.
 
-Those four, plus SSH, are the allow list. After a compose or host change, this must print exactly
-`22 44302 44306 44325 44364 50051`:
+Those four, plus SSH, are the allow list, plus 80 and 443 while the Caddy proxy serves the console. After a compose
+or host change, this must print exactly `22 44302 44306 44325 44364 50051` (`22 80 443 ...` with the proxy):
 
 ```bash
 ss -tlnH | awk '$4 !~ /^(127\.|\[::1\])/ {sub(/.*:/, "", $4); print $4}' | sort -un | tr '\n' ' '

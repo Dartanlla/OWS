@@ -8,17 +8,22 @@ using OWSManagement.Auth;
 
 namespace OWSManagement.Controllers
 {
-    /// <summary>Juri in circulation and its flows, the item census, possible duplicates and player shop health.</summary>
+    /// <summary>
+    /// Juri in circulation and its flows, the item census, possible duplicates, player shop health, trade pairs and the
+    /// drop-rate check.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class EconomyController : Controller
     {
         private readonly IConsoleQueriesRepository _queries;
         private readonly IPlayerShopsRepository _shops;
+        private readonly IConsoleInsightRepository _insight;
         private readonly ConsoleCustomer _customer;
 
-        public EconomyController(IConsoleQueriesRepository queries, IPlayerShopsRepository shops, ConsoleCustomer customer)
+        public EconomyController(IConsoleQueriesRepository queries, IPlayerShopsRepository shops, IConsoleInsightRepository insight, ConsoleCustomer customer)
         {
+            _insight = insight;
             _queries = queries;
             _shops = shops;
             _customer = customer;
@@ -29,6 +34,20 @@ namespace OWSManagement.Controllers
         public async Task<ConsoleEconomy> Get()
         {
             return await _queries.GetEconomy(_customer.CustomerGUID);
+        }
+
+        [HttpGet]
+        [Route("Trades")]
+        public async Task<IActionResult> Trades()
+        {
+            return Ok(new { Pairs = await _insight.GetTradePairs(_customer.CustomerGUID) });
+        }
+
+        [HttpGet]
+        [Route("Drops")]
+        public async Task<IActionResult> Drops()
+        {
+            return Ok(new { Mobs = await _insight.GetDropMobs(_customer.CustomerGUID), Items = await _insight.GetDropItems(_customer.CustomerGUID) });
         }
 
         /// <summary>Closes a player shop the way its owner would: unsold items and proceeds wait for the owner's next claim.</summary>

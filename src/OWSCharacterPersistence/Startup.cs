@@ -45,6 +45,8 @@ namespace OWSCharacterPersistence
             services.AddHealthChecks().AddOWSPostgres(Configuration);
 
             services.AddHttpContextAccessor();
+            services.AddHttpClient("Discord", client => client.Timeout = TimeSpan.FromSeconds(10));
+            services.AddHostedService<Services.StaffAlertsWorker>();
 
             services.AddMvcCore(config =>
             {
@@ -172,6 +174,7 @@ namespace OWSCharacterPersistence
                 container.Register<IZoneOpsRepository, OWSData.Repositories.Implementations.Postgres.ZoneOpsRepository>(Lifestyle.Scoped);
                 container.Register<ISanctionsRepository, OWSData.Repositories.Implementations.Postgres.SanctionsRepository>(Lifestyle.Scoped);
                 container.Register<IConsoleSettingsRepository, OWSData.Repositories.Implementations.Postgres.ConsoleSettingsRepository>(Lifestyle.Scoped);
+                container.Register<IPlayerReportsRepository, OWSData.Repositories.Implementations.Postgres.PlayerReportsRepository>(Lifestyle.Scoped);
             }
             container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
 

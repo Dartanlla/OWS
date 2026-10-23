@@ -1,0 +1,9 @@
+[Unit]
+Description=Load the requested backup into the staging database (ows-stage-backup)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/ows-stage-backup load
+TimeoutStartSec=30min

@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { http, errorText, type AuditEntry, type ChatLine, type Sanction } from '../api';
+import { http, errorText, parseJson, type AuditEntry, type ChatExcerptLine, type ChatLine, type PlayerReport, type Sanction } from '../api';
 import { utc } from '../format';
 import Ago from '../components/Ago.vue';
+
+const openOnly = ref(true);
+const reports = ref<PlayerReport[]>([]);
+const expanded = ref<number | null>(null);
+const note = ref('');
+const resolving = ref(false);
 
 const activeOnly = ref(true);
 const sanctions = ref<Sanction[]>([]);
@@ -12,6 +18,28 @@ const chatSender = ref('');
 const chatText = ref('');
 const chat = ref<ChatLine[]>([]);
 const error = ref('');
+
+async function loadReports() {
+	reports.value = (await http.get<PlayerReport[]>('/Moderation/Reports', { params: { open: openOnly.value } })).data;
+}
+
+function toggle(report: PlayerReport) {
+	expanded.value = expanded.value === report.reportID ? null : report.reportID;
+	note.value = '';
+}
+
+async function resolve(report: PlayerReport) {
+	resolving.value = true;
+	try {
+		await http.post(`/Moderation/Reports/${report.reportID}/Resolve`, { note: note.value });
+		expanded.value = null;
+		await loadReports();
+	} catch (e) {
+		error.value = errorText(e);
+	} finally {
+		resolving.value = false;
+	}
+}
 
 async function loadSanctions() {
 	sanctions.value = (await http.get<Sanction[]>('/Moderation/Sanctions', { params: { active: activeOnly.value } })).data;
@@ -38,7 +66,7 @@ function staffDetail(entry: AuditEntry): { raw: string; result: string; role: st
 
 onMounted(async () => {
 	try {
-		await Promise.all([loadSanctions(), loadStaff(), loadChat()]);
+		await Promise.all([loadReports(), loadSanctions(), loadStaff(), loadChat()]);
 	} catch (e) {
 		error.value = errorText(e);
 	}
@@ -49,6 +77,58 @@ onMounted(async () => {
 	<div class="page">
 		<div class="page-head"><h1>Moderation</h1></div>
 		<p v-if="error" class="notice bad">{{ error }}</p>
+
+		<h2>Player reports</h2>
+		<div class="toolbar">
+			<label><input v-model="openOnly" type="checkbox" @change="loadReports" /> Open reports only</label>
+		</div>
+		<div class="table-wrap">
+			<table>
+				<thead><tr><th>Filed</th><th>Reported</th><th>By</th><th>Reason</th><th>Zone</th><th>State</th><th></th></tr></thead>
+				<tbody>
+					<template v-for="r in reports" :key="r.reportID">
+						<tr>
+							<td><Ago :at="r.createDate" /></td>
+							<td>
+								<RouterLink :to="`/players/character/${encodeURIComponent(r.targetName)}`">{{ r.targetName }}</RouterLink>
+								<span v-if="r.targetReports30d > 1" class="tag warn" :title="'Reports against this character in the last 30 days'">{{ r.targetReports30d }} in 30 d</span>
+							</td>
+							<td>
+								<RouterLink :to="`/players/character/${encodeURIComponent(r.reporterName)}`">{{ r.reporterName }}</RouterLink>
+								<span v-if="r.reporterReports30d > 3" class="tag" :title="'Reports this character filed in the last 30 days'">{{ r.reporterReports30d }} filed</span>
+							</td>
+							<td>{{ r.reason }}</td>
+							<td class="muted">{{ r.mapName }}</td>
+							<td><span v-if="!r.resolvedAt" class="tag bad">Open</span><span v-else class="muted">Resolved</span></td>
+							<td class="num"><button class="link" @click="toggle(r)">{{ expanded === r.reportID ? 'Close' : 'Review' }}</button></td>
+						</tr>
+						<tr v-if="expanded === r.reportID" class="detail">
+							<td colspan="7">
+								<p v-if="r.resolvedAt" class="muted">Resolved by {{ r.resolvedBy }} {{ utc(r.resolvedAt) }}. {{ r.resolutionNote }}</p>
+								<table class="excerpt">
+									<tbody>
+										<tr v-for="(line, i) in parseJson<ChatExcerptLine[]>(r.chatExcerpt, [])" :key="i">
+											<td class="nowrap muted">{{ utc(line.at).slice(11, 16) }}</td>
+											<td class="nowrap muted">{{ line.channel }}</td>
+											<td class="nowrap" :class="{ hit: line.sender === r.targetName }">{{ line.sender }}<template v-if="line.to"> → {{ line.to }}</template></td>
+											<td :class="{ muted: line.dropped }">{{ line.text }}</td>
+										</tr>
+										<tr v-if="!parseJson<ChatExcerptLine[]>(r.chatExcerpt, []).length">
+											<td class="empty">Neither player chatted in the 10 minutes before the report.</td>
+										</tr>
+									</tbody>
+								</table>
+								<form v-if="!r.resolvedAt" class="toolbar" @submit.prevent="resolve(r)">
+									<input v-model="note" type="text" maxlength="1000" placeholder="What you did (optional)" aria-label="Resolution note" class="grow" />
+									<button type="submit" class="primary" :disabled="resolving">Mark resolved</button>
+								</form>
+							</td>
+						</tr>
+					</template>
+					<tr v-if="!reports.length"><td colspan="7" class="empty">{{ openOnly ? 'No open reports.' : 'No reports yet.' }}</td></tr>
+				</tbody>
+			</table>
+		</div>
 
 		<h2>Sanctions</h2>
 		<div class="toolbar">
@@ -122,3 +202,12 @@ onMounted(async () => {
 		<div class="toolbar"><button v-if="chat.length >= 200" @click="loadChat(true)">Load older</button></div>
 	</div>
 </template>
+
+<style scoped>
+tr.detail > td { background: var(--paper); padding: 10px 12px 12px; }
+tr.detail:hover { background: none; }
+.excerpt td { height: auto; padding: 3px 8px; border-bottom: none; }
+.excerpt tr:hover { background: none; }
+.excerpt .hit { font-weight: 600; }
+.grow { flex: 1; min-width: 220px; }
+</style>

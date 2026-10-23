@@ -17,7 +17,7 @@ namespace OWSData.Repositories.Implementations.Postgres
         public const string RetryResult = "retry";
 
         private const string CommandColumns = @"CommandID, MapInstanceID, CharacterName, Command, Args, CreateDate, CreatedBy, ExpiresAt,
-                DeliveredAt, DeliveredToMapInstanceID, CompletedAt, Result, ResultDetail";
+                DeliveredAt, DeliveredToMapInstanceID, DeliveryAttempt, CompletedAt, Result, ResultDetail";
 
         private const string TakePendingSql = @"WITH Due AS (
                     SELECT ZC.CommandID
@@ -177,6 +177,53 @@ namespace OWSData.Repositories.Implementations.Postgres
                     BeforeID = beforeID,
                     Limit = Math.Clamp(limit, 1, 500)
                 });
+        }
+
+        public async Task SetPositions(Guid customerGUID, int mapInstanceID, string mapName, IReadOnlyCollection<LivePositionIn> positions)
+        {
+            List<LivePositionIn> latest = (positions ?? Array.Empty<LivePositionIn>())
+                .Where(p => p != null && !string.IsNullOrWhiteSpace(p.CharacterName))
+                .GroupBy(p => Truncate(p.CharacterName.Trim(), 50), StringComparer.OrdinalIgnoreCase)
+                .Select(g => g.Last())
+                .Take(500)
+                .ToList();
+            string[] names = latest.Select(p => Truncate(p.CharacterName.Trim(), 50)).ToArray();
+
+            await using DbConnection connection = CreateConnection();
+            await connection.ExecuteAsync(@"DELETE FROM LivePositions
+                WHERE CustomerGUID = @CustomerGUID AND MapInstanceID = @MapInstanceID AND NOT (CharacterName = ANY(@Names))",
+                new { CustomerGUID = customerGUID, MapInstanceID = mapInstanceID, Names = names });
+            if (latest.Count == 0) return;
+
+            await connection.ExecuteAsync(@"INSERT INTO LivePositions (CustomerGUID, CharacterName, MapInstanceID, MapName, X, Y, Z, UpdatedAt)
+                SELECT @CustomerGUID, P.Name, @MapInstanceID, @MapName, P.X, P.Y, P.Z, NOW()
+                FROM UNNEST(@Names, @Xs, @Ys, @Zs) AS P(Name, X, Y, Z)
+                ON CONFLICT (CustomerGUID, CharacterName) DO UPDATE SET MapInstanceID = EXCLUDED.MapInstanceID, MapName = EXCLUDED.MapName,
+                    X = EXCLUDED.X, Y = EXCLUDED.Y, Z = EXCLUDED.Z, UpdatedAt = NOW()",
+                new
+                {
+                    CustomerGUID = customerGUID,
+                    MapInstanceID = mapInstanceID,
+                    MapName = Truncate(mapName, 50),
+                    Names = names,
+                    Xs = latest.Select(p => p.X).ToArray(),
+                    Ys = latest.Select(p => p.Y).ToArray(),
+                    Zs = latest.Select(p => p.Z).ToArray()
+                });
+        }
+
+        public async Task<IEnumerable<LivePosition>> GetPositions(Guid customerGUID, string mapName)
+        {
+            await using DbConnection connection = CreateConnection();
+            return await connection.QueryAsync<LivePosition>(@"SELECT LP.CharacterName, LP.MapInstanceID, LP.MapName, LP.X, LP.Y, LP.Z, LP.UpdatedAt,
+                    COALESCE(S.Value, 0) AS Level
+                FROM LivePositions LP
+                LEFT JOIN Characters C ON C.CustomerGUID = LP.CustomerGUID AND C.CharName = LP.CharacterName
+                LEFT JOIN CharStats S ON S.CustomerGUID = C.CustomerGUID AND S.CharacterID = C.CharacterID AND S.StatIdentifier = 'BaseLevel'
+                WHERE LP.CustomerGUID = @CustomerGUID AND LP.UpdatedAt > NOW() - INTERVAL '30 seconds'
+                  AND (@MapName = '' OR LP.MapName = @MapName)
+                ORDER BY LP.CharacterName",
+                new { CustomerGUID = customerGUID, MapName = mapName?.Trim() ?? "" });
         }
 
         private static string Truncate(string value, int maxLength)

@@ -156,6 +156,10 @@ namespace OWSData.Models.Composites
         public const string Motd = "motd";
         public const string LoginsOpen = "logins_open";
         public const string RegionStatusPrefix = "region_status:";
+        public const string Maintenance = "maintenance";
+        public const string RateEvent = "rate_event";
+        public const string PlayerCap = "player_cap";
+        public const string AlertsCursorPrefix = "alerts_cursor:";
     }
 
     public class ConsoleSetting

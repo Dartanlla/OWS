@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { http, can, errorText, type CharacterRow, type Shop } from '../api';
+import { http, can, errorText, type CharacterRow, type DropItem, type DropMob, type Shop, type TradePair } from '../api';
 import { num, itemName, source } from '../format';
 import Ago from '../components/Ago.vue';
 import ActionDialog from '../components/ActionDialog.vue';
@@ -28,6 +28,29 @@ const error = ref('');
 const message = ref('');
 const itemFilter = ref('');
 const closing = ref<Shop | null>(null);
+const pairs = ref<TradePair[]>([]);
+const mobs = ref<DropMob[]>([]);
+const drops = ref<DropItem[]>([]);
+const offOnly = ref(true);
+
+const kills = computed(() => new Map(mobs.value.map((m) => [m.mob, m.kills])));
+const shownDrops = computed(() => drops.value.filter((d) => !offOnly.value || (d.deviation !== null && Math.abs(d.deviation) > 3)));
+
+/** One side gave at least 90% of the juri (or, with no juri, of the items) over 3 or more trades: a lead for feeding or selling. */
+function oneWay(p: TradePair): string {
+	if (p.trades < 3) return '';
+	const juri = p.aGaveJuri + p.bGaveJuri;
+	const items = p.aGaveItems + p.bGaveItems;
+	const [a, total] = juri > 0 ? [p.aGaveJuri, juri] : [p.aGaveItems, items];
+	if (total === 0) return '';
+	if (a / total >= 0.9) return `${p.a} → ${p.b}`;
+	if (a / total <= 0.1) return `${p.b} → ${p.a}`;
+	return '';
+}
+
+function percent(value: number): string {
+	return value >= 0.1 ? `${num(value * 100, 1)}%` : `${num(value * 100, 2)}%`;
+}
 
 const net7d = computed(() => (data.value?.flows7d ?? []).reduce((sum, f) => sum + f.juriIn - f.juriOut, 0));
 const items = computed(() => {
@@ -37,7 +60,15 @@ const items = computed(() => {
 
 async function load() {
 	try {
-		data.value = (await http.get<Economy>('/Economy')).data;
+		const [economy, trades, dropData] = await Promise.all([
+			http.get<Economy>('/Economy'),
+			http.get<{ pairs: TradePair[] }>('/Economy/Trades'),
+			http.get<{ mobs: DropMob[]; items: DropItem[] }>('/Economy/Drops'),
+		]);
+		data.value = economy.data;
+		pairs.value = trades.data.pairs;
+		mobs.value = dropData.data.mobs;
+		drops.value = dropData.data.items;
 		error.value = '';
 	} catch (e) {
 		error.value = errorText(e);
@@ -122,6 +153,55 @@ onMounted(load);
 							</td>
 						</tr>
 						<tr v-if="!data.duplicates.length"><td colspan="4" class="empty">No item ID is held twice.</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<h2>Trades · 7 days</h2>
+			<p class="muted">Pairs by juri traded. One-way: one side gave nearly everything over 3 or more trades, which can mean an alt feeding a main or a sale for real money.</p>
+			<div class="table-wrap">
+				<table>
+					<thead><tr><th>Between</th><th class="num">Trades</th><th class="num">Juri each way</th><th class="num">Items each way</th><th>One-way</th></tr></thead>
+					<tbody>
+						<tr v-for="p in pairs" :key="`${p.a}|${p.b}`">
+							<td>
+								<RouterLink :to="`/players/character/${encodeURIComponent(p.a)}`">{{ p.a }}</RouterLink> and
+								<RouterLink :to="`/players/character/${encodeURIComponent(p.b)}`">{{ p.b }}</RouterLink>
+							</td>
+							<td class="num">{{ num(p.trades) }}</td>
+							<td class="num juri">{{ num(p.aGaveJuri) }} / {{ num(p.bGaveJuri) }}</td>
+							<td class="num">{{ num(p.aGaveItems) }} / {{ num(p.bGaveItems) }}</td>
+							<td><span v-if="oneWay(p)" class="tag warn">{{ oneWay(p) }}</span></td>
+						</tr>
+						<tr v-if="!pairs.length"><td colspan="5" class="empty">No trades in the last 7 days.</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<h2>Drop rates · 7 days</h2>
+			<p class="muted">What zone servers rolled against each loot table entry, with any rate event counted in. A rate more than 3 standard deviations off its chance after 50 rolls is flagged.</p>
+			<div class="toolbar">
+				<label><input v-model="offOnly" type="checkbox" /> Flagged rates only</label>
+				<span class="muted">{{ num(mobs.length) }} mob types, {{ num(mobs.reduce((s, m) => s + m.kills, 0)) }} kills</span>
+			</div>
+			<div class="table-wrap">
+				<table>
+					<thead><tr><th>Mob</th><th class="num">Kills</th><th>Item</th><th class="num">Rolls</th><th class="num">Chance</th><th class="num">Observed</th><th class="num">Off by</th></tr></thead>
+					<tbody>
+						<tr v-for="d in shownDrops" :key="`${d.mob}|${d.item}`">
+							<td>{{ d.mob }}</td>
+							<td class="num muted">{{ num(kills.get(d.mob)) }}</td>
+							<td>{{ itemName(d.item) }}</td>
+							<td class="num">{{ num(d.rolls) }}</td>
+							<td class="num">{{ percent(d.chance) }}</td>
+							<td class="num">{{ d.rolls ? percent(d.drops / d.rolls) : '—' }}</td>
+							<td class="num" :class="{ neg: d.deviation !== null && Math.abs(d.deviation) > 3 }">
+								{{ d.deviation === null ? 'few rolls' : `${d.deviation > 0 ? '+' : ''}${num(d.deviation, 1)} σ` }}
+							</td>
+						</tr>
+						<tr v-if="!shownDrops.length">
+							<td colspan="7" class="empty">{{ drops.length ? 'Every drop rate is within 3 standard deviations of its chance.' : 'No loot statistics yet. Zone servers send them every 5 minutes.' }}</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>

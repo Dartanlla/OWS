@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { http, errorText, type Overview, type Signal } from '../api';
-import { num, duration, toDate, instanceStatus } from '../format';
+import { num, duration, toDate, utc, instanceStatus } from '../format';
 import Ago from '../components/Ago.vue';
 
 const data = ref<Overview | null>(null);
@@ -32,6 +32,11 @@ function heartbeatState(at: string | null): string {
 	const age = (Date.now() - date.getTime()) / 1000;
 	return age > 60 ? 'bad' : age > 25 ? 'warn' : 'ok';
 }
+
+const maintenanceStarted = computed(() => {
+	const start = toDate(data.value?.maintenance?.startsAt);
+	return start !== null && start.getTime() <= Date.now();
+});
 
 const commonBuild = computed(() => {
 	const counts = new Map<number, number>();
@@ -67,7 +72,32 @@ onUnmounted(() => window.clearInterval(timer));
 				</div>
 				<div>
 					<dt>Logins</dt>
-					<dd><span class="tag" :class="data.loginsOpen ? 'ok' : 'warn'">{{ data.loginsOpen ? 'Open' : 'Closed for maintenance' }}</span></dd>
+					<dd>
+						<span v-if="!data.loginsOpen || maintenanceStarted" class="tag warn">Closed for maintenance</span>
+						<span v-else class="tag ok">Open</span>
+					</dd>
+				</div>
+				<div v-if="data.maintenance && !maintenanceStarted">
+					<dt>Maintenance</dt>
+					<dd><RouterLink to="/world">{{ utc(data.maintenance.startsAt) }}</RouterLink></dd>
+				</div>
+				<div>
+					<dt>Player cap</dt>
+					<dd>
+						<template v-if="data.playerCap">{{ num(data.playerCap) }}<span v-if="data.waiting" class="tag warn">{{ data.waiting }} waiting</span></template>
+						<span v-else class="muted">Off</span>
+					</dd>
+				</div>
+				<div v-if="data.rates">
+					<dt>Rate event</dt>
+					<dd>
+						<RouterLink to="/world">{{ data.rates.name }}</RouterLink>
+						<span class="muted"> · EXP ×{{ data.rates.exp }}, drops ×{{ data.rates.drop }}</span>
+					</dd>
+				</div>
+				<div>
+					<dt>Open reports</dt>
+					<dd><RouterLink to="/moderation" :class="{ neg: data.openReports > 0 }">{{ num(data.openReports) }}</RouterLink></dd>
 				</div>
 			</dl>
 

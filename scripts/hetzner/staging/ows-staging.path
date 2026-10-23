@@ -1,0 +1,9 @@
+[Unit]
+Description=Load a backup into the staging database when the staff console asks
+
+[Path]
+PathChanged=/var/lib/ows-staging/request.json
+Unit=ows-staging.service
+
+[Install]
+WantedBy=multi-user.target

@@ -133,6 +133,8 @@ button.danger { color: var(--danger); border-color: rgba(174, 59, 42, 0.45); }
 button.danger:hover:not(:disabled) { background: var(--danger-soft); }
 button.link { border: none; height: auto; padding: 0; color: var(--accent-ink); font-weight: 600; }
 button.link:hover:not(:disabled) { background: none; text-decoration: underline; }
+a.button { display: inline-flex; align-items: center; color: var(--ink); }
+a.button:hover { background: var(--paper-sunken); text-decoration: none; }
 
 input, select, textarea {
 	font: 400 14px/1.3 var(--font);
@@ -165,6 +167,11 @@ label.field { display: grid; gap: 4px; font: 600 12px/1.2 var(--font); color: va
 .notice { padding: 10px 14px; border-radius: var(--radius); border: 1px solid var(--rule); background: var(--paper-raised); margin: 10px 0; }
 .notice.bad { border-color: rgba(174, 59, 42, 0.4); background: var(--danger-soft); color: var(--danger); }
 .notice.ok { border-color: rgba(49, 111, 53, 0.35); background: var(--ok-soft); color: var(--ok); }
+
+/* Tabs: a row of plain buttons over one rule; the selected one is underlined in the accent. */
+.tabs { display: flex; gap: 2px; margin: 24px 0 4px; border-bottom: 1px solid var(--rule-strong); overflow-x: auto; }
+.tabs button { border: none; border-bottom: 2px solid transparent; border-radius: 0; color: var(--ink-muted); height: 34px; margin-bottom: -1px; }
+.tabs button.on { color: var(--ink); border-bottom-color: var(--accent); }
 
 .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 0 28px; }
 

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { http, can, errorText, type AuditEntry, type CharacterDetail, type ChatLine, type GameEvent, type Sanction, type ZoneCommand } from '../api';
+import {
+	http, can, errorText, parseJson,
+	type AuditEntry, type CharacterDetail, type ChatExcerptLine, type ChatLine, type GameEvent, type PlayerReport, type Sanction, type TradePartner, type ZoneCommand,
+} from '../api';
 import { num, leaf, itemName, utc, duration, source, toDate } from '../format';
 import Ago from '../components/Ago.vue';
 import Seal from '../components/Seal.vue';
@@ -17,15 +20,19 @@ const sanctions = ref<Sanction[]>([]);
 const events = ref<GameEvent[]>([]);
 const eventFilter = ref('');
 const chat = ref<ChatLine[]>([]);
+const reports = ref<PlayerReport[]>([]);
+const trades = ref<TradePartner[]>([]);
+const sentrySearch = ref<string | null>(null);
 const error = ref('');
 const message = ref('');
-type Tab = 'items' | 'ledger' | 'chat' | 'quests' | 'audit' | 'commands' | 'stats';
+type Tab = 'items' | 'ledger' | 'chat' | 'quests' | 'reports' | 'audit' | 'commands' | 'stats';
 const tab = ref<Tab>('items');
 const tabs: { id: Tab; label: string }[] = [
 	{ id: 'items', label: 'Items' },
 	{ id: 'ledger', label: 'Ledger' },
 	{ id: 'chat', label: 'Chat' },
 	{ id: 'quests', label: 'Quests' },
+	{ id: 'reports', label: 'Reports' },
 	{ id: 'audit', label: 'Trades and audit' },
 	{ id: 'commands', label: 'Commands' },
 	{ id: 'stats', label: 'Stats' },
@@ -38,7 +45,13 @@ const count = ref(1);
 const amount = ref(1000);
 const flags = ref({ isAdmin: false, isModerator: false, isInternalNetworkTestUser: false });
 
-const eventKinds = ['currency_changed', 'item_gained', 'item_lost', 'refine', 'level_up', 'player_died', 'session_started', 'session_ended', 'quest_accepted', 'quest_completed', 'rpc_rejected', 'persistence_failed'];
+const eventKinds = ['currency_changed', 'item_gained', 'item_lost', 'trade', 'refine', 'level_up', 'player_died', 'session_started', 'session_ended', 'quest_accepted', 'quest_completed', 'rpc_rejected', 'persistence_failed', 'restored'];
+const reportsAgainst = computed(() => reports.value.filter((r) => r.targetName.toLowerCase() === name.toLowerCase()));
+const reportsBy = computed(() => reports.value.filter((r) => r.reporterName.toLowerCase() === name.toLowerCase()));
+
+// A refresh that started before a load must not overwrite what the load brought.
+let loadSeq = 0;
+let refreshing = false;
 
 const equipped = computed(() => character.value?.items.filter((i) => i.equipped) ?? []);
 const bag = computed(() => character.value?.items.filter((i) => !i.equipped) ?? []);
@@ -54,11 +67,16 @@ const actionTitle = computed(() => ({
 })[action.value ?? 'kick']);
 
 async function load() {
+	const seq = ++loadSeq;
 	try {
 		const { data } = await http.get(`/Players/Character/${encodeURIComponent(name)}`);
+		if (seq !== loadSeq) return;
 		character.value = data.character;
 		commands.value = data.commands;
 		audit.value = data.audit;
+		reports.value = data.reports;
+		trades.value = data.trades;
+		sentrySearch.value = data.sentrySearch;
 		flags.value = {
 			isAdmin: data.character.isAdmin,
 			isModerator: data.character.isModerator,
@@ -147,6 +165,10 @@ function describe(e: GameEvent): string {
 			return `${f.rpc}: ${f.reason}`;
 		case 'persistence_failed':
 			return `${f.endpoint} save failed (${f.status}) ${f.reason ?? ''}`;
+		case 'trade':
+			return `with ${f.partner}: gave ${num(f.juriGiven ?? 0)} juri and ${(f.itemsGiven ?? []).length} item(s), got ${num(f.juriReceived ?? 0)} juri and ${(f.itemsReceived ?? []).length} item(s)`;
+		case 'restored':
+			return `Restored from ${f.backup} by ${f.by}`;
 		default:
 			return e.fields;
 	}
@@ -181,11 +203,16 @@ function isExpired(c: ZoneCommand): boolean {
 // Open commands change on the zone's 5 s poll, and a gift turns unconfirmed with time alone.
 async function refreshCommands() {
 	now.value = Date.now();
-	if (!commands.value.some((c) => !c.completedAt && !isExpired(c))) return;
+	if (refreshing || !commands.value.some((c) => !c.completedAt && !isExpired(c))) return;
+	refreshing = true;
+	const seq = loadSeq;
 	try {
-		commands.value = (await http.get(`/Players/Character/${encodeURIComponent(name)}`)).data.commands;
+		const fresh = (await http.get(`/Players/Character/${encodeURIComponent(name)}`)).data.commands;
+		if (seq === loadSeq) commands.value = fresh;
 	} catch {
 		// The next tick tries again.
+	} finally {
+		refreshing = false;
 	}
 }
 
@@ -218,6 +245,7 @@ onUnmounted(() => window.clearInterval(timer));
 						<button @click="action = 'give_juri'">Give juri</button>
 					</template>
 					<button v-if="can('Admin')" @click="action = 'flags'">Flags</button>
+					<RouterLink v-if="can('Admin')" class="button" :to="`/players/character/${encodeURIComponent(character.charName)}/restore`">Restore</RouterLink>
 				</div>
 			</div>
 			<p v-if="message" class="notice">{{ message }}</p>
@@ -359,7 +387,63 @@ onUnmounted(() => window.clearInterval(timer));
 				</div>
 			</template>
 
+			<template v-if="tab === 'reports'">
+				<p class="toolbar">
+					<a v-if="sentrySearch" :href="sentrySearch" target="_blank" rel="noopener">Bug reports and crashes in Sentry</a>
+					<span v-else class="muted">Set OWS_SENTRY_URL to link this character's bug reports and crashes.</span>
+				</p>
+				<h2>Reports against {{ character.charName }}</h2>
+				<div class="table-wrap">
+					<table>
+						<thead><tr><th>Filed</th><th>By</th><th>Reason</th><th>Zone</th><th>State</th></tr></thead>
+						<tbody>
+							<tr v-for="r in reportsAgainst" :key="r.reportID">
+								<td><Ago :at="r.createDate" /></td>
+								<td><RouterLink :to="`/players/character/${encodeURIComponent(r.reporterName)}`">{{ r.reporterName }}</RouterLink></td>
+								<td :title="parseJson<ChatExcerptLine[]>(r.chatExcerpt, []).map((l) => `${l.sender}: ${l.text}`).join('\n')">{{ r.reason }}</td>
+								<td class="muted">{{ r.mapName }}</td>
+								<td><span v-if="!r.resolvedAt" class="tag bad">Open</span><span v-else class="muted">Resolved by {{ r.resolvedBy }}</span></td>
+							</tr>
+							<tr v-if="!reportsAgainst.length"><td colspan="5" class="empty">Nobody has reported this character.</td></tr>
+						</tbody>
+					</table>
+				</div>
+				<h2>Reports by {{ character.charName }}</h2>
+				<div class="table-wrap">
+					<table>
+						<thead><tr><th>Filed</th><th>Against</th><th>Reason</th><th>State</th></tr></thead>
+						<tbody>
+							<tr v-for="r in reportsBy" :key="r.reportID">
+								<td><Ago :at="r.createDate" /></td>
+								<td><RouterLink :to="`/players/character/${encodeURIComponent(r.targetName)}`">{{ r.targetName }}</RouterLink></td>
+								<td>{{ r.reason }}</td>
+								<td><span v-if="!r.resolvedAt" class="tag bad">Open</span><span v-else class="muted">Resolved</span></td>
+							</tr>
+							<tr v-if="!reportsBy.length"><td colspan="4" class="empty">This character has not reported anyone.</td></tr>
+						</tbody>
+					</table>
+				</div>
+				<p class="muted">Review and resolve reports on the <RouterLink to="/moderation">Moderation</RouterLink> page.</p>
+			</template>
+
 			<template v-if="tab === 'audit'">
+				<h2>Trade partners</h2>
+				<div class="table-wrap">
+					<table>
+						<thead><tr><th>Partner</th><th class="num">Trades</th><th class="num">Juri given / received</th><th class="num">Items given / received</th><th>Last</th></tr></thead>
+						<tbody>
+							<tr v-for="p in trades" :key="p.partner">
+								<td><RouterLink :to="`/players/character/${encodeURIComponent(p.partner)}`">{{ p.partner }}</RouterLink></td>
+								<td class="num">{{ num(p.trades) }}</td>
+								<td class="num juri">{{ num(p.juriGiven) }} / {{ num(p.juriReceived) }}</td>
+								<td class="num">{{ num(p.itemsGiven) }} / {{ num(p.itemsReceived) }}</td>
+								<td><Ago :at="p.lastTrade" /></td>
+							</tr>
+							<tr v-if="!trades.length"><td colspan="5" class="empty">No trades recorded.</td></tr>
+						</tbody>
+					</table>
+				</div>
+				<h2>Audit</h2>
 				<div class="table-wrap">
 					<table>
 						<thead><tr><th>When</th><th>Action</th><th>Actor</th><th>Target</th><th>Detail</th></tr></thead>
@@ -429,25 +513,6 @@ onUnmounted(() => window.clearInterval(timer));
 </template>
 
 <style scoped>
-.tabs {
-	display: flex;
-	gap: 2px;
-	margin: 24px 0 4px;
-	border-bottom: 1px solid var(--rule-strong);
-	overflow-x: auto;
-}
-.tabs button {
-	border: none;
-	border-bottom: 2px solid transparent;
-	border-radius: 0;
-	color: var(--ink-muted);
-	height: 34px;
-	margin-bottom: -1px;
-}
-.tabs button.on {
-	color: var(--ink);
-	border-bottom-color: var(--accent);
-}
 .amount {
 	font-weight: 600;
 	margin-right: 6px;
