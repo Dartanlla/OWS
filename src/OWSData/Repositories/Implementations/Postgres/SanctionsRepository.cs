@@ -54,6 +54,14 @@ namespace OWSData.Repositories.Implementations.Postgres
                 ORDER BY S.CreateDate DESC LIMIT 200", new { CustomerGUID = customerGUID, UserGUID = userGUID });
         }
 
+        public async Task<Sanction> GetById(Guid customerGUID, Guid userGUID, long sanctionID)
+        {
+            await using DbConnection connection = CreateConnection();
+            return await connection.QueryFirstOrDefaultAsync<Sanction>($@"SELECT {Columns} FROM AccountSanctions S
+                WHERE S.CustomerGUID = @CustomerGUID AND S.UserGUID = @UserGUID AND S.SanctionID = @SanctionID",
+                new { CustomerGUID = customerGUID, UserGUID = userGUID, SanctionID = sanctionID });
+        }
+
         public async Task<IEnumerable<Sanction>> GetRecent(Guid customerGUID, bool activeOnly, int limit)
         {
             await using DbConnection connection = CreateConnection();
@@ -83,6 +91,9 @@ namespace OWSData.Repositories.Implementations.Postgres
 
             if (SanctionKinds.HasDuration(kind))
             {
+                // Two staff sanctioning the same account at once would otherwise both leave an open row.
+                await connection.ExecuteAsync("SELECT pg_advisory_xact_lock(hashtext('sanction:' || @UserGUID::text))",
+                    new { UserGUID = userGUID }, tx);
                 await connection.ExecuteAsync(@"UPDATE AccountSanctions S SET RevokedAt = NOW(), RevokedBy = @RevokedBy
                     WHERE S.CustomerGUID = @CustomerGUID AND S.UserGUID = @UserGUID AND S.Kind = @Kind AND S.RevokedAt IS NULL",
                     new { CustomerGUID = customerGUID, UserGUID = userGUID, Kind = kind, RevokedBy = Truncate(issuedBy, 100) }, tx);

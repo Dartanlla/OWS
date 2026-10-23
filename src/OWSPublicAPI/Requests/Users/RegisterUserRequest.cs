@@ -24,6 +24,7 @@ namespace OWSPublicAPI.Requests.Users
         private readonly Guid _customerGUID;
         private readonly IUsersRepository _usersRepository;
         private readonly IExternalLoginProviderFactory _externalLoginProviderFactory;
+        private readonly Services.LoginGate _loginGate;
 
         /// <summary>
         /// RegisterUserRequest Constructor
@@ -31,12 +32,13 @@ namespace OWSPublicAPI.Requests.Users
         /// <remarks>
         /// Initialize the RegisterUserRequest object with dependencies
         /// </remarks>
-        public RegisterUserRequest(RegisterUserDTO registerUserDTO, IUsersRepository usersRepository, IExternalLoginProviderFactory externalLoginProviderFactory, IHeaderCustomerGUID customerGuid)
+        public RegisterUserRequest(RegisterUserDTO registerUserDTO, IUsersRepository usersRepository, IExternalLoginProviderFactory externalLoginProviderFactory, IHeaderCustomerGUID customerGuid, Services.LoginGate loginGate)
         {
             _registerUserDTO = registerUserDTO;
             _customerGUID = customerGuid.CustomerGUID;
             _usersRepository = usersRepository;
             _externalLoginProviderFactory = externalLoginProviderFactory;
+            _loginGate = loginGate;
         }
 
         /// <summary>
@@ -47,6 +49,12 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public async Task<PlayerLoginAndCreateSession> Handle()
         {
+            // A new account is a Player, and registering logs it straight in.
+            if (await _loginGate.ClosedForMaintenance(OWSData.Models.UserRoles.Player))
+            {
+                return new PlayerLoginAndCreateSession { ErrorMessage = Services.LoginGate.MaintenanceMessage };
+            }
+
             //Check for duplicate account before creating a new one:
             var foundUser = await _usersRepository.GetUserFromEmail(_customerGUID, _registerUserDTO.Email);
 

@@ -25,8 +25,9 @@ namespace OWSData.Repositories.Implementations.Postgres
                     WHERE ZC.CustomerGUID = @CustomerGUID
                       AND ZC.CompletedAt IS NULL
                       AND ZC.ExpiresAt > NOW()
-                      AND (ZC.DeliveredAt IS NULL OR ZC.DeliveredAt < NOW() - INTERVAL '60 seconds'
-                           OR ZC.DeliveredToMapInstanceID IS DISTINCT FROM @MapInstanceID)
+                      AND (ZC.DeliveredAt IS NULL
+                           OR (ZC.Command NOT IN ('give_item', 'give_juri')
+                               AND (ZC.DeliveredAt < NOW() - INTERVAL '60 seconds' OR ZC.DeliveredToMapInstanceID IS DISTINCT FROM @MapInstanceID)))
                       AND (ZC.MapInstanceID = @MapInstanceID
                            OR (ZC.MapInstanceID IS NULL AND EXISTS (
                                SELECT 1 FROM CharOnMapInstance CMI
@@ -60,7 +61,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 .OrderBy(command => command.CommandID);
         }
 
-        public async Task CompleteCommands(Guid customerGUID, IEnumerable<ZoneCommandResult> results)
+        public async Task CompleteCommands(Guid customerGUID, int mapInstanceID, IEnumerable<ZoneCommandResult> results)
         {
             List<ZoneCommandResult> finished = results?.Where(r => r != null && r.CommandId > 0 && !string.IsNullOrWhiteSpace(r.Result)).ToList();
             if (finished == null || finished.Count == 0) return;
@@ -68,7 +69,15 @@ namespace OWSData.Repositories.Implementations.Postgres
             await using DbConnection connection = CreateConnection();
             foreach (ZoneCommandResult result in finished)
             {
-                if (result.Result == RetryResult) continue;
+                if (result.Result == RetryResult)
+                {
+                    // Released for the next poll, only by the zone that holds it: a gift is otherwise never sent twice.
+                    await connection.ExecuteAsync(@"UPDATE ZoneCommands SET DeliveredAt = NULL, DeliveredToMapInstanceID = NULL, ResultDetail = @Detail
+                        WHERE CustomerGUID = @CustomerGUID AND CommandID = @CommandID AND CompletedAt IS NULL
+                          AND DeliveredToMapInstanceID = @MapInstanceID",
+                        new { CustomerGUID = customerGUID, CommandID = result.CommandId, MapInstanceID = mapInstanceID, Detail = Truncate(result.Detail, 2000) });
+                    continue;
+                }
 
                 await connection.ExecuteAsync(@"UPDATE ZoneCommands SET CompletedAt = NOW(), Result = @Result, ResultDetail = @Detail
                     WHERE CustomerGUID = @CustomerGUID AND CommandID = @CommandID AND CompletedAt IS NULL",

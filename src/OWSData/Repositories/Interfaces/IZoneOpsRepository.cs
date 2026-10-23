@@ -13,12 +13,16 @@ namespace OWSData.Repositories.Interfaces
     {
         /// <summary>
         /// Commands for this instance, and for characters online on it (CharOnMapInstance), that are not finished or
-        /// expired. Marks them delivered; a command delivered to the same instance comes back after 60 s without a result.
+        /// expired. Marks them delivered; a command other than a gift comes back after 60 s without a result. A gift is
+        /// delivered at most once, so a zone that stops before reporting can never grant it a second time.
         /// </summary>
         Task<IEnumerable<ZoneCommand>> TakePendingCommands(Guid customerGUID, int mapInstanceID);
 
-        /// <summary>Records results. "retry" (the character is not on this zone) leaves the command open for its next zone.</summary>
-        Task CompleteCommands(Guid customerGUID, IEnumerable<ZoneCommandResult> results);
+        /// <summary>
+        /// Records results. "retry" (the character is not on this zone, or not ready) from the zone that holds the
+        /// command releases it for the next poll.
+        /// </summary>
+        Task CompleteCommands(Guid customerGUID, int mapInstanceID, IEnumerable<ZoneCommandResult> results);
 
         Task<long> AddCommand(Guid customerGUID, int? mapInstanceID, string characterName, string command, string args, string createdBy, TimeSpan lifetime);
 

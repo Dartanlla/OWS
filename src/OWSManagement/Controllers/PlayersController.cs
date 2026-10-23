@@ -178,7 +178,7 @@ namespace OWSManagement.Controllers
         [Route("Account/{userGuid:guid}/Sanctions/{sanctionId:long}/Revoke")]
         public async Task<IActionResult> RevokeSanction(Guid userGuid, long sanctionId)
         {
-            Sanction sanction = (await _sanctions.GetForUser(CustomerGUID, userGuid)).FirstOrDefault(s => s.SanctionID == sanctionId);
+            Sanction sanction = await _sanctions.GetById(CustomerGUID, userGuid, sanctionId);
             if (sanction == null) return NotFound();
             if (sanction.Kind == SanctionKinds.Ban && !ConsoleAuth.HasRole(User, ConsoleAuth.Admin)) return Forbid();
 

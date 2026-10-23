@@ -114,8 +114,12 @@ namespace OWSManagement.Controllers
             if (instance == null) return NotFound();
 
             HttpClient client = _httpClientFactory.CreateClient("OWSInstanceManagement");
-            using HttpResponseMessage response = await client.PostAsJsonAsync("api/Instance/ShutDownServerInstance",
-                new { WorldServerID = instance.WorldServerID, ZoneInstanceID = mapInstanceId });
+            using var shutdown = new HttpRequestMessage(HttpMethod.Post, "api/Instance/ShutDownServerInstance")
+            {
+                Content = JsonContent.Create(new { WorldServerID = instance.WorldServerID, ZoneInstanceID = mapInstanceId })
+            };
+            shutdown.Headers.Add("X-CustomerGUID", _customer.CustomerGUID.ToString());
+            using HttpResponseMessage response = await client.SendAsync(shutdown);
             SuccessAndErrorMessage result = response.IsSuccessStatusCode
                 ? await response.Content.ReadFromJsonAsync<SuccessAndErrorMessage>()
                 : new SuccessAndErrorMessage { Success = false, ErrorMessage = "InstanceManagement returned " + (int)response.StatusCode };

@@ -586,7 +586,7 @@
             Register a user with the system.  You can control validation with a custom IIPublicAPIInputValidation implementation.  See DefaultPublicAPIInputValidation for an example.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Requests.Users.RegisterUserRequest.#ctor(OWSPublicAPI.DTOs.RegisterUserDTO,OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSShared.Interfaces.IHeaderCustomerGUID)">
+        <member name="M:OWSPublicAPI.Requests.Users.RegisterUserRequest.#ctor(OWSPublicAPI.DTOs.RegisterUserDTO,OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSShared.Interfaces.IHeaderCustomerGUID,OWSPublicAPI.Services.LoginGate)">
             <summary>
             RegisterUserRequest Constructor
             </summary>
@@ -688,6 +688,9 @@
         </member>
         <member name="M:OWSPublicAPI.Services.LoginGate.RefusalForSession(System.Guid,System.Guid,System.Boolean)">
             <summary>The refusal for this session's account, or null. A session that does not resolve is left to the caller's own checks.</summary>
+        </member>
+        <member name="M:OWSPublicAPI.Services.LoginGate.ClosedForMaintenance(System.String)">
+            <summary>True while logins are closed for maintenance to this role (staff stay allowed).</summary>
         </member>
     </members>
 </doc>

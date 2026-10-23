@@ -55,8 +55,8 @@ namespace OWSData.SQL
                 WHERE CharInventoryID = @CharInventoryID AND CustomerGUID = @CustomerGUID";
 
         public static readonly string InsertInventoryItem = @"INSERT INTO CharInventoryItems
-                (CustomerGUID, CharInventoryID, ItemIDTag, Quantity, InSlotNumber, CustomData)
-                VALUES (@CustomerGUID, @CharInventoryID, @ItemIDTag, @Quantity, @InSlotNumber, @CustomData)";
+                (CustomerGUID, CharInventoryID, ItemIDTag, Quantity, InSlotNumber, CustomData, InstanceId)
+                VALUES (@CustomerGUID, @CharInventoryID, @ItemIDTag, @Quantity, @InSlotNumber, @CustomData, @InstanceId)";
 
         // ---- Operations idempotency ----
 

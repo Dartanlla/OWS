@@ -95,7 +95,8 @@ namespace OWSData.Repositories.Implementations.Postgres
                         item.ItemIDTag,
                         item.Quantity,
                         item.InSlotNumber,
-                        item.CustomData
+                        item.CustomData,
+                        InstanceId = item.ParsedInstanceId
                     },
                     transaction: tx, commandType: CommandType.Text);
             }

@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { http, can, errorText, type AuditEntry, type CharacterDetail, type ChatLine, type GameEvent, type Sanction, type ZoneCommand } from '../api';
-import { num, leaf, itemName, utc, duration, source } from '../format';
+import { num, leaf, itemName, utc, duration, source, toDate } from '../format';
 import Ago from '../components/Ago.vue';
 import Seal from '../components/Seal.vue';
 import ActionDialog from '../components/ActionDialog.vue';
@@ -166,6 +166,9 @@ function tone(e: GameEvent): string {
 
 function commandState(c: ZoneCommand): { label: string; tone: string } {
 	if (c.completedAt) return { label: c.result ?? 'done', tone: c.result === 'ok' ? 'ok' : 'bad' };
+	// A gift is sent once; no answer after two minutes means the zone stopped. Check the ledger before giving again.
+	const sentMs = toDate(c.deliveredAt)?.getTime();
+	if (sentMs && c.command.startsWith('give_') && Date.now() - sentMs > 120000) return { label: 'unconfirmed', tone: 'bad' };
 	if (new Date(c.expiresAt.endsWith('Z') ? c.expiresAt : `${c.expiresAt}Z`).getTime() < Date.now()) return { label: 'expired', tone: '' };
 	return { label: c.deliveredAt ? 'sent' : 'waiting', tone: 'live' };
 }

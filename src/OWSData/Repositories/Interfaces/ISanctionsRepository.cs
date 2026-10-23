@@ -12,6 +12,7 @@ namespace OWSData.Repositories.Interfaces
     {
         Task<ActiveSanctions> GetActive(Guid customerGUID, Guid userGUID);
         Task<IEnumerable<Sanction>> GetForUser(Guid customerGUID, Guid userGUID);
+        Task<Sanction> GetById(Guid customerGUID, Guid userGUID, long sanctionID);
         Task<IEnumerable<Sanction>> GetRecent(Guid customerGUID, bool activeOnly, int limit);
         Task<Guid?> GetUserForCharacter(Guid customerGUID, string characterName);
 

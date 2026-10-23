@@ -70,7 +70,7 @@ namespace OWSCharacterPersistence.Controllers
                 await _zoneOps.AddEvents(_customerGuid.CustomerGUID, request.ZoneInstanceId, events);
             }
 
-            await _zoneOps.CompleteCommands(_customerGuid.CustomerGUID, request.Results);
+            await _zoneOps.CompleteCommands(_customerGuid.CustomerGUID, request.ZoneInstanceId, request.Results);
 
             var response = new ZoneSyncResponse();
             foreach (ZoneCommand command in await _zoneOps.TakePendingCommands(_customerGuid.CustomerGUID, request.ZoneInstanceId))

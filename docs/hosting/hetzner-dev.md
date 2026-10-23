@@ -128,9 +128,11 @@ The in-game `/ban`, `/mute` and `/warn` write the same table through CharacterPe
 
 **Zone commands.** Kick, mute, warn, announce, unstuck and gifts go into `ZoneCommands`. Each zone server picks up
 its own, and those for characters online on it, every 5 s through CharacterPersistence `api/ZoneSync` (service key),
-which also takes the zone's game events into `GameEvents` and returns the message of the day.
+which also takes the zone's game events into `GameEvents` and returns the message of the day. A gift is delivered at
+most once: if its zone stops before reporting, the console marks it unconfirmed, and staff check the ledger before
+giving it again.
 
-**Switches** (`ConsoleSettings`): `motd`, `logins_open` (`false` refuses logins below Moderator) and
+**Switches** (`ConsoleSettings`): `motd`, `logins_open` (`false` refuses logins below Moderator, and registration) and
 `region_status:<Region>`, which overrides that region's status on the login screen's server list.
 
 **Retention**: `PurgeSamsaraLogs()` (run by `ows-pie-purge.timer`) keeps game events 180 days, chat 30 days and

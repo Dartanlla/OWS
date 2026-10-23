@@ -46,16 +46,23 @@ namespace OWSPublicAPI.Services
                 return ("banned", active.Ban.PlayerMessage());
             }
 
-            if (checkMaintenance && !UserRoles.IsStaff(role))
+            if (checkMaintenance && await ClosedForMaintenance(role))
             {
-                IReadOnlyDictionary<string, string> settings = await _settings.GetAll();
-                if (settings.TryGetValue(ConsoleSettingKeys.LoginsOpen, out string open)
-                    && string.Equals(open, "false", StringComparison.OrdinalIgnoreCase))
-                {
-                    return ("maintenance", MaintenanceMessage);
-                }
+                return ("maintenance", MaintenanceMessage);
             }
             return (null, null);
+        }
+
+        /// <summary>True while logins are closed for maintenance to this role (staff stay allowed).</summary>
+        public async Task<bool> ClosedForMaintenance(string role)
+        {
+            if (UserRoles.IsStaff(role))
+            {
+                return false;
+            }
+            IReadOnlyDictionary<string, string> settings = await _settings.GetAll();
+            return settings.TryGetValue(ConsoleSettingKeys.LoginsOpen, out string open)
+                && string.Equals(open, "false", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
