@@ -113,9 +113,9 @@ namespace OWSCharacterPersistence.Services
             AddTransition(lines, cursors, settings, "maintenance", MaintenanceState(settings, now));
             AddTransition(lines, cursors, settings, "rate_event", RateState(settings, now));
 
-            if (lines.Count > 0)
+            if (lines.Count > 0 && !await Post(lines))
             {
-                await Post(lines);
+                return;
             }
             foreach ((string key, string value) in cursors)
             {
@@ -156,7 +156,8 @@ namespace OWSCharacterPersistence.Services
                 && now - sentAt.ToUniversalTime() < window;
         }
 
-        private async Task Post(List<string> lines)
+        /// <summary>False when Discord did not take the message; the cursors then stay, and the next check sends it again.</summary>
+        private async Task<bool> Post(List<string> lines)
         {
             StringBuilder content = new();
             int shown = 0;
@@ -181,6 +182,7 @@ namespace OWSCharacterPersistence.Services
             {
                 Log.Warning("staff_alerts_post_failed {Status}", (int)response.StatusCode);
             }
+            return response.IsSuccessStatusCode;
         }
 
         private static string EscapeMarkdown(string text)

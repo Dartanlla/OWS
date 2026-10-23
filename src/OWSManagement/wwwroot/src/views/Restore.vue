@@ -97,8 +97,9 @@ async function compare() {
 async function restore() {
 	busy.value = true;
 	try {
-		const { data } = await http.post<Result>(`/Restore/Character/${encodeURIComponent(name)}`, { confirm: confirm.value });
-		message.value = data.success ? `${name} is restored from ${status.value?.dump}. The change shows in their ledger.` : data.errorMessage ?? 'The restore failed.';
+		const dump = backup.value?.dump;
+		const { data } = await http.post<Result>(`/Restore/Character/${encodeURIComponent(name)}`, { confirm: confirm.value, dump });
+		message.value = data.success ? `${name} is restored from ${dump}. The change shows in their ledger.` : data.errorMessage ?? 'The restore failed.';
 		if (data.success) {
 			confirm.value = '';
 			await compare();

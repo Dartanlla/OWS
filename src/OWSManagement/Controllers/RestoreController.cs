@@ -35,7 +35,9 @@ namespace OWSManagement.Controllers
         public RestoreController(IOptions<ManagementOptions> options, IOptions<StorageOptions> storage, IZoneOpsRepository zoneOps, ConsoleCustomer customer)
         {
             _options = options.Value;
+            // The compose file always passes a connection string; without the installer's password restore stays off.
             _restore = string.IsNullOrWhiteSpace(_options.StagingConnectionString)
+                || string.IsNullOrEmpty(new Npgsql.NpgsqlConnectionStringBuilder(_options.StagingConnectionString).Password)
                 ? null
                 : new CharacterRestoreRepository(storage.Value.OWSDBConnectionString, _options.StagingConnectionString);
             _zoneOps = zoneOps;
@@ -91,6 +93,8 @@ namespace OWSManagement.Controllers
         {
             /// <summary>The character's name, typed again.</summary>
             public string Confirm { get; set; }
+            /// <summary>The backup the caller compared (the backup snapshot's dump); restore refuses any other.</summary>
+            public string Dump { get; set; }
         }
 
         [HttpPost]
@@ -103,7 +107,7 @@ namespace OWSManagement.Controllers
                 return BadRequest(new SuccessAndErrorMessage { Success = false, ErrorMessage = "Type the character's name to confirm." });
             }
 
-            string error = await _restore.Restore(_customer.CustomerGUID, name);
+            string error = await _restore.Restore(_customer.CustomerGUID, name, input.Dump);
             if (error != null)
             {
                 string message = error switch
@@ -111,12 +115,12 @@ namespace OWSManagement.Controllers
                     "online" => "The character is in the world. Kick them, wait a minute, then restore.",
                     "not_in_backup" => "The backup has no character with this name.",
                     "different_character" => "This name belongs to a different character than in the backup.",
+                    "staging_changed" => "Another backup is loaded or loading now. Compare again before you restore.",
                     _ => "No character has this name."
                 };
                 return Ok(new SuccessAndErrorMessage { Success = false, ErrorMessage = message });
             }
 
-            string dump = ReadStatus() is JsonElement status && status.TryGetProperty("dump", out JsonElement value) ? value.GetString() : "";
             await _zoneOps.AddEvents(_customer.CustomerGUID, 0, new[]
             {
                 new GameEventIn
@@ -125,7 +129,7 @@ namespace OWSManagement.Controllers
                     EventTime = DateTime.UtcNow,
                     Event = "restored",
                     CharacterName = name.Trim(),
-                    Fields = JsonSerializer.Serialize(new { backup = dump, by = ConsoleAuth.Actor(User) })
+                    Fields = JsonSerializer.Serialize(new { backup = input.Dump, by = ConsoleAuth.Actor(User) })
                 }
             });
             return Ok(new SuccessAndErrorMessage { Success = true, ErrorMessage = "" });

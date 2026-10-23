@@ -388,6 +388,8 @@ export interface RestoreSnapshot {
 	items: { inventory: string; slot: number; item: string; quantity: number; customData: string | null }[];
 	abilities: { tag: string; value: string }[];
 	quests: { tag: string; value: string }[];
+	/** Backup snapshot only: the dump staging holds. */
+	dump?: string | null;
 }
 
 export interface StagingStatus {

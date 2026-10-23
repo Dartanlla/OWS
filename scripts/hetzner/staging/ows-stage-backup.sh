@@ -25,10 +25,17 @@ status() {
 }
 
 remove_container() {
-  docker rm -f "$container" >/dev/null 2>&1 || true
+  # -v: the Postgres image keeps its data in an anonymous volume.
+  docker rm -fv "$container" >/dev/null 2>&1 || true
+}
+
+cancel_expiry() {
+  systemctl stop ows-staging-expire.timer >/dev/null 2>&1 || true
+  systemctl reset-failed ows-staging-expire.timer ows-staging-expire.service >/dev/null 2>&1 || true
 }
 
 if [ "${1:-load}" = "stop" ]; then
+  cancel_expiry
   remove_container
   status stopped
   exit 0
@@ -44,6 +51,7 @@ fi
 
 trap 'status failed "the load failed; see $dir/restore.log"; remove_container' ERR
 status loading
+cancel_expiry
 remove_container
 
 image="$(docker inspect --format '{{.Config.Image}}' "$live")"
@@ -62,9 +70,9 @@ done
 docker exec "$container" createdb -U postgres staging
 docker exec -i "$container" pg_restore -U postgres --no-owner --no-privileges --exit-on-error -d staging \
   < "$backups/$dump" > "$dir/restore.log" 2>&1
+# The console restores only from a staging database that names the backup it compared.
+docker exec "$container" psql -U postgres -d staging -q -c "CREATE TABLE staging_meta (dump TEXT NOT NULL); INSERT INTO staging_meta VALUES ('$dump');"
 
-systemctl stop ows-staging-expire.timer >/dev/null 2>&1 || true
-systemctl reset-failed ows-staging-expire.timer ows-staging-expire.service >/dev/null 2>&1 || true
 systemd-run --quiet --unit=ows-staging-expire --on-active=2h /usr/local/sbin/ows-stage-backup stop
 stops_at="$(date -u -d '+2 hours' +%FT%TZ)"
 status ready

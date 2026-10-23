@@ -74,6 +74,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                                 ELSE COALESCE(Fields ->> 'qty', '1') || ' x ' || COALESCE(Fields ->> 'item', '?') END AS Text
                     FROM GameEvents
                     WHERE GameEventID > @After AND Event IN ('item_gained', 'currency_changed') AND Fields ->> 'source' = 'staff'
+                      AND (Event = 'item_gained' OR ABS(NULLIF(Fields ->> 'delta', '')::NUMERIC) >= @LargeJuriChange)
                       AND EventTime > NOW() - INTERVAL '1 hour'
                     ORDER BY GameEventID LIMIT 50",
                 "zone_exits" => @"SELECT AuditLogID AS Cursor,
@@ -85,7 +86,7 @@ namespace OWSData.Repositories.Implementations.Postgres
             if (sql == null) return new List<AlertRow>();
 
             await using DbConnection connection = CreateConnection();
-            return (await connection.QueryAsync<AlertRow>(sql, new { After = after })).ToList();
+            return (await connection.QueryAsync<AlertRow>(sql, new { After = after, ConsoleQueriesRepository.LargeJuriChange })).ToList();
         }
 
         /// <summary>Failed saves in the last 10 minutes and the endpoints that failed.</summary>

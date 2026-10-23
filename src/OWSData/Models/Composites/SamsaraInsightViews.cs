@@ -98,7 +98,12 @@ namespace OWSData.Models.Composites
         public double Chance { get; set; }
         public double ExpectedDrops { get; set; }
         public double Variance { get; set; }
+        /// <summary>A deviation for drops that a 0% or 100% chance cannot produce.</summary>
+        public const double ImpossibleDeviation = 99;
+
         /// <summary>Standard deviations between observed and expected drops; null under 50 rolls.</summary>
-        public double? Deviation => Rolls >= 50 && Variance > 0 ? (Drops - ExpectedDrops) / Math.Sqrt(Variance) : null;
+        public double? Deviation => Rolls < 50 ? null
+            : Variance > 0 ? (Drops - ExpectedDrops) / Math.Sqrt(Variance)
+            : Math.Abs(Drops - ExpectedDrops) < 0.5 ? 0 : Math.CopySign(ImpossibleDeviation, Drops - ExpectedDrops);
     }
 }

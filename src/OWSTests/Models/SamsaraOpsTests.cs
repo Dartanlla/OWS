@@ -62,5 +62,16 @@ namespace OWSTests.Models
             row.Rolls = 49;
             Assert.Null(row.Deviation);
         }
+
+        [Fact]
+        public void DropDeviation_FlagsAnyMissAtACertainChance()
+        {
+            // A 100% chance (or one capped there by a rate event) over 60 rolls: one miss is impossible, none is exact.
+            var row = new DropItemRow { Rolls = 60, Drops = 59, ExpectedDrops = 60, Variance = 0 };
+            Assert.Equal(-DropItemRow.ImpossibleDeviation, row.Deviation);
+
+            row.Drops = 60;
+            Assert.Equal(0, row.Deviation);
+        }
     }
 }

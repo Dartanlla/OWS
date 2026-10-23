@@ -10,7 +10,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 {
     /// <summary>
     /// Restores one character from a backup loaded into a staging database. Snapshot reads either side; Restore copies
-    /// the character's rows from staging to live in one transaction: Characters (juri and position), CharStats,
+    /// the character's rows from staging to live in one transaction: Characters (juri, class and position), CharStats,
     /// CharAbilities, CharQuests, its inventories and items, and CustomCharacterData. Other characters, the account,
     /// shops and escrow are not touched.
     /// </summary>
@@ -30,6 +30,8 @@ namespace OWSData.Repositories.Implementations.Postgres
             public List<SnapshotItem> Items { get; set; } = new();
             public List<SnapshotRow> Abilities { get; set; } = new();
             public List<SnapshotRow> Quests { get; set; } = new();
+            /// <summary>Staging only: the backup it was loaded from, or null while a load is not complete.</summary>
+            public string Dump { get; set; }
         }
 
         public class SnapshotItem
@@ -47,7 +49,7 @@ namespace OWSData.Repositories.Implementations.Postgres
             public string Value { get; set; }
         }
 
-        private static readonly string[] CharacterColumns = { "gold", "mapname", "x", "y", "z", "rx", "ry", "rz" };
+        private static readonly string[] CharacterColumns = { "gold", "classid", "mapname", "x", "y", "z", "rx", "ry", "rz" };
 
         private readonly string _live;
         private readonly string _staging;
@@ -82,33 +84,53 @@ namespace OWSData.Repositories.Implementations.Postgres
                 FROM CharAbilities WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID ORDER BY AbilityIDTag", idArgs)).ToList();
             snapshot.Quests = (await connection.QueryAsync<SnapshotRow>(@"SELECT QuestIDTag AS Tag, '' AS Value
                 FROM CharQuests WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID ORDER BY QuestIDTag", idArgs)).ToList();
+            if (fromStaging) snapshot.Dump = await StagingDump(connection, null);
             return snapshot;
+        }
+
+        /// <summary>The backup the loader finished loading (staging_meta, written after pg_restore); null while loading.</summary>
+        private static async Task<string> StagingDump(DbConnection staging, DbTransaction transaction)
+        {
+            try
+            {
+                return await staging.ExecuteScalarAsync<string>("SELECT dump FROM staging_meta LIMIT 1", transaction: transaction);
+            }
+            catch (PostgresException e) when (e.SqlState == PostgresErrorCodes.UndefinedTable)
+            {
+                return null;
+            }
         }
 
         /// <summary>
         /// Null on success, else why not: "not_in_backup", "not_live", "different_character" (the name now belongs to
-        /// another character ID) or "online" (in the world, or sent a position in the last minute).
+        /// another character ID), "online" (in the world, or sent a position in the last minute) or "staging_changed"
+        /// (staging no longer holds the backup that was compared, or is still loading).
         /// </summary>
-        public async Task<string> Restore(Guid customerGUID, string characterName)
+        public async Task<string> Restore(Guid customerGUID, string characterName, string comparedDump)
         {
             string name = characterName?.Trim() ?? "";
             await using NpgsqlConnection staging = new(_staging);
+            await staging.OpenAsync();
+            // One snapshot of staging, checked to be the backup the caller compared.
+            await using NpgsqlTransaction read = await staging.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead);
+            string dump = await StagingDump(staging, read);
+            if (dump == null || dump != comparedDump) return "staging_changed";
             int? stagingID = await staging.ExecuteScalarAsync<int?>(
                 "SELECT CharacterID FROM Characters WHERE CustomerGUID = @CustomerGUID AND LOWER(CharName) = LOWER(@Name)",
-                new { CustomerGUID = customerGUID, Name = name });
+                new { CustomerGUID = customerGUID, Name = name }, read);
             if (!stagingID.HasValue) return "not_in_backup";
 
             var stagingArgs = new { CustomerGUID = customerGUID, CharacterID = stagingID.Value };
             IDictionary<string, object> character = (IDictionary<string, object>)await staging.QueryFirstAsync(
-                "SELECT * FROM Characters WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID", stagingArgs);
-            List<IDictionary<string, object>> stats = await Rows(staging, "CharStats", stagingArgs);
-            List<IDictionary<string, object>> abilities = await Rows(staging, "CharAbilities", stagingArgs);
-            List<IDictionary<string, object>> quests = await Rows(staging, "CharQuests", stagingArgs);
-            List<IDictionary<string, object>> custom = await Rows(staging, "CustomCharacterData", stagingArgs);
-            List<IDictionary<string, object>> inventories = await Rows(staging, "CharInventory", stagingArgs);
+                "SELECT * FROM Characters WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID", stagingArgs, read);
+            List<IDictionary<string, object>> stats = await Rows(staging, read, "CharStats", stagingArgs);
+            List<IDictionary<string, object>> abilities = await Rows(staging, read, "CharAbilities", stagingArgs);
+            List<IDictionary<string, object>> quests = await Rows(staging, read, "CharQuests", stagingArgs);
+            List<IDictionary<string, object>> custom = await Rows(staging, read, "CustomCharacterData", stagingArgs);
+            List<IDictionary<string, object>> inventories = await Rows(staging, read, "CharInventory", stagingArgs);
             List<IDictionary<string, object>> items = (await staging.QueryAsync(@"SELECT CII.* FROM CharInventoryItems CII
                 INNER JOIN CharInventory CI ON CI.CustomerGUID = CII.CustomerGUID AND CI.CharInventoryID = CII.CharInventoryID
-                WHERE CI.CustomerGUID = @CustomerGUID AND CI.CharacterID = @CharacterID", stagingArgs))
+                WHERE CI.CustomerGUID = @CustomerGUID AND CI.CharacterID = @CharacterID", stagingArgs, read))
                 .Cast<IDictionary<string, object>>().ToList();
 
             await using NpgsqlConnection live = new(_live);
@@ -174,9 +196,9 @@ namespace OWSData.Repositories.Implementations.Postgres
             return null;
         }
 
-        private static async Task<List<IDictionary<string, object>>> Rows(NpgsqlConnection connection, string table, object args)
+        private static async Task<List<IDictionary<string, object>>> Rows(NpgsqlConnection connection, NpgsqlTransaction transaction, string table, object args)
         {
-            return (await connection.QueryAsync($"SELECT * FROM {table} WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID", args))
+            return (await connection.QueryAsync($"SELECT * FROM {table} WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID", args, transaction))
                 .Cast<IDictionary<string, object>>().ToList();
         }
 

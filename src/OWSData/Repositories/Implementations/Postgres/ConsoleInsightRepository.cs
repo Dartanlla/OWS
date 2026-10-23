@@ -77,6 +77,9 @@ namespace OWSData.Repositories.Implementations.Postgres
                 LastLeave AS (
                     SELECT DISTINCT ON (CharacterName) CharacterName, EventTime, MapName FROM Sessions
                     WHERE COALESCE(Fields ->> 'reason', '') <> 'zone_travel' ORDER BY CharacterName, EventTime DESC),
+                LastStart AS (
+                    SELECT E.CharacterName, MAX(E.EventTime) AS EventTime FROM GameEvents E INNER JOIN Recent R ON R.CharName = E.CharacterName
+                    WHERE E.CustomerGUID = @CustomerGUID AND E.Event = 'session_started' GROUP BY E.CharacterName),
                 Played AS (
                     SELECT CharacterName, SUM(NULLIF(Fields ->> 'seconds', '')::NUMERIC) / 60.0 AS Minutes FROM Sessions GROUP BY CharacterName),
                 LastQuest AS (
@@ -90,8 +93,10 @@ namespace OWSData.Repositories.Implementations.Postgres
                 LEFT JOIN LastLeave L ON L.CharacterName = R.CharName
                 LEFT JOIN Played P ON P.CharacterName = R.CharName
                 LEFT JOIN LastQuest Q ON Q.CharacterName = R.CharName
+                LEFT JOIN LastStart LS ON LS.CharacterName = R.CharName
                 LEFT JOIN CharStats S ON S.CustomerGUID = @CustomerGUID AND S.CharacterID = R.CharacterID AND S.StatIdentifier = 'BaseLevel'
-                WHERE COALESCE(L.EventTime, R.CreateDate) < NOW() - INTERVAL '3 days'
+                -- A session that never logged its end (a zone crash) still counts as play.
+                WHERE COALESCE(GREATEST(L.EventTime, LS.EventTime), R.CreateDate) < NOW() - INTERVAL '3 days'
                   AND NOT EXISTS (SELECT 1 FROM CharOnMapInstance CMI WHERE CMI.CustomerGUID = @CustomerGUID AND CMI.CharacterID = R.CharacterID)
                 ORDER BY L.EventTime DESC NULLS LAST LIMIT 300", customerGUID);
         }
