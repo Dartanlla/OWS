@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using OWSData.Models.Composites;
@@ -66,6 +67,7 @@ namespace OWSManagement.Controllers
         /// server build still has to contain a level matching MapName, or spin-up will fail.
         /// A ZoneName already in use by another row is rejected.
         /// </remarks>
+        [Authorize(Policy = Auth.ConsoleAuth.Admin)]
         [HttpPost]
         [Route("")]
         [Produces(typeof(SuccessAndErrorMessage))]
@@ -82,6 +84,7 @@ namespace OWSManagement.Controllers
         /// <remarks>
         /// Updates an existing Maps row by MapID. Renaming onto another row's ZoneName is rejected.
         /// </remarks>
+        [Authorize(Policy = Auth.ConsoleAuth.Admin)]
         [HttpPut]
         [Route("")]
         [Produces(typeof(SuccessAndErrorMessage))]
@@ -99,6 +102,7 @@ namespace OWSManagement.Controllers
         /// Removes a Maps row. Refused while MapInstances rows still point at it, since nothing
         /// in the schema cascades and the launcher would be left unable to resolve their name.
         /// </remarks>
+        [Authorize(Policy = Auth.ConsoleAuth.Admin)]
         [HttpDelete]
         [Route("{mapId:int}")]
         [Produces(typeof(SuccessAndErrorMessage))]

@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-    Open the OWS admin console running on the Hetzner dev server.
+    Open Samsara Management, the staff console running on the Hetzner dev server.
 
 .DESCRIPTION
-    The console (owsmanagement) is bound to 127.0.0.1 on the server and has no login of
-    its own, so it is only ever reached over an SSH tunnel. This script:
+    The console (owsmanagement) is bound to 127.0.0.1 on the server and has no TLS, so it is
+    only ever reached over an SSH tunnel. Staff sign in through Steam. This script:
 
       1. optionally pulls origin/main on the server and rebuilds the console image,
       2. starts the console (compose profile "admin", never touching the database),
@@ -142,10 +142,8 @@ try {
 
     $url = "http://localhost:$Port"
     Write-Host ""
-    Write-Host "Admin console ready: $url" -ForegroundColor Green
-    Write-Host "  Settings page first - paste the CustomerGUID, then Test connection." -ForegroundColor DarkGray
-    Write-Host "  Users     -> role (Player / Moderator / GameMaster / Admin)" -ForegroundColor DarkGray
-    Write-Host "  Characters-> per-character IsAdmin / IsModerator toggles" -ForegroundColor DarkGray
+    Write-Host "Samsara Management ready: $url" -ForegroundColor Green
+    Write-Host "  Sign in through Steam with an account whose role is Moderator or higher." -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "Press Ctrl+C to close the tunnel." -ForegroundColor Yellow
     if (-not $KeepRunning) {

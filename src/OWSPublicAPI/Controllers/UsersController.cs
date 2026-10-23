@@ -152,7 +152,7 @@ namespace OWSPublicAPI.Controllers
         {
             Request.Headers.TryGetValue(OWSShared.SamsaraServiceKeyCheck.Header, out var serviceKey);
             request.SetData(_owsGeneralConfig, _usersRepository, _charactersRepository, _customerGuid, _httpClientFactory, _auditRepository,
-                _joinTicketsRepository, OWSShared.SamsaraServiceKeyCheck.IsValid(serviceKey.ToString()));
+                _joinTicketsRepository, OWSShared.SamsaraServiceKeyCheck.IsValid(serviceKey.ToString()), _container.GetInstance<Services.LoginGate>());
             return await request.Handle();
         }
 
@@ -182,7 +182,7 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(PlayerLoginAndCreateSession))]
         public async Task<IActionResult> LoginAndCreateSession([FromBody] LoginAndCreateSessionRequest request)
         {
-            request.SetData(_usersRepository, _customerGuid, _auditRepository);
+            request.SetData(_usersRepository, _customerGuid, _auditRepository, _container.GetInstance<Services.LoginGate>());
             return await request.Handle();
         }
 
@@ -210,7 +210,7 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(PlayerLoginAndCreateSession))]
         public async Task<IActionResult> SteamLoginAndCreateSession([FromBody] SteamLoginAndCreateSessionRequest request)
         {
-            request.SetData(_usersRepository, _steamAuthService, _customerGuid, _auditRepository);
+            request.SetData(_usersRepository, _steamAuthService, _customerGuid, _auditRepository, _container.GetInstance<Services.LoginGate>());
             return await request.Handle();
         }
 

@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
-# Start, stop or inspect the OWS admin console (owsmanagement) on the dev server.
+# Start, stop or inspect Samsara Management (owsmanagement), the staff console, on the dev server.
 #
 # The console is behind the `admin` compose profile, so a plain `up -d` never starts it.
-# It binds to 127.0.0.1 only: its sole credential is the X-CustomerGUID header, which is a
-# tenant identifier the game client already sends on every public call. Reach it with an
-# SSH tunnel, never by opening the port.
+# It binds to 127.0.0.1 only and has no TLS: reach it with an SSH tunnel, never by opening the port.
 #
 # Deliberately uses `--no-deps` for the build/up path so it cannot recreate the `database`
 # container. See the CAUTION in docs/hosting/hetzner-dev.md: recreating Postgres severs
@@ -29,6 +27,7 @@ ACTION="${1:-up}"
 cd "$SRC_DIR"
 if [ ! -f "$ENV_FILE" ]; then echo "!! $ENV_FILE not found in $SRC_DIR" >&2; exit 2; fi
 DC="docker compose --env-file $ENV_FILE -f $COMPOSE_FILE --profile admin"
+export OWS_GIT_COMMIT="${OWS_GIT_COMMIT:-$(git rev-parse --short HEAD 2>/dev/null || true)}"
 
 # The console is a fork-local addition; a server still on an older checkout would silently
 # build nothing and leave a confusing "no such service" error.

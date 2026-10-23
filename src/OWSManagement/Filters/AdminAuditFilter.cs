@@ -15,9 +15,9 @@ using SimpleInjector;
 namespace OWSManagement.Filters
 {
     /// <summary>
-    /// Writes an AuditLog row for every admin console change (any non-GET API action): the route, the arguments with
-    /// passwords removed, the outcome and the caller's IP. The console has no login, so the actor is the console itself;
-    /// through the SSH tunnel the IP is the Docker gateway.
+    /// Writes an AuditLog row for every admin console change (any non-GET API action): the signed-in staff member, the
+    /// route, the arguments with passwords removed, the outcome and the caller's IP. Through the SSH tunnel the IP is the
+    /// Docker gateway.
     /// </summary>
     public class AdminAuditFilter : IAsyncActionFilter
     {
@@ -33,7 +33,7 @@ namespace OWSManagement.Filters
             ActionExecutedContext executed = await next();
 
             HttpRequest request = context.HttpContext.Request;
-            if (HttpMethods.IsGet(request.Method) || HttpMethods.IsHead(request.Method))
+            if (HttpMethods.IsGet(request.Method) || HttpMethods.IsHead(request.Method) || request.Path.StartsWithSegments("/api/auth"))
             {
                 return;
             }
@@ -52,7 +52,7 @@ namespace OWSManagement.Filters
             await _container.GetInstance<IAuditRepository>().Add(
                 _container.GetInstance<IHeaderCustomerGUID>().CustomerGUID,
                 "management",
-                "admin-console",
+                Auth.ConsoleAuth.Actor(context.HttpContext.User),
                 "admin_change",
                 $"{request.Method} {request.Path}",
                 detail.ToJsonString(),

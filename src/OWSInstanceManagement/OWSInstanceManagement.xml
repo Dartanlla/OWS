@@ -119,7 +119,8 @@
         <member name="T:OWSInstanceManagement.Requests.Instance.ZoneProcessExitedRequest">
             <summary>
             The instance launcher reports that a zone server process it started has exited. Logs
-            zone_process_exited, which the Grafana alert reads when Expected is false.
+            zone_process_exited, which the Grafana alert reads when Expected is false. An unexpected exit also gets a
+            zone_exit AuditLog row, which the staff console shows on its Overview.
             </summary>
         </member>
     </members>

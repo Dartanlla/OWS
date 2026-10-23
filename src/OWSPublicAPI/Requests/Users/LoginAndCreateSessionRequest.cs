@@ -19,9 +19,11 @@ namespace OWSPublicAPI.Requests.Users
         private Guid customerGUID;
         private IUsersRepository usersRepository;
         private IAuditRepository auditRepository;
+        private Services.LoginGate loginGate;
 
-        public void SetData(IUsersRepository usersRepository, IHeaderCustomerGUID customerGuid, IAuditRepository auditRepository)
+        public void SetData(IUsersRepository usersRepository, IHeaderCustomerGUID customerGuid, IAuditRepository auditRepository, Services.LoginGate loginGate)
         {
+            this.loginGate = loginGate;
             //CustomerGUID = new Guid("56FB0902-6FE7-4BFE-B680-E3C8E497F016");
             this.customerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
@@ -47,8 +49,18 @@ namespace OWSPublicAPI.Requests.Users
                 output.ErrorMessage = "Invalid email or password";
             }
 
-            // No email in the log, which leaves the box; the audit row, in our own database, keeps it.
             string result = loggedIn ? "ok" : "refused";
+            if (loggedIn)
+            {
+                (string refusal, string message) = await loginGate.RefusalForSession(customerGUID, output.UserSessionGuid.Value, checkMaintenance: true);
+                if (refusal != null)
+                {
+                    output = new PlayerLoginAndCreateSession { Authenticated = false, UserSessionGuid = Guid.Empty, ErrorMessage = message };
+                    result = refusal;
+                }
+            }
+
+            // No email in the log, which leaves the box; the audit row, in our own database, keeps it.
             Log.Information("user_login {Method} {Result} session {UserSessionGuid}", "password", result, output.UserSessionGuid);
             await auditRepository.Add(customerGUID, "publicapi", Email, "user_login", "password",
                 new { method = "password", result, userSessionGuid = output.UserSessionGuid });

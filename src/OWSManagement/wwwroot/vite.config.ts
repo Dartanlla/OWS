@@ -15,6 +15,7 @@ export default defineConfig({
         https: false,
         strictPort: true,
         proxy: {
+            '/auth': { target: 'http://localhost:5205', changeOrigin: false },
             '/api': {
                 target: 'http://localhost:5205',
                 changeOrigin: true,

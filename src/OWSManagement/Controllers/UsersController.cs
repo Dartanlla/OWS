@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using OWSData.Models;
@@ -75,6 +76,7 @@ namespace OWSManagement.Controllers
         /// <remarks>
         /// Adds a new user
         /// </remarks>
+        [Authorize(Policy = Auth.ConsoleAuth.Admin)]
         [HttpPost]
         [Route("")]
         [Produces(typeof(SuccessAndErrorMessage))]
@@ -95,6 +97,7 @@ namespace OWSManagement.Controllers
         /// so this is a fan-out, and characters with a NULL UserGUID cannot be reached by it.
         /// Use the Characters page to set it on one character at a time.
         /// </remarks>
+        [Authorize(Policy = Auth.ConsoleAuth.Admin)]
         [HttpPut]
         [Route("NetworkTestFlag")]
         [Produces(typeof(SuccessAndErrorMessage))]
@@ -111,6 +114,7 @@ namespace OWSManagement.Controllers
         /// <remarks>
         /// Edit an existing user.  Don't allow editing of the password.
         /// </remarks>
+        [Authorize(Policy = Auth.ConsoleAuth.Admin)]
         [HttpPut]
         [Route("")]
         [Produces(typeof(SuccessAndErrorMessage))]

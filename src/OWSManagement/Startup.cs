@@ -1,20 +1,21 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using OWSData.Health;
 using OWSData.Repositories.Interfaces;
-using OWSShared.Implementations;
+using OWSManagement.Auth;
 using OWSShared.Interfaces;
-using OWSShared.Middleware;
 using SimpleInjector;
 using System;
 using System.IO;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace OWSManagement
 {
@@ -36,13 +37,36 @@ namespace OWSManagement
 
         public void ConfigureServices(IServiceCollection services)
         {
-
+            // The keys sign the console's session cookies; keep them on a volume so a container restart keeps everyone signed in.
             services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo("./temp/DataProtection-Keys"));
             services.AddHealthChecks().AddOWSPostgres(Configuration);
 
             services.AddMemoryCache();
 
             services.AddHttpContextAccessor();
+
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.Cookie.Name = ConsoleAuth.CookieName;
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.SameSite = SameSiteMode.Strict;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                    options.ExpireTimeSpan = TimeSpan.FromHours(12);
+                    options.SlidingExpiration = true;
+                    options.Events.OnRedirectToLogin = context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        return Task.CompletedTask;
+                    };
+                    options.Events.OnRedirectToAccessDenied = context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        return Task.CompletedTask;
+                    };
+                    options.Events.OnValidatePrincipal = context => ConsoleAuth.ValidatePrincipal(context, container);
+                });
+            services.AddAuthorization(ConsoleAuth.AddPolicies);
 
             services.AddControllers(options => options.Filters.Add(new Filters.AdminAuditFilter(container)));
 
@@ -56,6 +80,7 @@ namespace OWSManagement
 
             var owsManagementOptions = new OWSShared.Options.ManagementOptions();
             Configuration.GetSection(OWSShared.Options.ManagementOptions.SectionName).Bind(owsManagementOptions);
+            OWSData.Repositories.Implementations.Postgres.ConsoleQueriesRepository.LargeJuriChange = owsManagementOptions.LargeJuriChange;
 
             var apiPathOptions = new OWSShared.Options.APIPathOptions();
             Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName).Bind(apiPathOptions);
@@ -63,59 +88,52 @@ namespace OWSManagement
             services.AddSpaStaticFiles(options => options.RootPath = "wwwroot/dist");
 
             services.AddSwaggerGen(c => {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Open World Server Management API", Version = "v1" });
-
-                c.AddSecurityDefinition("X-CustomerGUID", new OpenApiSecurityScheme
-                {
-                    Description = "Authorization header using the X-CustomerGUID scheme",
-                    Name = "X-CustomerGUID",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "X-CustomerGUID"
-                });
-
-                c.OperationFilter<SwaggerSecurityRequirementsDocumentFilter>();
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Samsara Management API", Version = "v1" });
 
                 var filePath = Path.Combine(System.AppContext.BaseDirectory, "OWSManagement.xml");
                 c.IncludeXmlComments(filePath);
             });
 
-            services.AddHttpClient("OWSPublicApi", c =>
+            services.AddHttpClient("SteamOpenId", c => c.Timeout = TimeSpan.FromSeconds(10));
+            services.AddHttpClient("Health", c => c.Timeout = TimeSpan.FromSeconds(5));
+            services.AddHttpClient("OWSInstanceManagement", c =>
             {
-                c.BaseAddress = new Uri(apiPathOptions.InternalPublicApiURL);
+                c.BaseAddress = new Uri(apiPathOptions.InternalInstanceManagementApiURL ?? "http://owsinstancemanagement/");
                 c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 c.DefaultRequestHeaders.Add("User-Agent", "OWSManagement");
-                c.DefaultRequestHeaders.Add("X-CustomerGUID", owsManagementOptions.OWSAPIKey);
             });
 
             services.Configure<OWSShared.Options.StorageOptions>(Configuration.GetSection(OWSShared.Options.StorageOptions.SectionName));
 
-            InitializeContainer(services);
-
+            InitializeContainer(services, owsManagementOptions);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-
             app.UseSimpleInjector(container);
 
             app.UseHealthChecks("/health");
-            // The SPA's static assets are served from this same pipeline; only the REST API needs the key.
-            StoreCustomerGUIDMiddleware.ProtectedPathPrefixes = new[] { "/api" };
-            app.UseMiddleware<StoreCustomerGUIDMiddleware>(container);
 
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
+            if (env.IsDevelopment())
             {
-                c.SwaggerEndpoint("./v1/swagger.json", "Open World Server Management API");
-            });
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("./v1/swagger.json", "Samsara Management API");
+                });
+            }
 
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
             app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.Use(ConsoleAuth.RequireCsrfHeader);
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            // Every API action needs Moderator unless it says otherwise. Not a FallbackPolicy: that would also lock the SPA's
+            // own page, which has to load to show the sign-in button.
+            app.UseEndpoints(endpoints => { endpoints.MapControllers().RequireAuthorization(ConsoleAuth.Moderator); });
             app.UseSpa(spa =>
             {
                 if (!env.IsDevelopment())
@@ -123,11 +141,11 @@ namespace OWSManagement
                     spa.Options.SourcePath = "wwwroot/dist";
                 }
             });
-            
+
             container.Verify();
         }
 
-        private void InitializeContainer(IServiceCollection services)
+        private void InitializeContainer(IServiceCollection services, OWSShared.Options.ManagementOptions managementOptions)
         {
             var OWSStorageConfig = Configuration.GetSection("OWSStorageConfig");
             if (OWSStorageConfig.Exists())
@@ -147,12 +165,18 @@ namespace OWSManagement
                         container.Register<IInstanceManagementRepository, OWSData.Repositories.Implementations.MSSQL.InstanceManagementRepository>(Lifestyle.Transient);
                         break;
                 }
-                // AuditLog is Postgres-only, like player shops.
+                // The console's own tables, AuditLog and player shops are Postgres-only.
                 container.Register<IAuditRepository, OWSData.Repositories.Implementations.Postgres.AuditRepository>(Lifestyle.Transient);
+                container.Register<IConsoleQueriesRepository, OWSData.Repositories.Implementations.Postgres.ConsoleQueriesRepository>(Lifestyle.Transient);
+                container.Register<ISanctionsRepository, OWSData.Repositories.Implementations.Postgres.SanctionsRepository>(Lifestyle.Transient);
+                container.Register<IZoneOpsRepository, OWSData.Repositories.Implementations.Postgres.ZoneOpsRepository>(Lifestyle.Transient);
+                container.Register<IChatLogRepository, OWSData.Repositories.Implementations.Postgres.ChatLogRepository>(Lifestyle.Transient);
+                container.Register<IConsoleSettingsRepository, OWSData.Repositories.Implementations.Postgres.ConsoleSettingsRepository>(Lifestyle.Transient);
+                container.Register<IPlayerShopsRepository, OWSData.Repositories.Implementations.Postgres.PlayerShopsRepository>(Lifestyle.Transient);
             }
 
-            container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
-
+            container.RegisterSingleton(() => new ConsoleCustomer(managementOptions.CustomerGUID, container.GetInstance<IConsoleQueriesRepository>()));
+            container.Register<IHeaderCustomerGUID, ConsoleCustomerGUID>(Lifestyle.Singleton);
         }
     }
 }

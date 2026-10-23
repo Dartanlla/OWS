@@ -17,12 +17,12 @@ namespace OWSManagement.Controllers
     public class AuditController : Controller
     {
         private readonly IHeaderCustomerGUID _customerGuid;
-        private readonly IAuditRepository _auditRepository;
+        private readonly IConsoleQueriesRepository _queries;
 
-        public AuditController(IHeaderCustomerGUID customerGuid, IAuditRepository auditRepository)
+        public AuditController(IHeaderCustomerGUID customerGuid, IConsoleQueriesRepository queries)
         {
             _customerGuid = customerGuid;
-            _auditRepository = auditRepository;
+            _queries = queries;
         }
 
         public override void OnActionExecuting(ActionExecutingContext context)
@@ -37,14 +37,16 @@ namespace OWSManagement.Controllers
         /// List Audit Entries
         /// </summary>
         /// <remarks>
-        /// Newest first. search matches the actor, action or target (case-insensitive substring); limit is 1-1000.
+        /// Newest first. source and action match exactly when given; search matches the actor, target or detail
+        /// (case-insensitive substring); limit is 1-1000.
         /// </remarks>
         [HttpGet]
         [Route("")]
         [Produces(typeof(IEnumerable<AuditEntry>))]
-        public async Task<IEnumerable<AuditEntry>> Get([FromQuery] string search, [FromQuery] int limit = 200)
+        public async Task<IEnumerable<AuditEntry>> Get([FromQuery] string search, [FromQuery] string source, [FromQuery] string action,
+            [FromQuery] int limit = 200)
         {
-            return await _auditRepository.GetRecent(_customerGuid.CustomerGUID, limit, search);
+            return await _queries.GetAudit(_customerGuid.CustomerGUID, source, action, search, limit);
         }
     }
 }

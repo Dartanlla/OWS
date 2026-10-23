@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using OWSData.Models.Composites;
@@ -88,6 +89,7 @@ namespace OWSManagement.Controllers
         /// IsInternalNetworkTestUser is read server-side on every connect: it makes
         /// GetServerToConnectTo hand back 127.0.0.1 instead of the zone server's real IP.
         /// </remarks>
+        [Authorize(Policy = Auth.ConsoleAuth.Admin)]
         [HttpPut]
         [Route("Flags")]
         [Produces(typeof(SuccessAndErrorMessage))]

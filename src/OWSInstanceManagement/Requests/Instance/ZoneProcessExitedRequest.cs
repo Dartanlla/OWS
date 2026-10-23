@@ -12,7 +12,8 @@ namespace OWSInstanceManagement.Requests.Instance
 {
     /// <summary>
     /// The instance launcher reports that a zone server process it started has exited. Logs
-    /// zone_process_exited, which the Grafana alert reads when Expected is false.
+    /// zone_process_exited, which the Grafana alert reads when Expected is false. An unexpected exit also gets a
+    /// zone_exit AuditLog row, which the staff console shows on its Overview.
     /// </summary>
     public class ZoneProcessExitedRequest
     {
@@ -20,11 +21,13 @@ namespace OWSInstanceManagement.Requests.Instance
 
         private IInstanceManagementRepository _instanceManagementRepository;
         private Guid _customerGUID;
+        private IAuditRepository _auditRepository;
 
-        public void SetData(IInstanceManagementRepository instanceManagementRepository, IHeaderCustomerGUID customerGuid)
+        public void SetData(IInstanceManagementRepository instanceManagementRepository, IHeaderCustomerGUID customerGuid, IAuditRepository auditRepository)
         {
             _instanceManagementRepository = instanceManagementRepository;
             _customerGUID = customerGuid.CustomerGUID;
+            _auditRepository = auditRepository;
         }
 
         public async Task<IActionResult> Handle()
@@ -40,6 +43,8 @@ namespace OWSInstanceManagement.Requests.Instance
             else
             {
                 Log.Warning(template, request.ZoneInstanceID, request.MapName, request.Port, request.ExitCode, expected);
+                await _auditRepository.Add(_customerGUID, "instancemanagement", "launcher", "zone_exit", request.MapName,
+                    new { zoneInstanceId = request.ZoneInstanceID, port = request.Port, exitCode = request.ExitCode });
             }
 
             return new OkObjectResult(new SuccessAndErrorMessage { Success = true, ErrorMessage = "" });

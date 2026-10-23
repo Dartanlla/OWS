@@ -1,7 +1,11 @@
 import { createApp } from 'vue';
-import './style.css';
+import './styles.css';
 import App from './App.vue';
 import router from './router';
-import { vuetify } from './plugins/vuetify';
 
-createApp(App).use(router).use(vuetify).mount('#app');
+router.afterEach((to) => {
+	const title = (to.meta.title as string) || '';
+	document.title = title ? `${title} · Samsara Management` : 'Samsara Management';
+});
+
+createApp(App).use(router).mount('#app');

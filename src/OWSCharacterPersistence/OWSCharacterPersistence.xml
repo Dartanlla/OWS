@@ -12,10 +12,17 @@
         </member>
         <member name="T:OWSCharacterPersistence.Controllers.SamsaraServiceKey">
             <summary>
-            The zone servers' server-to-server key (X-Samsara-Service-Key), read from a server-only env var and never present
-            in client configs. Fail closed: outside the Development environment, an unset key rejects every request rather than
-            opening the gate, so a missing env var on a deploy surfaces as 401s.
+            The X-Samsara-Service-Key check (<see cref="T:OWSShared.SamsaraServiceKeyCheck"/>) for a controller's request.
             </summary>
+        </member>
+        <member name="T:OWSCharacterPersistence.Controllers.SanctionsController">
+            <summary>
+            Account bans, mutes and warnings for the in-game staff commands and the zone server's login check. A character
+            name resolves to its account, so a sanction covers every character on it. Service key only.
+            </summary>
+        </member>
+        <member name="P:OWSCharacterPersistence.Controllers.SanctionsController.AddRequest.Minutes">
+            <summary>Ban and mute only; 0 or less is permanent.</summary>
         </member>
         <member name="T:OWSCharacterPersistence.Controllers.SystemController">
             <summary>
@@ -32,6 +39,12 @@
             <remarks>
             Get the Api Status and return true
             </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Controllers.ZoneSyncController">
+            <summary>
+            A zone server's 5 s check-in with the staff console: it sends its queued game events and the results of the
+            commands it ran, and gets its pending commands and the message of the day. Service key only.
+            </summary>
         </member>
         <member name="T:OWSCharacterPersistence.Requests.Characters.GetCustomDataRequest">
             <summary>
@@ -72,6 +85,12 @@
             <remarks>
             Overrides IRequestHandler Handle().
             </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Characters.IOwnedCharacterWrite">
+            <summary>
+            A zone save for one character. Once the character has an owner (CharacterOwners), CharactersController refuses
+            it with stale_owner unless OwnerToken is the current owner's token.
+            </summary>
         </member>
     </members>
 </doc>

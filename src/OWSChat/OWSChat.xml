@@ -4,6 +4,15 @@
         <name>OWSChat</name>
     </assembly>
     <members>
+        <member name="T:OWSChat.Service.ChatLogWriter">
+            <summary>
+            Writes ChatLog off the send path: messages queue in memory and go to the database in batches every 2 s. A full
+            queue drops the oldest lines rather than slowing chat down.
+            </summary>
+        </member>
+        <member name="M:OWSChat.Service.ChatService.GetActiveMute(OWSChat.Service.ChatService.Client)">
+            <summary>The sender's active mute, re-read from AccountSanctions at most every 30 s.</summary>
+        </member>
         <member name="T:Program">
             <summary>
             Auto-generated public partial Program class for top-level statement apps.

@@ -4,6 +4,8 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using ChatServiceApp.Protos;
 using Grpc.Core;
+using OWSData.Models.Composites;
+using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Grpc;
 
@@ -11,9 +13,15 @@ namespace OWSChat.Service
 {
     public class ChatService : ChatApp.ChatAppBase
     {
+        private static readonly TimeSpan MuteRecheckInterval = TimeSpan.FromSeconds(30);
+
         private sealed class Client
         {
             public string Name;
+            public Guid? CustomerGuid;
+            public Guid? UserGuid;
+            public Sanction Mute;
+            public DateTime MuteCheckedAt = DateTime.MinValue;
             public Channel<ServerMessage> Outbox = Channel.CreateBounded<ServerMessage>(new BoundedChannelOptions(128)
             {
                 SingleReader = true,
@@ -26,10 +34,14 @@ namespace OWSChat.Service
             = new ConcurrentDictionary<IServerStreamWriter<ServerMessage>, Client>();
 
         private readonly IUsersRepository _usersRepository;
+        private readonly ISanctionsRepository _sanctionsRepository;
+        private readonly ChatLogWriter _chatLog;
 
-        public ChatService(IUsersRepository usersRepository)
+        public ChatService(IUsersRepository usersRepository, ISanctionsRepository sanctionsRepository, ChatLogWriter chatLog)
         {
             _usersRepository = usersRepository;
+            _sanctionsRepository = sanctionsRepository;
+            _chatLog = chatLog;
         }
 
         public override async Task Chat(
@@ -45,10 +57,13 @@ namespace OWSChat.Service
 
             // With session auth on, the stream speaks as the session's character, not the name the client sends.
             string sessionCharacterName = null;
+            GetUserSession session = null;
+            Guid customerGuid = Guid.Empty;
             if (GrpcSessionAuth.IsRequired)
             {
-                sessionCharacterName = await GetSessionCharacterName(context);
-                if (sessionCharacterName == null)
+                (session, customerGuid) = await GetSession(context);
+                sessionCharacterName = session?.SelectedCharacterName?.Trim();
+                if (string.IsNullOrEmpty(sessionCharacterName))
                     throw new RpcException(new Status(StatusCode.Unauthenticated, "Invalid session for chat."));
             }
 
@@ -60,7 +75,12 @@ namespace OWSChat.Service
             if (string.IsNullOrWhiteSpace(first.PlayerName))
                 return;
 
-            var me = new Client { Name = sessionCharacterName ?? first.PlayerName.Trim() };
+            var me = new Client
+            {
+                Name = sessionCharacterName ?? first.PlayerName.Trim(),
+                CustomerGuid = session != null ? customerGuid : null,
+                UserGuid = session?.UserGuid
+            };
             _clients.TryAdd(responseStream, me);
 
             // Per-connection message rate limit; over-limit messages are dropped, not broadcast.
@@ -97,33 +117,68 @@ namespace OWSChat.Service
             }
         }
 
-        private async Task<string> GetSessionCharacterName(ServerCallContext context)
+        private async Task<(GetUserSession Session, Guid CustomerGuid)> GetSession(ServerCallContext context)
         {
             if (!GrpcSessionAuth.TryReadCredentials(context, out Guid customerGuid, out Guid userSessionGuid))
-                return null;
+                return (null, Guid.Empty);
 
             var session = await _usersRepository.GetUserSession(customerGuid, userSessionGuid);
             if (session == null || !session.UserGuid.HasValue)
-                return null;
+                return (null, Guid.Empty);
 
-            string name = session.SelectedCharacterName?.Trim();
-            return string.IsNullOrEmpty(name) ? null : name;
+            return (session, customerGuid);
         }
 
-        private Task BroadcastFrom(ClientMessage incoming, Client sender)
+        /// <summary>The sender's active mute, re-read from AccountSanctions at most every 30 s.</summary>
+        private async Task<Sanction> GetActiveMute(Client sender)
+        {
+            if (!sender.UserGuid.HasValue || !sender.CustomerGuid.HasValue)
+                return null;
+
+            if (DateTime.UtcNow - sender.MuteCheckedAt > MuteRecheckInterval)
+            {
+                try
+                {
+                    sender.Mute = (await _sanctionsRepository.GetActive(sender.CustomerGuid.Value, sender.UserGuid.Value)).Mute;
+                    sender.MuteCheckedAt = DateTime.UtcNow;
+                }
+                catch (Exception)
+                {
+                    // Keep the last known state; the next message retries.
+                }
+            }
+
+            Sanction mute = sender.Mute;
+            return mute != null && (!mute.ExpiresAt.HasValue || mute.ExpiresAt.Value > DateTime.UtcNow) ? mute : null;
+        }
+
+        private async Task BroadcastFrom(ClientMessage incoming, Client sender)
         {
             if (incoming.Chat == null)
-                return Task.CompletedTask;
+                return;
 
             var text = incoming.Chat.Text?.Trim();
             if (string.IsNullOrWhiteSpace(text))
-                return Task.CompletedTask;
+                return;
 
             var messageType = incoming.MesssageType;
             var recipientName = incoming.Chat.RecipientName?.Trim();
 
             if (messageType == ChatType.MessageTypeWhisper && string.IsNullOrWhiteSpace(recipientName))
-                return Task.CompletedTask;
+                return;
+
+            Sanction mute = await GetActiveMute(sender);
+            LogChat(sender, messageType, recipientName, text, dropped: mute != null);
+            if (mute != null)
+            {
+                sender.Outbox.Writer.TryWrite(new ServerMessage
+                {
+                    MessageType = ChatType.MessageTypeGeneral,
+                    PlayerName = "[Server]",
+                    Chat = new ServerMessageChat { Now = DateTime.UtcNow.ToString("O"), Text = mute.PlayerMessage() }
+                });
+                return;
+            }
 
             var outgoing = new ServerMessage
             {
@@ -149,8 +204,31 @@ namespace OWSChat.Service
 
                 client.Outbox.Writer.TryWrite(outgoing);
             }
+        }
 
-            return Task.CompletedTask;
+        private void LogChat(Client sender, ChatType messageType, string recipientName, string text, bool dropped)
+        {
+            if (!sender.CustomerGuid.HasValue)
+                return;
+
+            _chatLog.Enqueue(new ChatLogEntry
+            {
+                CustomerGUID = sender.CustomerGuid.Value,
+                CreateDate = DateTime.UtcNow,
+                Channel = messageType switch
+                {
+                    ChatType.MessageTypeTrade => "trade",
+                    ChatType.MessageTypeGuild => "guild",
+                    ChatType.MessageTypeParty => "party",
+                    ChatType.MessageTypeWhisper => "whisper",
+                    _ => "general"
+                },
+                SenderName = sender.Name,
+                SenderUserGUID = sender.UserGuid,
+                TargetName = messageType == ChatType.MessageTypeWhisper ? recipientName : null,
+                Message = text.Length > 2000 ? text.Substring(0, 2000) : text,
+                Dropped = dropped
+            });
         }
     }
 }

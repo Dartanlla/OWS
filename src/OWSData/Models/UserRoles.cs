@@ -57,5 +57,19 @@ namespace OWSData.Models
         {
             return TryNormalize(role, out string normalized) ? normalized : Player;
         }
+
+        /// <summary>Player 0, Moderator 1, GameMaster 2, Admin 3; anything unknown ranks as Player.</summary>
+        public static int Rank(string role)
+        {
+            return NormalizeOrDefault(role) switch
+            {
+                Moderator => 1,
+                GameMaster => 2,
+                Admin => 3,
+                _ => 0
+            };
+        }
+
+        public static bool IsStaff(string role) => Rank(role) >= 1;
     }
 }

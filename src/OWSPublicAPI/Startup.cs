@@ -233,6 +233,9 @@ namespace OWSPublicAPI
                 // AuditLog and join tickets are Postgres-only, like player shops.
                 container.Register<IAuditRepository, OWSData.Repositories.Implementations.Postgres.AuditRepository>(Lifestyle.Transient);
                 container.Register<IJoinTicketsRepository, OWSData.Repositories.Implementations.Postgres.JoinTicketsRepository>(Lifestyle.Transient);
+                container.Register<ISanctionsRepository, OWSData.Repositories.Implementations.Postgres.SanctionsRepository>(Lifestyle.Transient);
+                container.Register<IConsoleSettingsRepository, OWSData.Repositories.Implementations.Postgres.ConsoleSettingsRepository>(Lifestyle.Transient);
+                container.Register<Services.LoginGate>(Lifestyle.Transient);
             }
 
             container.RegisterSingleton<IUserSessionRepository, OWSData.Repositories.Implementations.ValKey.UserSessionRepository>();

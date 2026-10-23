@@ -926,11 +926,11 @@ namespace OWSData.Repositories.Implementations.Postgres
                     parameters,
                     commandType: CommandType.Text);
 
-                outputCharacter.CharInventory = await Connection.QueryAsync<CharacterInventory>(GenericQueries.GetCharInventoryByCharName,
+                outputCharacter.CharInventory = await Connection.QueryAsync<CharacterInventory>(PostgresQueries.GetCharInventoryByCharName,
                     parameters,
                     commandType: CommandType.Text);
 
-                outputCharacter.CharCurrency = await Connection.QueryAsync<CharacterCurrency>(GenericQueries.GetCharInventoryByCharName,
+                outputCharacter.CharCurrency = await Connection.QueryAsync<CharacterCurrency>(PostgresQueries.GetCharInventoryByCharName,
                     parameters,
                     commandType: CommandType.Text);
             }
@@ -993,7 +993,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
                 parameters.Add("@CharInventoryID", InventoryIDs.First());
 
-                outputCharacter = await Connection.QueryAsync<GetCharInventoryByCharName>(GenericQueries.GetCharInventoryByCharName,
+                outputCharacter = await Connection.QueryAsync<GetCharInventoryByCharName>(PostgresQueries.GetCharInventoryByCharName,
                     parameters,
                     commandType: CommandType.Text);
             }
@@ -1069,7 +1069,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
                 foreach (UpdateCharacterInventory inventoryItem in updateCharacterInventory ?? Enumerable.Empty<UpdateCharacterInventory>())
                 {
-                    await conn.ExecuteAsync(GenericQueries.UpdateCharacterInventory,
+                    await conn.ExecuteAsync(PostgresQueries.InsertCharacterInventoryItem,
                         new
                         {
                             CustomerGUID = customerGUID,
@@ -1077,7 +1077,8 @@ namespace OWSData.Repositories.Implementations.Postgres
                             inventoryItem.ItemIDTag,
                             inventoryItem.Quantity,
                             inventoryItem.InSlotNumber,
-                            inventoryItem.CustomData
+                            inventoryItem.CustomData,
+                            InstanceId = inventoryItem.ParsedInstanceId
                         },
                         transaction: tx, commandType: CommandType.Text);
                 }

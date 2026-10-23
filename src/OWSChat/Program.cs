@@ -55,6 +55,10 @@ if (builder.Configuration.GetValue<string>("OWSStorageConfig:OWSDBBackend") == "
     container.Register<IUsersRepository, OWSData.Repositories.Implementations.Postgres.UsersRepository>(Lifestyle.Transient);
 else
     container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Transient);
+// Sanctions and the chat log are Postgres-only.
+container.Register<ISanctionsRepository, OWSData.Repositories.Implementations.Postgres.SanctionsRepository>(Lifestyle.Transient);
+container.Register<IChatLogRepository, OWSData.Repositories.Implementations.Postgres.ChatLogRepository>(Lifestyle.Singleton);
+container.Register<ChatLogWriter>(Lifestyle.Singleton);
 
 builder.WebHost.ConfigureKestrel(options =>
 {

@@ -46,6 +46,7 @@ namespace OWSData.Models.Composites
         public int Quantity { get; set; }
         public int InSlotNumber { get; set; }
         public string CustomData { get; set; }
+        public string InstanceId { get; set; }
     }
 
     public class CharacterCurrency

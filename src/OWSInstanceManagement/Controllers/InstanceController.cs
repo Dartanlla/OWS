@@ -238,7 +238,7 @@ namespace OWSInstanceManagement.Controllers
         [Produces(typeof(SuccessAndErrorMessage))]
         public async Task<IActionResult> ZoneProcessExited([FromBody] ZoneProcessExitedRequest request)
         {
-            request.SetData(_instanceManagementRepository, _customerGuid);
+            request.SetData(_instanceManagementRepository, _customerGuid, _container.GetInstance<IAuditRepository>());
 
             return await request.Handle();
         }

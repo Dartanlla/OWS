@@ -102,26 +102,45 @@ docker compose --env-file .env.hetzner-dev -f docker-compose.hetzner-dev.yml ps
 docker compose --env-file .env.hetzner-dev -f docker-compose.hetzner-dev.yml logs -f owspublicapi
 ```
 
-## Admin Console
+## Admin Console (Samsara Management)
 
-`owsmanagement` serves a REST API plus a Vue SPA for editing accounts and characters:
-account role (`Users.Role`), and the per-character `IsAdmin` / `IsModerator` flags the game
-client reads at login. No schema change is involved — every column it writes already exists.
-Its Zone Instances page (`GET /api/Instances`) lists every `mapinstances` row with its region, status,
-players, the characters on it, and the load its zone server last reported in the heartbeat (world-tick
-ms average / worst, CPU in percent of one core, memory, uptime, build; `dev` is an unstamped build), and refreshes
-every 10 s. Its Audit Log page (`GET /api/Audit?search=&limit=`) lists the newest `AuditLog` rows, searchable by
-actor, action and target (see Audit log, below). Every change made through the console writes one.
+`owsmanagement` serves Samsara Management, the staff console: a REST API plus a Vue SPA. Pages:
 
-It sits behind the `admin` compose profile, so a plain `up -d` never starts it. Two reasons:
-the other services already reserve 3328 MB of a 4 GB host, and the console is occasional-use.
+| Page | What it shows and does |
+| --- | --- |
+| Overview | Players online, zones up, today's logins and new characters, 24 h signals (failed saves, rejected requests, large juri changes, zone crashes, duplicate items), each zone server's heartbeat load and build |
+| Players | Search accounts and characters; account page (sanctions, notes, logins, role); character page (items with refine and cards, ledger of game events, chat, quests, trades, zone commands, stats) |
+| Moderation | Active bans and mutes, in-game staff commands, chat search |
+| Economy | Juri held and its flows by source, item census, possible duplicates, player shop health |
+| World | Broadcast to every zone, message of the day, logins open or closed, region status, instances, zone config |
+| Audit, System | `AuditLog` with filters; service health, newest backup, migrations |
 
-> **It has no login.** Its only credential is the `X-CustomerGUID` header, which
-> `StoreCustomerGUIDMiddleware` checks for a parseable GUID and nothing more — and the game
-> client already sends that same GUID on every public call. Anyone who can reach the port can
-> edit every account in the customer. It is therefore bound to `127.0.0.1` with no
-> `OWS_API_BIND` escape hatch. **Do not** add it to the Caddy proxy or move it off loopback
-> until it has a real admin credential.
+**Sign-in.** Staff sign in through Steam (OpenID 2.0, checked with Steam's `check_authentication`). The Steam ID must
+match `Users.SteamId` of an account whose `Users.Role` is Moderator, GameMaster or Admin; the role is re-read every
+60 s. Actions follow the in-game command roles: Moderator reads everything, kicks, warns, mutes and adds notes;
+GameMaster also gives items and juri, unsticks and broadcasts; Admin also bans, sets roles, closes logins, stops
+instances and edits zones. Every write needs the `X-Samsara-Console` header and writes an `admin_change` audit row
+with the staff member's name and Steam ID.
+
+**Bans and mutes** live in `AccountSanctions`, on the account. PublicAPI refuses a banned login (Steam and
+password) and `GetServerToConnectTo`; OWSChat drops a muted sender's messages (needs `OWS_GRPC_REQUIRE_SESSION_AUTH`).
+The in-game `/ban`, `/mute` and `/warn` write the same table through CharacterPersistence `api/Sanctions`.
+
+**Zone commands.** Kick, mute, warn, announce, unstuck and gifts go into `ZoneCommands`. Each zone server picks up
+its own, and those for characters online on it, every 5 s through CharacterPersistence `api/ZoneSync` (service key),
+which also takes the zone's game events into `GameEvents` and returns the message of the day.
+
+**Switches** (`ConsoleSettings`): `motd`, `logins_open` (`false` refuses logins below Moderator) and
+`region_status:<Region>`, which overrides that region's status on the login screen's server list.
+
+**Retention**: `PurgeSamsaraLogs()` (run by `ows-pie-purge.timer`) keeps game events 180 days, chat 30 days and
+finished zone commands 30 days.
+
+It sits behind the `admin` compose profile, so a plain `up -d` never starts it: the other services already reserve
+3328 MB of a 4 GB host. It stays bound to `127.0.0.1` behind the SSH tunnel; moving it onto the Caddy proxy needs a
+domain and TLS first. Optional `.env.hetzner-dev` keys: `OWS_CUSTOMER_GUID` (else the only `Customers` row),
+`OWS_GRAFANA_URL` and `OWS_SENTRY_URL` (links on the System page). `admin-console.sh` passes the checkout's commit
+as `OWS_GIT_COMMIT`, the version the System page shows.
 
 From your Windows PC — starts it, tunnels, opens the browser, and stops it again on Ctrl+C.
 Double-click one of these in `scripts/hetzner/`:
@@ -147,7 +166,7 @@ Then tunnel by hand if you are not using the PowerShell helper:
 
 ```bash
 ssh -L 44410:127.0.0.1:44410 root@SERVER_IP
-# open http://localhost:44410, Settings page first to set the CustomerGUID
+# open http://localhost:44410 and sign in through Steam
 ```
 
 Optional `.env.hetzner-dev` keys: `OWS_MANAGEMENT_HOST_PORT` (default 44410) and
@@ -355,7 +374,9 @@ whose shape depends on `Action`), and `ClientIP`, which only the admin console f
 | `publicapi` | `user_login` | Steam persona name (else Steam id), or the email for a password login | `steam:<id>` or `password` | `method`, `result` (as the `user_login` log line), `userSessionGuid` |
 | `publicapi` | `user_logout` | the account's first name | the selected character | `userSessionGuid` |
 | `publicapi` | `zone_join` | character | zone | `mapInstanceId`, `port` |
-| `management` | `admin_change` | `admin-console` (the console has no login) | `METHOD /api/path` | the call's arguments without any password field, and `outcome` |
+| `management` | `console_login` | `Name (steam:<id>)`, or `steam:<id>` when refused | `ok` or `refused` | `role`, or `reason` (`no_account`, `not_staff`) |
+| `management` | `admin_change` | `Name (steam:<id>)` of the signed-in staff member | `METHOD /api/path` | the call's arguments without any password field, and `outcome` |
+| `instancemanagement` | `zone_exit` | `launcher` | map name | `zoneInstanceId`, `port`, `exitCode`. Unexpected exits only (a crash, not a shutdown the launcher asked for) |
 | `zone` | `staff_action` | staff character | action id | `role`, `source`, `scope`, `result`, `detail`, `raw` (the typed command), `userSession`. Staff callers only; a player's attempt stays in the zone log |
 | `zone` | `trade_completed` | the trade's first player | the second player | `actorGave` / `targetGave` (item tag, quantity, refine, instanceId) and `actorJuri` / `targetJuri` |
 

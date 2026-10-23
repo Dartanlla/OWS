@@ -169,6 +169,9 @@ namespace OWSCharacterPersistence
                 container.Register<IAuditRepository, OWSData.Repositories.Implementations.Postgres.AuditRepository>(Lifestyle.Scoped);
                 container.Register<IJoinTicketsRepository, OWSData.Repositories.Implementations.Postgres.JoinTicketsRepository>(Lifestyle.Scoped);
                 container.Register<ICharacterOwnersRepository, OWSData.Repositories.Implementations.Postgres.CharacterOwnersRepository>(Lifestyle.Scoped);
+                container.Register<IZoneOpsRepository, OWSData.Repositories.Implementations.Postgres.ZoneOpsRepository>(Lifestyle.Scoped);
+                container.Register<ISanctionsRepository, OWSData.Repositories.Implementations.Postgres.SanctionsRepository>(Lifestyle.Scoped);
+                container.Register<IConsoleSettingsRepository, OWSData.Repositories.Implementations.Postgres.ConsoleSettingsRepository>(Lifestyle.Scoped);
             }
             container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
 

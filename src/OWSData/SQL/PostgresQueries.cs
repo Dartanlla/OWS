@@ -455,6 +455,19 @@ ON CONFLICT ON CONSTRAINT ak_zoneservers
                   AND C.CharName = @CharName
                   AND COMI.MapInstanceID <> @CallerZoneInstanceID
             );";
+
+        // InstanceId goes back to UE in its own 32-digit form (FGuid Digits).
+        public static readonly string GetCharInventoryByCharName = @"SELECT CII.ItemIDTag, CII.Quantity, CII.InSlotNumber, CII.CustomData,
+                UPPER(REPLACE(CII.InstanceId::TEXT, '-', '')) AS InstanceId
+                FROM CharInventoryItems CII
+                INNER JOIN Characters C ON C.CharName = @CharName
+                INNER JOIN CharInventory CI ON CI.CharacterID = C.CharacterID
+                WHERE CII.CharInventoryID = CI.CharInventoryID
+                AND CII.CUstomerGUID = @CustomerGUID";
+
+        public static readonly string InsertCharacterInventoryItem = @"INSERT INTO CharInventoryItems
+                (CustomerGUID, CharInventoryID, ItemIDTag, Quantity, InSlotNumber, CustomData, InstanceId)
+                VALUES (@CustomerGUID, @CharInventoryID, @ItemIDTag, @Quantity, @InSlotNumber, @CustomData, @InstanceId)";
         }
 
         #endregion

@@ -25,3 +25,9 @@ removed="$(docker exec "$CONTAINER" psql -U postgres -d "$DB" -v ON_ERROR_STOP=1
   -c "SELECT What, Removed FROM PurgePIEAccounts(INTERVAL '$AGE') WHERE Removed > 0")"
 echo "PIE purge ok (older than $AGE): ${removed:-nothing to remove}" | tr '\n' ' '
 echo
+
+# The staff console's logs: game events after 180 days, chat and finished zone commands after 30.
+purged="$(docker exec "$CONTAINER" psql -U postgres -d "$DB" -v ON_ERROR_STOP=1 -At -F ': ' \
+  -c "SELECT What, Removed FROM PurgeSamsaraLogs() WHERE Removed > 0")"
+echo "Console log purge ok: ${purged:-nothing to remove}" | tr '\n' ' '
+echo

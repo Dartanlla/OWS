@@ -43,10 +43,12 @@ namespace OWSPublicAPI.Requests.Users
         private IAuditRepository auditRepository;
         private IJoinTicketsRepository joinTicketsRepository;
         private bool callerIsZoneServer;
+        private Services.LoginGate loginGate;
 
         public void SetData(IOptions<PublicAPIOptions> owsGeneralConfig, IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, IHttpClientFactory httpClientFactory, IAuditRepository auditRepository,
-            IJoinTicketsRepository joinTicketsRepository, bool callerIsZoneServer)
+            IJoinTicketsRepository joinTicketsRepository, bool callerIsZoneServer, Services.LoginGate loginGate)
         {
+            this.loginGate = loginGate;
             this.owsGeneralConfig = owsGeneralConfig;
             this.usersRepository = usersRepository;
             this.charactersRepository = charactersRepository;
@@ -71,6 +73,14 @@ namespace OWSPublicAPI.Requests.Users
             {
                 Output.Success = false;
                 Output.ErrorMessage = "GetServerToConnectTo: Invalid or expired User Session.";
+                return new OkObjectResult(Output);
+            }
+
+            (string refusal, string refusalMessage) = await loginGate.RefusalForUser(CustomerGUID, userSession.UserGuid.Value, userSession.Role, checkMaintenance: false);
+            if (refusal != null)
+            {
+                Output.Success = false;
+                Output.ErrorMessage = refusalMessage;
                 return new OkObjectResult(Output);
             }
 

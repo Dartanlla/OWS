@@ -237,11 +237,10 @@ services:
       migrations:
         condition: service_completed_successfully
 
-  # Admin console (REST API + Vue SPA). Bound to loopback with no exception, because its
-  # only credential is the X-CustomerGUID header, which the game client already sends on
-  # every public call. Reach it with an SSH tunnel:
+  # Samsara Management, the staff console (REST API + Vue SPA). Staff sign in through Steam;
+  # Users.Role decides what they can do. Still bound to loopback and reached with an SSH tunnel:
   #   ssh -L 44410:127.0.0.1:44410 <user>@<host>   then open http://localhost:44410
-  # Do not add it to the Caddy proxy or move it off 127.0.0.1 until it has a real login.
+  # Putting it on the Caddy proxy needs a domain and TLS first (the session cookie is Secure only over HTTPS).
   owsmanagement:
     image: ${REGISTRY:-ows}/owsmanagement:${PLATFORM:-linux}-${TAG:-latest}
     build:
@@ -256,6 +255,15 @@ services:
     healthcheck: *app-healthcheck
     environment:
       <<: *ows-common-env
+      OWSManagementOptions__CustomerGUID: "${OWS_CUSTOMER_GUID:-}"
+      OWSManagementOptions__GrafanaUrl: "${OWS_GRAFANA_URL:-}"
+      OWSManagementOptions__SentryUrl: "${OWS_SENTRY_URL:-}"
+      OWS_GIT_COMMIT: "${OWS_GIT_COMMIT:-}"
+    volumes:
+      # Session cookie keys survive a rebuild, so staff stay signed in.
+      - hetzner-management-keys:/app/temp/DataProtection-Keys
+      # The System page shows the newest hourly backup.
+      - /var/backups/ows:/backups:ro
     ports:
       - "127.0.0.1:${OWS_MANAGEMENT_HOST_PORT:-44410}:80"
     mem_limit: "${OWS_MANAGEMENT_MEM_LIMIT:-256m}"
@@ -349,3 +357,5 @@ volumes:
     name: "${COMPOSE_PROJECT_NAME:-ows-hetzner-dev}-caddy-data"
   hetzner-caddy-config:
     name: "${COMPOSE_PROJECT_NAME:-ows-hetzner-dev}-caddy-config"
+  hetzner-management-keys:
+    name: "${COMPOSE_PROJECT_NAME:-ows-hetzner-dev}-management-keys"

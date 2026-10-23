@@ -29,9 +29,12 @@ namespace OWSPublicAPI.Requests.Users
         private IUsersRepository usersRepository;
         private ISteamAuthService steamAuthService;
         private IAuditRepository auditRepository;
+        private LoginGate loginGate;
 
-        public void SetData(IUsersRepository usersRepository, ISteamAuthService steamAuthService, IHeaderCustomerGUID customerGuid, IAuditRepository auditRepository)
+        public void SetData(IUsersRepository usersRepository, ISteamAuthService steamAuthService, IHeaderCustomerGUID customerGuid, IAuditRepository auditRepository,
+            LoginGate loginGate)
         {
+            this.loginGate = loginGate;
             this.customerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
             this.steamAuthService = steamAuthService;
@@ -70,6 +73,16 @@ namespace OWSPublicAPI.Requests.Users
             if (!loggedIn && string.IsNullOrWhiteSpace(output.ErrorMessage))
             {
                 output.ErrorMessage = "Steam authentication failed";
+            }
+
+            if (loggedIn)
+            {
+                (string refusal, string message) = await loginGate.RefusalForSession(customerGUID, output.UserSessionGuid.Value, checkMaintenance: true);
+                if (refusal != null)
+                {
+                    await RecordUserLogin(refusal, validation.SteamId, personaName, null);
+                    return new OkObjectResult(new PlayerLoginAndCreateSession { Authenticated = false, UserSessionGuid = Guid.Empty, ErrorMessage = message });
+                }
             }
 
             await RecordUserLogin(loggedIn ? "ok" : "refused", validation.SteamId, personaName, output.UserSessionGuid);

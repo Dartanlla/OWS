@@ -13,7 +13,6 @@
     "skipLibCheck": true,
     "noEmit": true,
     "types": [
-      "vuetify",
       "vite/client"
     ]
   },

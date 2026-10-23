@@ -61,7 +61,7 @@
             GameServersConfig appsettings section; population is config-stubbed for now.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Controllers.ServersController.#ctor(Microsoft.Extensions.Options.IOptions{OWSPublicAPI.Options.GameServersOptions})">
+        <member name="M:OWSPublicAPI.Controllers.ServersController.#ctor(Microsoft.Extensions.Options.IOptions{OWSPublicAPI.Options.GameServersOptions},OWSData.Repositories.Interfaces.IConsoleSettingsRepository)">
             <summary>
             Constructor for public game-server list API.
             </summary>
@@ -95,7 +95,7 @@
             Contains user related API calls that are all publicly accessible.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.#ctor(Microsoft.Extensions.Logging.ILogger{OWSPublicAPI.Controllers.UsersController},SimpleInjector.Container,OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IPublicAPIInputValidation,OWSShared.Interfaces.IHeaderCustomerGUID,Microsoft.Extensions.Options.IOptions{OWSShared.Options.PublicAPIOptions},Microsoft.Extensions.Options.IOptions{OWSShared.Options.APIPathOptions},System.Net.Http.IHttpClientFactory,OWSPublicAPI.Services.ISteamAuthService,Microsoft.Extensions.Options.IOptions{OWSPublicAPI.Options.GameServersOptions},OWSData.Repositories.Interfaces.IAuditRepository)">
+        <member name="M:OWSPublicAPI.Controllers.UsersController.#ctor(Microsoft.Extensions.Logging.ILogger{OWSPublicAPI.Controllers.UsersController},SimpleInjector.Container,OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IPublicAPIInputValidation,OWSShared.Interfaces.IHeaderCustomerGUID,Microsoft.Extensions.Options.IOptions{OWSShared.Options.PublicAPIOptions},Microsoft.Extensions.Options.IOptions{OWSShared.Options.APIPathOptions},System.Net.Http.IHttpClientFactory,OWSPublicAPI.Services.ISteamAuthService,Microsoft.Extensions.Options.IOptions{OWSPublicAPI.Options.GameServersOptions},OWSData.Repositories.Interfaces.IAuditRepository,OWSData.Repositories.Interfaces.IJoinTicketsRepository)">
             <summary>
             Constructor for Public User related API calls.
             </summary>
@@ -679,6 +679,15 @@
             Fetches the player's persona (display) name via ISteamUser/GetPlayerSummaries.
             Returns null on any failure; callers should fall back to a default.
             </summary>
+        </member>
+        <member name="T:OWSPublicAPI.Services.LoginGate">
+            <summary>
+            Decides whether an account may play: an active ban refuses it, and so does maintenance (ConsoleSettings
+            logins_open=false) for anyone below Moderator. The staff console sets both.
+            </summary>
+        </member>
+        <member name="M:OWSPublicAPI.Services.LoginGate.RefusalForSession(System.Guid,System.Guid,System.Boolean)">
+            <summary>The refusal for this session's account, or null. A session that does not resolve is left to the caller's own checks.</summary>
         </member>
     </members>
 </doc>
