@@ -70,13 +70,14 @@ namespace OWSCharacterPersistence.Services
             Dictionary<string, string> settings = new(await _settings.GetAll(), StringComparer.OrdinalIgnoreCase);
             List<string> lines = new();
             Dictionary<string, string> cursors = new();
+            Dictionary<string, string> baselines = new();
 
             foreach (string kind in RowKinds)
             {
                 string key = ConsoleSettingKeys.AlertsCursorPrefix + kind;
                 if (!settings.TryGetValue(key, out string stored) || !long.TryParse(stored, out long after))
                 {
-                    cursors[key] = (await _alerts.CurrentCursor(kind)).ToString(CultureInfo.InvariantCulture);
+                    baselines[key] = (await _alerts.CurrentCursor(kind)).ToString(CultureInfo.InvariantCulture);
                     continue;
                 }
                 List<StaffAlertsRepository.AlertRow> rows = await _alerts.Read(kind, after);
@@ -113,6 +114,11 @@ namespace OWSCharacterPersistence.Services
             AddTransition(lines, cursors, settings, "maintenance", MaintenanceState(settings, now));
             AddTransition(lines, cursors, settings, "rate_event", RateState(settings, now));
 
+            // A first baseline is kept even when the post fails, or the next check would start later and skip rows.
+            foreach ((string key, string value) in baselines)
+            {
+                await _settings.Set(key, value, "alerts");
+            }
             if (lines.Count > 0 && !await Post(lines))
             {
                 return;

@@ -47,6 +47,10 @@ namespace OWSCharacterPersistence
             services.AddHttpContextAccessor();
             services.AddHttpClient("Discord", client => client.Timeout = TimeSpan.FromSeconds(10));
             services.AddHostedService<Services.StaffAlertsWorker>();
+            // The gift alert's threshold; the same key the console reads.
+            OWSData.Repositories.Implementations.Postgres.ConsoleQueriesRepository.LargeJuriChange = Configuration.GetValue(
+                OWSShared.Options.ManagementOptions.SectionName + ":LargeJuriChange",
+                OWSData.Repositories.Implementations.Postgres.ConsoleQueriesRepository.LargeJuriChange);
 
             services.AddMvcCore(config =>
             {
