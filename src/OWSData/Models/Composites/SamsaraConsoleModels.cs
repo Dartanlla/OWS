@@ -62,6 +62,7 @@ namespace OWSData.Models.Composites
         public DateTime ExpiresAt { get; set; }
         public DateTime? DeliveredAt { get; set; }
         public int? DeliveredToMapInstanceID { get; set; }
+        public int DeliveryAttempt { get; set; }
         public DateTime? CompletedAt { get; set; }
         public string Result { get; set; }
         public string ResultDetail { get; set; }
@@ -82,6 +83,7 @@ namespace OWSData.Models.Composites
     public class ZoneCommandResult
     {
         public long CommandId { get; set; }
+        public int Attempt { get; set; }
         public string Result { get; set; }
         public string Detail { get; set; }
     }

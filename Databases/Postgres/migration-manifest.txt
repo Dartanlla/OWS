@@ -45,3 +45,4 @@ SamsaraUpdates/PIEAccountPurge_2026-10-22.sql
 SamsaraUpdates/AddCharacterOwners_2026-10-22.sql
 SamsaraUpdates/AddCharacterOwnerHandover_2026-10-22.sql
 SamsaraUpdates/AddSamsaraManagement_2026-10-22.sql
+SamsaraUpdates/AddZoneCommandAttempts_2026-10-22.sql

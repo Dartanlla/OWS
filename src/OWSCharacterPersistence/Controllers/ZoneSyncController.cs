@@ -41,6 +41,7 @@ namespace OWSCharacterPersistence.Controllers
         public class ZoneSyncCommand
         {
             public long CommandId { get; set; }
+            public int Attempt { get; set; }
             public string Command { get; set; }
             public string CharacterName { get; set; }
             public string CreatedBy { get; set; }
@@ -78,6 +79,7 @@ namespace OWSCharacterPersistence.Controllers
                 response.Commands.Add(new ZoneSyncCommand
                 {
                     CommandId = command.CommandID,
+                    Attempt = command.DeliveryAttempt,
                     Command = command.Command,
                     CharacterName = command.CharacterName ?? "",
                     CreatedBy = command.CreatedBy,

@@ -19,8 +19,8 @@ namespace OWSData.Repositories.Interfaces
         Task<IEnumerable<ZoneCommand>> TakePendingCommands(Guid customerGUID, int mapInstanceID);
 
         /// <summary>
-        /// Records results. "retry" (the character is not on this zone, or not ready) from the zone that holds the
-        /// command releases it for the next poll.
+        /// Records results. "retry" (the character is not on this zone, or not ready) releases the command for the next
+        /// poll, only from the zone that holds it and only for the delivery attempt that zone got.
         /// </summary>
         Task CompleteCommands(Guid customerGUID, int mapInstanceID, IEnumerable<ZoneCommandResult> results);
 

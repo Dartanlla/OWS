@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { http, can, errorText, type AuditEntry, type CharacterDetail, type ChatLine, type GameEvent, type Sanction, type ZoneCommand } from '../api';
 import { num, leaf, itemName, utc, duration, source, toDate } from '../format';
@@ -11,6 +11,7 @@ const route = useRoute();
 const name = String(route.params.name);
 const character = ref<CharacterDetail | null>(null);
 const commands = ref<ZoneCommand[]>([]);
+const now = ref(Date.now());
 const audit = ref<AuditEntry[]>([]);
 const sanctions = ref<Sanction[]>([]);
 const events = ref<GameEvent[]>([]);
@@ -168,12 +169,32 @@ function commandState(c: ZoneCommand): { label: string; tone: string } {
 	if (c.completedAt) return { label: c.result ?? 'done', tone: c.result === 'ok' ? 'ok' : 'bad' };
 	// A gift is sent once; no answer after two minutes means the zone stopped. Check the ledger before giving again.
 	const sentMs = toDate(c.deliveredAt)?.getTime();
-	if (sentMs && c.command.startsWith('give_') && Date.now() - sentMs > 120000) return { label: 'unconfirmed', tone: 'bad' };
-	if (new Date(c.expiresAt.endsWith('Z') ? c.expiresAt : `${c.expiresAt}Z`).getTime() < Date.now()) return { label: 'expired', tone: '' };
+	if (sentMs && c.command.startsWith('give_') && now.value - sentMs > 120000) return { label: 'unconfirmed', tone: 'bad' };
+	if (isExpired(c)) return { label: 'expired', tone: '' };
 	return { label: c.deliveredAt ? 'sent' : 'waiting', tone: 'live' };
 }
 
-onMounted(load);
+function isExpired(c: ZoneCommand): boolean {
+	return new Date(c.expiresAt.endsWith('Z') ? c.expiresAt : `${c.expiresAt}Z`).getTime() < now.value;
+}
+
+// Open commands change on the zone's 5 s poll, and a gift turns unconfirmed with time alone.
+async function refreshCommands() {
+	now.value = Date.now();
+	if (!commands.value.some((c) => !c.completedAt && !isExpired(c))) return;
+	try {
+		commands.value = (await http.get(`/Players/Character/${encodeURIComponent(name)}`)).data.commands;
+	} catch {
+		// The next tick tries again.
+	}
+}
+
+let timer = 0;
+onMounted(() => {
+	load();
+	timer = window.setInterval(refreshCommands, 10000);
+});
+onUnmounted(() => window.clearInterval(timer));
 </script>
 
 <template>

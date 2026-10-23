@@ -37,10 +37,10 @@ namespace OWSData.Repositories.Implementations.Postgres
                     ORDER BY ZC.CommandID
                     LIMIT 50
                     FOR UPDATE OF ZC SKIP LOCKED)
-                UPDATE ZoneCommands Z SET DeliveredAt = NOW(), DeliveredToMapInstanceID = @MapInstanceID
+                UPDATE ZoneCommands Z SET DeliveredAt = NOW(), DeliveredToMapInstanceID = @MapInstanceID, DeliveryAttempt = Z.DeliveryAttempt + 1
                 FROM Due WHERE Z.CommandID = Due.CommandID
                 RETURNING Z.CommandID, Z.MapInstanceID, Z.CharacterName, Z.Command, Z.Args, Z.CreateDate, Z.CreatedBy, Z.ExpiresAt,
-                    Z.DeliveredAt, Z.DeliveredToMapInstanceID, Z.CompletedAt, Z.Result, Z.ResultDetail";
+                    Z.DeliveredAt, Z.DeliveredToMapInstanceID, Z.DeliveryAttempt, Z.CompletedAt, Z.Result, Z.ResultDetail";
 
         private readonly IOptions<StorageOptions> _storageOptions;
 
@@ -71,11 +71,11 @@ namespace OWSData.Repositories.Implementations.Postgres
             {
                 if (result.Result == RetryResult)
                 {
-                    // Released for the next poll, only by the zone that holds it: a gift is otherwise never sent twice.
+                    // Released for the next poll, only by the zone that holds this delivery: a gift is otherwise never sent twice.
                     await connection.ExecuteAsync(@"UPDATE ZoneCommands SET DeliveredAt = NULL, DeliveredToMapInstanceID = NULL, ResultDetail = @Detail
                         WHERE CustomerGUID = @CustomerGUID AND CommandID = @CommandID AND CompletedAt IS NULL
-                          AND DeliveredToMapInstanceID = @MapInstanceID",
-                        new { CustomerGUID = customerGUID, CommandID = result.CommandId, MapInstanceID = mapInstanceID, Detail = Truncate(result.Detail, 2000) });
+                          AND DeliveredToMapInstanceID = @MapInstanceID AND DeliveryAttempt = @Attempt",
+                        new { CustomerGUID = customerGUID, CommandID = result.CommandId, MapInstanceID = mapInstanceID, Attempt = result.Attempt, Detail = Truncate(result.Detail, 2000) });
                     continue;
                 }
 
