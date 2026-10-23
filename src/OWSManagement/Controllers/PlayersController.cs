@@ -148,7 +148,8 @@ namespace OWSManagement.Controllers
                 switch (kind)
                 {
                     case SanctionKinds.Ban:
-                        await _zoneOps.AddCommand(CustomerGUID, null, character, ZoneCommandNames.Kick, Args(new { reason = issued.PlayerMessage() }), actor, OnlineOnlyLifetime);
+                        await _zoneOps.AddCommand(CustomerGUID, null, character, ZoneCommandNames.Kick,
+                            Args(new { reason = input.Reason.Trim(), message = issued.PlayerMessage() }), actor, OnlineOnlyLifetime);
                         queued++;
                         break;
                     case SanctionKinds.Mute:

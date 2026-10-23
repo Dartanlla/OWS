@@ -127,8 +127,10 @@ function describe(e: GameEvent): string {
 		case 'item_gained':
 		case 'item_lost':
 			return `${itemName(f.item ?? '')}${f.refine ? ` +${f.refine}` : ''} · ${source(f.source)}`;
-		case 'refine':
-			return `${itemName(f.item ?? '')} +${f.from} → +${f.to} · ${f.outcome}${f.chance !== undefined ? ` · ${Math.round(f.chance * 100)}%` : ''}`;
+		case 'refine': {
+			const mark = f.kind === 'starup' ? '★' : '+';
+			return `${itemName(f.item ?? '')} ${mark}${f.from} → ${mark}${f.to} · ${source(f.outcome)}${f.chance !== undefined ? ` · ${Math.round(f.chance * 100)}%` : ''}`;
+		}
 		case 'level_up':
 			return `${f.kind === 'job' ? 'Job' : 'Base'} level ${f.level}`;
 		case 'player_died':
