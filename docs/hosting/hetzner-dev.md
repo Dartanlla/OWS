@@ -505,6 +505,26 @@ stop arriving (the box or Alloy is down), and posts to Discord `#dev-observation
 10 s). Tested 2026-10-21: a wrong DB password in `owsmanagement` alerted after 89 s and reached Discord at 120 s
 (before the group wait went from 30 s to 10 s).
 
+### Refused logins and API box host alerts
+
+Health checks stay green while chat or party refuses every stream, as in the 2026-10-18 chat outage. With
+`OWS_GRPC_REQUIRE_SESSION_AUTH=true`, each refused stream logs `grpc_session_rejected {Service} {Reason}` at Warning:
+`no_credentials` means the client sent no session (a client bug); `invalid_session` means the session is unknown,
+expired, or bound to another character. The log line has no session GUID and no IP.
+
+More alerts in folder `OWS API box`, same contact point. They live only in Grafana:
+
+| Alert | Fires when | Source |
+| --- | --- | --- |
+| Chat or party refusing logins | more than 10 refusals for one service and reason in 10 minutes (group `ows-health`) | `grpc_session_rejected` in `owschat` / `owsparty` |
+| API box CPU high | CPU stays above 85 % for 10 minutes (group `api-box-host`) | `node_cpu_seconds_total` |
+| API box memory low | memory stays above 90 % used for 5 minutes | `node_memory_MemAvailable_bytes` |
+| API box disk filling | the root disk stays above 85 % full for 10 minutes | `node_filesystem_avail_bytes` |
+
+A refused game client stops retrying (game CL 1468); an older client retries every second, so one player of an old
+build fires the refusal alert. Tested 2026-10-25: 12 unauthenticated chat streams from the box fired it. The disk was
+72 % full that day, mostly docker build cache (`docker system df`: about 40 GB reclaimable with `docker builder prune`).
+
 ### Load dashboard
 
 `scripts/hetzner/grafana/ows-load.json` is the "OWS load" dashboard for load tests and alpha sessions. Import it
