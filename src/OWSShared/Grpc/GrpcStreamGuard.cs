@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Grpc.Core;
+using Serilog;
 
 namespace OWSShared.Grpc
 {
@@ -117,6 +118,16 @@ namespace OWSShared.Grpc
             customerGuid = ReadGuid(context, CustomerGuidHeader);
             userSessionGuid = ReadGuid(context, UserSessionGuidHeader);
             return customerGuid != Guid.Empty && userSessionGuid != Guid.Empty;
+        }
+
+        /// <summary>
+        /// Logs a refused stream as grpc_session_rejected, which a Grafana alert counts. no_credentials: the client sent
+        /// no session (a client bug); invalid_session: the session is unknown, expired, or another character's.
+        /// </summary>
+        public static void LogRejected(ServerCallContext context, string service)
+        {
+            string reason = TryReadCredentials(context, out _, out _) ? "invalid_session" : "no_credentials";
+            Log.Warning("grpc_session_rejected {Service} {Reason}", service, reason);
         }
 
         private static Guid ReadGuid(ServerCallContext context, string headerName)

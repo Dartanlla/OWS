@@ -64,6 +64,7 @@ namespace OWSParty.Service
             // register the stream as someone else.
             if (GrpcSessionAuth.IsRequired && !await IsRegistrationAuthorized(context, parsedCustomerGuid, userName))
             {
+                GrpcSessionAuth.LogRejected(context, "party");
                 throw new RpcException(new Status(StatusCode.Unauthenticated, "Invalid session for party registration."));
             }
 

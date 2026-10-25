@@ -64,7 +64,10 @@ namespace OWSChat.Service
                 (session, customerGuid) = await GetSession(context);
                 sessionCharacterName = session?.SelectedCharacterName?.Trim();
                 if (string.IsNullOrEmpty(sessionCharacterName))
+                {
+                    GrpcSessionAuth.LogRejected(context, "chat");
                     throw new RpcException(new Status(StatusCode.Unauthenticated, "Invalid session for chat."));
+                }
             }
 
             // The first frame identifies the client and is not broadcast as chat.
