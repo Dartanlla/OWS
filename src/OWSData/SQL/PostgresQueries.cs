@@ -85,6 +85,10 @@ ON CONFLICT ON CONSTRAINT ak_zoneservers
 				WHERE CustomerGUID=@CustomerGUID::UUID 
 				AND WorldServerID=@WorldServerID";
 
+		public static readonly string GetCurrentWorldTime = @"SELECT CAST(EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) AS BIGINT) - WS.StartTime AS CurrentWorldTime
+				FROM WorldSettings WS
+				WHERE WS.CustomerGUID = @CustomerGUID";
+
 		#endregion
 
 		#region Character Queries
@@ -156,6 +160,42 @@ ON CONFLICT ON CONSTRAINT ak_zoneservers
 				INNER JOIN MapInstances MI ON MI.MapID = M.MapID
 				WHERE M.CustomerGUID = @CustomerGUID
 				AND MI.WorldServerID = @WorldServerID";
+
+		public static readonly string GetZoneInstancesOfZone = @"SELECT M.*, MI.*
+				FROM Maps M
+				INNER JOIN MapInstances MI ON MI.MapID = M.MapID
+				WHERE M.CustomerGUID = @CustomerGUID
+				AND M.ZoneName = @ZoneName";
+
+		public static readonly string AddOrUpdateMapZone = @"WITH ExistingMap AS (
+				SELECT 1
+				FROM Maps
+				WHERE CustomerGUID = @CustomerGUID
+				AND (MapID = @MapID OR ZoneName = @ZoneName)
+				FOR UPDATE
+			),
+			UpdatedMap AS (
+				UPDATE Maps
+				SET CustomerGUID = @CustomerGUID,
+					MapName = @MapName,
+					MapData = @MapData,
+					ZoneName = @ZoneName,
+					WorldCompContainsFilter = COALESCE(@WorldCompContainsFilter, ''),
+					WorldCompListFilter = COALESCE(@WorldCompListFilter, ''),
+					SoftPlayerCap = @SoftPlayerCap,
+					HardPlayerCap = @HardPlayerCap,
+					MapMode = @MapMode
+				WHERE CustomerGUID = @CustomerGUID
+				AND MapID = @MapID
+				AND EXISTS (SELECT 1 FROM ExistingMap)
+				RETURNING 1
+			)
+			INSERT INTO Maps (CustomerGUID, MapName, MapData, Width, Height, ZoneName, WorldCompContainsFilter,
+				WorldCompListFilter, SoftPlayerCap, HardPlayerCap, MapMode)
+			SELECT @CustomerGUID, @MapName, @MapData, 0, 0, @ZoneName,
+				COALESCE(@WorldCompContainsFilter, ''), COALESCE(@WorldCompListFilter, ''),
+				@SoftPlayerCap, @HardPlayerCap, @MapMode
+			WHERE NOT EXISTS (SELECT 1 FROM ExistingMap)";
 
         public static readonly string GetZoneInstancesByZoneAndGroup = @"SELECT WS.ServerIP AS ServerIP
 					, WS.InternalServerIP AS WorldServerIP
