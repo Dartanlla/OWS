@@ -6,23 +6,80 @@ on:
   pull_request:
     branches: [ main ]
 
+# Least privilege: the jobs only read the repository.
+permissions:
+  contents: read
+
+# A new push to a pull request cancels its older runs. Runs on main always finish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
 jobs:
   build:
-
+    name: Build and test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: ./src
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 8.0.x
-    - name: Restore dependencies
+        global-json-file: global.json
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v6
+      with:
+        path: ${{ env.NUGET_PACKAGES }}
+        key: nuget-${{ runner.os }}-${{ hashFiles('global.json', 'src/**/*.csproj', 'src/**/Directory.*.props', 'src/**/Directory.*.targets') }}
+        restore-keys: nuget-${{ runner.os }}-
+
+    - name: Restore
       run: dotnet restore OWS.sln
-      working-directory: ./src
+
     - name: Build
-      run: dotnet build OWS.sln --no-restore
-      working-directory: ./src
+      run: dotnet build OWS.sln --configuration Release --no-restore
+
     - name: Test
-      run: dotnet test OWS.sln --no-build --verbosity normal
-      working-directory: ./src
+      run: dotnet test OWS.sln --configuration Release --no-build --verbosity normal
+
+  vulnerable-packages:
+    name: Vulnerable packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ./src
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        global-json-file: global.json
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v6
+      with:
+        path: ${{ env.NUGET_PACKAGES }}
+        key: nuget-${{ runner.os }}-${{ hashFiles('global.json', 'src/**/*.csproj', 'src/**/Directory.*.props', 'src/**/Directory.*.targets') }}
+        restore-keys: nuget-${{ runner.os }}-
+
+    - name: Restore
+      run: dotnet restore OWS.sln
+
+    # Fails on High or Critical advisories (direct or transitive); Moderate and Low are warnings.
+    - name: Check for vulnerable packages
+      run: bash ../.github/scripts/check-vulnerable-packages.sh OWS.sln "$RUNNER_TEMP/vulnerable-packages.json"
