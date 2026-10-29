@@ -785,12 +785,8 @@ namespace OWSData.Repositories.Implementations.Postgres
                         p,
                         commandType: CommandType.Text);
 
-                    // Zero rows is not an error: the account may simply have no characters yet.
-                    // Say which it was rather than reporting a silent success.
-                    outputObject.Success = true;
-                    outputObject.ErrorMessage = rowsAffected < 1
-                        ? "No characters found for this user - nothing to change."
-                        : "";
+                    outputObject.Success = rowsAffected > 0;
+                    outputObject.ErrorMessage = rowsAffected > 0 ? "" : "User not found.";
 
                     return outputObject;
                 }

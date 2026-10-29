@@ -100,6 +100,18 @@ async function saveRole() {
 	}
 }
 
+async function toggleLanTest() {
+	const on = !account.value?.isInternalNetworkTestUser;
+	try {
+		const { data } = await http.put(`/Players/Account/${id}/Flags`, { isInternalNetworkTestUser: on });
+		if (!data.success) throw { response: { status: 200, data } };
+		await load();
+		message.value = on ? 'LAN test on. It applies at the next zone join.' : 'LAN test off. It applies at the next zone join.';
+	} catch (e) {
+		message.value = errorText(e);
+	}
+}
+
 function loginResult(entry: AuditEntry): string {
 	try {
 		return JSON.parse(entry.detail ?? '{}').result ?? '';
@@ -148,6 +160,16 @@ onMounted(async () => {
 				<div><dt>Steam ID</dt><dd class="mono">{{ account.steamId || '—' }}</dd></div>
 				<div><dt>Email</dt><dd>{{ account.email }}</dd></div>
 				<div><dt>Region</dt><dd>{{ account.preferredServerRegion || 'Default' }}</dd></div>
+				<div>
+					<dt>LAN test</dt>
+					<dd>
+						<span v-if="account.isInternalNetworkTestUser" class="tag">On · joins zone servers at 127.0.0.1</span>
+						<span v-else class="muted">Off</span>
+						<button v-if="can('Admin')" class="link" @click="toggleLanTest">
+							{{ account.isInternalNetworkTestUser ? 'Turn off' : 'Turn on' }}
+						</button>
+					</dd>
+				</div>
 				<div><dt>Created</dt><dd :title="utc(account.createDate)">{{ utc(account.createDate).slice(0, 10) }}</dd></div>
 				<div><dt>Last login</dt><dd><Ago :at="account.lastAccess" /></dd></div>
 				<div><dt>User GUID</dt><dd class="mono">{{ account.userGUID }}</dd></div>

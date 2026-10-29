@@ -116,6 +116,7 @@ export interface AccountRow {
 	characterCount: number;
 	banned: boolean;
 	muted: boolean;
+	isInternalNetworkTestUser: boolean;
 }
 
 export interface CharacterRow {
@@ -171,6 +172,7 @@ export interface CharacterDetail extends CharacterRow {
 	isAdmin: boolean;
 	isModerator: boolean;
 	isInternalNetworkTestUser: boolean;
+	accountIsInternalNetworkTestUser: boolean;
 	economyRevision: number;
 	role: string | null;
 	stats: Record<string, number>;

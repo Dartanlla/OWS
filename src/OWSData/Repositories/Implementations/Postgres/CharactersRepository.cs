@@ -524,14 +524,16 @@ namespace OWSData.Repositories.Implementations.Postgres
                 //A character with no owner (legacy rows) and a user who never picked a server both fall back
                 //to the default region, so existing players keep landing exactly where they always did.
                 string serverRegion = ServerRegions.Default;
+                bool accountIsNetworkTestUser = false;
 
                 if (outputCharacter.UserGuid.HasValue)
                 {
-                    string preferredServerRegion = await conn.QuerySingleOrDefaultAsync<string>(GenericQueries.GetPreferredServerRegionByUserGUID,
+                    (string PreferredServerRegion, bool IsInternalNetworkTestUser) account = await conn.QuerySingleOrDefaultAsync<(string, bool)>(GenericQueries.GetJoinSettingsByUserGUID,
                         new { CustomerGUID = customerGUID, UserGUID = outputCharacter.UserGuid.Value },
                         commandType: CommandType.Text);
 
-                    serverRegion = ServerRegions.Normalize(preferredServerRegion);
+                    serverRegion = ServerRegions.Normalize(account.PreferredServerRegion);
+                    accountIsNetworkTestUser = account.IsInternalNetworkTestUser;
                 }
 
                 PlayerGroup outputPlayerGroup = new PlayerGroup();
@@ -636,7 +638,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
                     transaction.Commit();
 
-                    outputObject.ServerIP = GetClientServerIp(outputObject, outputCharacter);
+                    outputObject.ServerIP = GetClientServerIp(outputObject, outputCharacter, accountIsNetworkTestUser);
                     return outputObject;
                 }
                 catch
@@ -766,9 +768,9 @@ namespace OWSData.Repositories.Implementations.Postgres
                 commandType: CommandType.Text);
         }
 
-        private static string GetClientServerIp(JoinMapByCharName outputObject, Characters outputCharacter)
+        private static string GetClientServerIp(JoinMapByCharName outputObject, Characters outputCharacter, bool accountIsNetworkTestUser)
         {
-            if ((outputCharacter.Email?.Contains("@localhost") ?? false) || outputCharacter.IsInternalNetworkTestUser)
+            if ((outputCharacter.Email?.Contains("@localhost") ?? false) || outputCharacter.IsInternalNetworkTestUser || accountIsNetworkTestUser)
             {
                 return "127.0.0.1";
             }

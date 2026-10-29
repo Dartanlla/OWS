@@ -77,7 +77,7 @@ namespace OWSData.SQL
         //Region is pinned on the account, not the character: the login-screen server selector runs
         //before a character is chosen, and new characters inherit the choice. NULL means the player
         //has never picked one and is resolved to ServerRegions.Default by the caller.
-        public static readonly string GetPreferredServerRegionByUserGUID = @"SELECT PreferredServerRegion
+        public static readonly string GetJoinSettingsByUserGUID = @"SELECT PreferredServerRegion, IsInternalNetworkTestUser
                 FROM Users
                 WHERE CustomerGUID = @CustomerGUID
                   AND UserGUID = @UserGUID";
@@ -219,10 +219,8 @@ namespace OWSData.SQL
                 ORDER BY U.Email
                 OFFSET 0 ROWS FETCH NEXT 200 ROWS ONLY";
 
-        // Account-level convenience: the flag lives on Characters, so setting it "for a user"
-        // means setting it on every character they own. Characters with a NULL UserGUID
-        // (legacy rows created before accounts were linked) are unreachable this way.
-        public static readonly string UpdateNetworkTestFlagForUser = @"UPDATE Characters
+        // The account-level flag. A join checks it alongside Characters.IsInternalNetworkTestUser.
+        public static readonly string UpdateNetworkTestFlagForUser = @"UPDATE Users
                 SET IsInternalNetworkTestUser = @IsInternalNetworkTestUser
               WHERE CustomerGUID = @CustomerGUID AND UserGUID = @UserGUID";
 

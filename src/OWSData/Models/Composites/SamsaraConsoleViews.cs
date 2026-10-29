@@ -39,6 +39,7 @@ namespace OWSData.Models.Composites
         public int CharacterCount { get; set; }
         public bool Banned { get; set; }
         public bool Muted { get; set; }
+        public bool IsInternalNetworkTestUser { get; set; }
     }
 
     public class ConsoleCharacterRow
@@ -67,6 +68,7 @@ namespace OWSData.Models.Composites
         public bool IsAdmin { get; set; }
         public bool IsModerator { get; set; }
         public bool IsInternalNetworkTestUser { get; set; }
+        public bool AccountIsInternalNetworkTestUser { get; set; }
         public long EconomyRevision { get; set; }
         public string Role { get; set; }
         public Dictionary<string, int> Stats { get; set; } = new();

@@ -243,6 +243,16 @@ namespace OWSManagement.Controllers
             return Ok(await _users.UpdateUserRole(CustomerGUID, userGuid, role));
         }
 
+        [HttpPut]
+        [Route("Account/{userGuid:guid}/Flags")]
+        public async Task<IActionResult> SetAccountFlags(Guid userGuid, [FromBody] FlagsInput input)
+        {
+            if (!ConsoleAuth.HasRole(User, ConsoleAuth.Admin)) return Forbid();
+            if (input?.IsInternalNetworkTestUser == null) return BadRequest(Refused("No flags supplied."));
+
+            return Ok(await _users.SetNetworkTestFlagForUser(CustomerGUID, userGuid, input.IsInternalNetworkTestUser.Value));
+        }
+
         public class CommandInput
         {
             public string Command { get; set; }

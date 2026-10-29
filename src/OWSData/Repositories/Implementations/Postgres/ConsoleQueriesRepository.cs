@@ -141,7 +141,7 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             await using DbConnection connection = CreateConnection();
             return await connection.QueryFirstOrDefaultAsync<ConsoleAccountRow>($@"SELECT U.UserGUID, U.FirstName, U.Email, U.SteamId, U.Role,
-                    U.PreferredServerRegion, U.CreateDate, U.LastAccess,
+                    U.PreferredServerRegion, U.CreateDate, U.LastAccess, U.IsInternalNetworkTestUser,
                     (SELECT COUNT(*) FROM Characters C WHERE C.CustomerGUID = U.CustomerGUID AND C.UserGUID = U.UserGUID)::INT AS CharacterCount,
                     {string.Format(ActiveSanctionExists, SanctionKinds.Ban)} AS Banned,
                     {string.Format(ActiveSanctionExists, SanctionKinds.Mute)} AS Muted
@@ -172,7 +172,8 @@ namespace OWSData.Repositories.Implementations.Postgres
         {
             await using DbConnection connection = CreateConnection();
             ConsoleCharacterDetail detail = await connection.QueryFirstOrDefaultAsync<ConsoleCharacterDetail>($@"{CharacterRowSelect},
-                    C.X, C.Y, C.Z, C.Gender, C.IsAdmin, C.IsModerator, C.IsInternalNetworkTestUser, C.EconomyRevision, U.Role
+                    C.X, C.Y, C.Z, C.Gender, C.IsAdmin, C.IsModerator, C.IsInternalNetworkTestUser,
+                    COALESCE(U.IsInternalNetworkTestUser, FALSE) AS AccountIsInternalNetworkTestUser, C.EconomyRevision, U.Role
                 {CharacterRowFrom}
                 WHERE C.CustomerGUID = @CustomerGUID AND LOWER(C.CharName) = LOWER(@CharName)
                 LIMIT 1", new { CustomerGUID = customerGUID, CharName = characterName?.Trim() ?? "" });

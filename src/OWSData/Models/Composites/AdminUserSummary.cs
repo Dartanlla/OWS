@@ -20,11 +20,7 @@ namespace OWSData.Models.Composites
         /// <summary>Characters owned by this user.</summary>
         public int CharacterCount { get; set; }
 
-        /// <summary>
-        /// How many of them have IsInternalNetworkTestUser set. Equal to CharacterCount means
-        /// the whole account is flagged; between 1 and CharacterCount means it was set per
-        /// character on the Characters page.
-        /// </summary>
+        /// <summary>How many of them have Characters.IsInternalNetworkTestUser set.</summary>
         public int NetworkTestCharacterCount { get; set; }
     }
 }

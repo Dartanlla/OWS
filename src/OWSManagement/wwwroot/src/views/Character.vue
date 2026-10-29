@@ -111,7 +111,8 @@ function show(next: Tab) {
 
 async function run(reason: string): Promise<string> {
 	if (action.value === 'flags') {
-		await http.put(`/Players/Character/${encodeURIComponent(name)}/Flags`, flags.value);
+		const { data } = await http.put(`/Players/Character/${encodeURIComponent(name)}/Flags`, flags.value);
+		if (!data.success) throw { response: { status: 200, data } };
 		await load();
 		return 'Flags saved. They apply at the next login.';
 	}
@@ -263,7 +264,8 @@ onUnmounted(() => window.clearInterval(timer));
 						<span v-if="character.isAdmin" class="tag live">Admin</span>
 						<span v-if="character.isModerator" class="tag live">Moderator</span>
 						<span v-if="character.isInternalNetworkTestUser" class="tag">LAN test</span>
-						<span v-if="!character.isAdmin && !character.isModerator && !character.isInternalNetworkTestUser" class="muted">None</span>
+						<span v-if="character.accountIsInternalNetworkTestUser" class="tag">LAN test (account)</span>
+						<span v-if="!character.isAdmin && !character.isModerator && !character.isInternalNetworkTestUser && !character.accountIsInternalNetworkTestUser" class="muted">None</span>
 					</dd>
 				</div>
 			</dl>

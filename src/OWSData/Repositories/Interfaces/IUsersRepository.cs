@@ -20,7 +20,7 @@ namespace OWSData.Repositories.Interfaces
         Task<IEnumerable<User>> GetUsers(Guid customerGuid);
         // Management-console search, capped at 200 rows. Empty text returns the first page.
         Task<IEnumerable<AdminUserSummary>> SearchUsers(Guid customerGuid, string searchText);
-        // Sets Characters.IsInternalNetworkTestUser on every character the user owns.
+        // Sets Users.IsInternalNetworkTestUser, the account-level LAN test flag.
         Task<SuccessAndErrorMessage> SetNetworkTestFlagForUser(Guid customerGuid, Guid userGuid, bool isInternalNetworkTestUser);
         Task<GetUserSession> GetUserSession(Guid customerGUID, Guid userSessionGUID);
         Task<GetUserSession> GetUserSessionORM(Guid customerGUID, Guid userSessionGUID);

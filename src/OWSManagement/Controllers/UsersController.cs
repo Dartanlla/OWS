@@ -91,11 +91,9 @@ namespace OWSManagement.Controllers
         /// Set the network test flag for a whole account
         /// </summary>
         /// <remarks>
-        /// Sets Characters.IsInternalNetworkTestUser on every character this user owns, which
-        /// makes GetServerToConnectTo hand those characters 127.0.0.1 instead of the zone
-        /// server's real IP. There is no account-level column - the flag lives on Characters -
-        /// so this is a fan-out, and characters with a NULL UserGUID cannot be reached by it.
-        /// Use the Characters page to set it on one character at a time.
+        /// Sets Users.IsInternalNetworkTestUser, which makes GetServerToConnectTo hand every
+        /// character of this user, new ones included, 127.0.0.1 instead of the zone server's
+        /// real IP. Characters.IsInternalNetworkTestUser still flags one character on its own.
         /// </remarks>
         [Authorize(Policy = Auth.ConsoleAuth.Admin)]
         [HttpPut]
