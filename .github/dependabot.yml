@@ -1,0 +1,62 @@
+version: 2
+
+updates:
+  # NuGet packages for every project in src/OWS.sln. Minor and patch updates arrive as one
+  # grouped weekly PR; each major update gets its own PR so it can be reviewed on its own.
+  - package-ecosystem: "nuget"
+    directory: "/src"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps"
+    groups:
+      nuget-minor-and-patch:
+        update-types: [ "minor", "patch" ]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "ci"
+    groups:
+      github-actions:
+        patterns: [ "*" ]
+
+  # Service images (src/<Project>/Dockerfile) and the Postgres image used by
+  # docker-compose.hetzner-dev.yml. The MSSQL and MySQL images are not deployed and are left out.
+  - package-ecosystem: "docker"
+    directories:
+      - "/src/OWSActionHouse"
+      - "/src/OWSCharacterPersistence"
+      - "/src/OWSChat"
+      - "/src/OWSDatabaseMigrations"
+      - "/src/OWSGlobalData"
+      - "/src/OWSGuild"
+      - "/src/OWSInstanceManagement"
+      - "/src/OWSManagement"
+      - "/src/OWSParty"
+      - "/src/OWSPublicAPI"
+      - "/src/.docker/postgres"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "docker"
+    groups:
+      docker-minor-and-patch:
+        update-types: [ "minor", "patch" ]
+    ignore:
+      # A Postgres major version can't read the existing data directory: it needs a
+      # dump/restore or pg_upgrade on the live volume, so it is planned by hand.
+      - dependency-name: "postgres"
+        update-types: [ "version-update:semver-major" ]
+      # The .NET images have to match the projects' target framework (net10.0). CI doesn't
+      # build the images, so it wouldn't catch a mismatch.
+      - dependency-name: "dotnet/*"
+        update-types: [ "version-update:semver-major" ]
+      - dependency-name: "mcr.microsoft.com/dotnet/*"
+        update-types: [ "version-update:semver-major" ]

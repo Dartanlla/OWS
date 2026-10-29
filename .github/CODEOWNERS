@@ -1,0 +1,20 @@
+# Code owners are requested for review automatically on pull requests that touch their paths.
+# The last matching pattern wins. Owners must be users or teams with write access to this repository.
+
+# Default owner for everything
+*                                   @jjavar1
+
+# Database schema and migrations (Postgres is the only deployed database)
+/Databases/                         @jjavar1
+/src/OWSData/                       @jjavar1
+/src/OWSDatabaseMigrations/         @jjavar1
+
+# Deployment, hosting and CI
+/src/docker-compose*.yml            @jjavar1
+/src/.docker/                       @jjavar1
+/docs/hosting/                      @jjavar1
+/.github/                           @jjavar1
+/global.json                        @jjavar1
+
+# Admin console (Samsara Management)
+/src/OWSManagement/                 @jjavar1
