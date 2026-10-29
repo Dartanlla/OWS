@@ -6,7 +6,7 @@
   <ItemGroup>
     <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
-    <PackageReference Include="Serilog.Enrichers.ClientInfo" Version="2.0.3" />
+    <PackageReference Include="Serilog.Enrichers.ClientInfo" Version="2.1.2" />
     <PackageReference Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0" />
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
@@ -19,6 +19,9 @@
     <PackageReference Include="SimpleInjector.Integration.GenericHost" Version="5.5.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.9" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
+    <!-- Pinned: the scaffolding package above brings NuGet.* 6.12.1 (Low advisory GHSA-g4vj-cjjj-v7hg). -->
+    <PackageReference Include="NuGet.Packaging" Version="6.12.5" />
+    <PackageReference Include="NuGet.Protocol" Version="6.12.5" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OWSData\OWSData.csproj" />

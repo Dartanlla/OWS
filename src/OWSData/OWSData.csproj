@@ -11,7 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="Dapper.Transaction" Version="2.1.28" />
-    <PackageReference Include="MongoDB.Driver" Version="2.25.0" />
+    <PackageReference Include="MongoDB.Driver" Version="3.13.0" />
     <PackageReference Include="MySql.Data" Version="8.4.0" />
     <PackageReference Include="Npgsql" Version="8.0.3" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
@@ -23,6 +23,17 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.9" />
     <PackageReference Include="StackExchange.Redis" Version="2.8.24" />
+    <!-- Pinned: Microsoft.Data.SqlClient (via EF Core SqlServer) brings 9.0.4, which has High
+         advisory GHSA-846f-f764-76mx, and no SqlClient release depends on a fixed version yet.
+         Drop this pin once SqlClient does. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
+    <!-- Pinned: MySql.Data 8.4.0 brings System.Security.Permissions 4.7.0, which pulls in
+         System.Drawing.Common 4.7.0 (Critical advisory GHSA-rxg9-xrhp-64gj), and BouncyCastle 2.2.1
+         (Moderate advisories). Every MySql.Data 9.x needs Google.Protobuf 3.26 or later, which would
+         move the gRPC services off 3.25.1, so the fixed versions are pinned here instead.
+         Permissions 8.0.0 no longer depends on System.Drawing.Common. -->
+    <PackageReference Include="System.Security.Permissions" Version="8.0.0" />
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
   </ItemGroup>
 
   <ItemGroup>

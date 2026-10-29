@@ -16,7 +16,6 @@ using OWSData.Models.Tables;
 using OWSData.SQL;
 using PartyServiceApp.Protos;
 using GuildServiceApp.Protos;
-using Amazon.Runtime.Internal.Util;
 using OWSShared.Options;
 
 namespace OWSData.Repositories.Implementations.MSSQL

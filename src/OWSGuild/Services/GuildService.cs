@@ -13,7 +13,6 @@ using PartyServiceApp.Protos;
 using OWSGuild.Requests.Guild;
 using Microsoft.IdentityModel.Tokens;
 using Google.Protobuf.Collections;
-using Amazon.Runtime.Internal.Transform;
 
 namespace OWSGuild.Service
 {
