@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Text;
 using Npgsql;
 using System.Threading;
 using System.Threading.Tasks;
@@ -418,9 +419,20 @@ namespace OWSData.Repositories.Implementations.Postgres
             }
         }
 
+        // bcrypt reads only the first 72 bytes of a password. AddUser enforces the same cap; checking here gives a clean error.
+        public const int MaxPasswordBytes = 72;
+
         public async Task<SuccessAndErrorMessage> RegisterUser(Guid customerGUID, string email, string password, string firstName, string lastName, string role = null)
         {
             SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+
+            if (password != null && Encoding.UTF8.GetByteCount(password) > MaxPasswordBytes)
+            {
+                outputObject.Success = false;
+                outputObject.ErrorMessage = $"Password must be {MaxPasswordBytes} bytes or fewer.";
+
+                return outputObject;
+            }
 
             try
             {

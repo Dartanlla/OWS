@@ -48,3 +48,4 @@ SamsaraUpdates/AddSamsaraManagement_2026-10-22.sql
 SamsaraUpdates/AddZoneCommandAttempts_2026-10-22.sql
 SamsaraUpdates/AddSamsaraManagement2_2026-10-22.sql
 SamsaraUpdates/AddUserNetworkTestFlag_2026-10-29.sql
+SamsaraUpdates/BcryptPasswordHashes_2026-10-30.sql

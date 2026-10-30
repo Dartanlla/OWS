@@ -19,7 +19,7 @@
         /// Password
         /// </summary>
         /// <remarks>
-        /// Password for the user.  Passwords are one way encrypted with SHA 256 and a 25 character Salt when using the MSSQL implementation of UsersRepository.
+        /// Password for the user.  Passwords are hashed with bcrypt (cost 12) by the Postgres AddUser function.  bcrypt reads only the first 72 bytes, so passwords longer than 72 bytes (UTF-8) are rejected.
         /// </remarks>
         public string Password { get; set; }
         /// <summary>

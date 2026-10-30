@@ -1483,7 +1483,11 @@ BEGIN
         UserGUID UUID
     ) ON COMMIT DROP;
 
-    _PasswordHash = crypt(_Password, gen_salt('md5'));
+    IF (OCTET_LENGTH(_Password) > 72) THEN
+        RAISE EXCEPTION 'Password must be 72 bytes or fewer';
+    END IF;
+
+    _PasswordHash = crypt(_Password, gen_salt('bf', 12));
     _UserGUID := gen_random_uuid();
     INSERT INTO temp_table (UserGUID) VALUES (_UserGUID);
 
@@ -2737,6 +2741,7 @@ $$
 DECLARE
     _Authenticated   BOOLEAN = FALSE;
     _PasswordCheck   BOOLEAN = FALSE;
+    _PasswordHash    VARCHAR(128);
     _UserGUID        UUID;
     _UserSessionGUID UUID;
     _ErrorMessage    VARCHAR(100) = '';
@@ -2770,14 +2775,24 @@ BEGIN
         RETURN;
     END IF;
 
-    SELECT (PasswordHash = crypt(_Password, PasswordHash)), UserGUID
-    INTO _PasswordCheck, _UserGUID
+    SELECT (PasswordHash = crypt(_Password, PasswordHash)), PasswordHash, UserGUID
+    INTO _PasswordCheck, _PasswordHash, _UserGUID
     FROM Users
     WHERE CustomerGUID = _CustomerGUID
       AND LOWER(TRIM(Email)) = LOWER(TRIM(_Email));
 
     IF (_PasswordCheck = TRUE OR _DontCheckPassword = TRUE) THEN
         _Authenticated := TRUE;
+
+        -- Upgrade a legacy md5-crypt hash now that the plaintext is known to be right. Only a verified password
+        -- is rehashed, never a _DontCheckPassword login.
+        IF (_PasswordCheck = TRUE AND _PasswordHash LIKE '$1$%') THEN
+            UPDATE Users
+            SET PasswordHash = crypt(_Password, gen_salt('bf', 12))
+            WHERE UserGUID = _UserGUID
+              AND PasswordHash = _PasswordHash;
+        END IF;
+
         DELETE FROM UserSessions WHERE UserGUID = _UserGUID;
         _UserSessionGUID := gen_random_uuid();
         INSERT INTO UserSessions (CustomerGUID, UserSessionGUID, UserGUID, LoginDate)
@@ -2850,7 +2865,7 @@ BEGIN
                            Role, SteamId)
         VALUES (_UserGUID, _CustomerGUID, COALESCE(NULLIF(TRIM(_PersonaName), ''), 'SteamUser'), '',
                 'steam_' || TRIM(_SteamId) || '@steam.samsarasaga.invalid',
-                crypt(gen_random_uuid()::text, gen_salt('md5')), NOW(), NOW(),
+                crypt(gen_random_uuid()::text, gen_salt('bf', 12)), NOW(), NOW(),
                 'Player', TRIM(_SteamId));
     ELSE
         SELECT UserGUID
