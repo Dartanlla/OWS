@@ -94,10 +94,10 @@ namespace OWSData.SQL
 					@AbilityLevel,
 					@CharHasAbilitiesCustomJSON";
 
-		public static readonly string AddCharacterUsingDefaultCharacterValues = @"INSERT INTO Characters (CustomerGUID, UserGUID, Email, CharName, MapName, X, Y, Z, RX, RY, RZ, Perception, Acrobatics, Climb, Stealth, ClassID)
+		public static readonly string AddCharacterUsingDefaultCharacterValues = @"INSERT INTO Characters (CustomerGUID, UserGUID, CharName, MapName, X, Y, Z, RX, RY, RZ, ClassID)
 				OUTPUT inserted.CharacterID
-				SELECT @CustomerGUID, @UserGUID, '', @CharacterName, DCR.StartingMapName, DCR.X, DCR.Y, DCR.Z, DCR.RX, DCR.RY, DCR.RZ, 0, 0, 0, 0, 0
-				FROM DefaultCharacterValues DCR 
+				SELECT @CustomerGUID, @UserGUID, @CharacterName, DCR.StartingMapName, DCR.X, DCR.Y, DCR.Z, DCR.RX, DCR.RY, DCR.RZ, 0
+				FROM DefaultCharacterValues DCR
 				WHERE DCR.CustomerGUID = @CustomerGUID 
 					AND DCR.DefaultSetName = @DefaultSetName";
 

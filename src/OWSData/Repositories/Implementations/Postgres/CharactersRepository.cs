@@ -211,6 +211,17 @@ namespace OWSData.Repositories.Implementations.Postgres
             return outputCharacter.FirstOrDefault();
         }
 
+        public async Task<GetCharByCharName> GetCharByCharId(Guid customerGUID, int characterId)
+        {
+            using (var connection = (NpgsqlConnection)Connection)
+            {
+                var characters = await connection.QueryAsync<GetCharByCharName>(GenericQueries.GetCharByCharId,
+                    new { CustomerGUID = customerGUID, CharacterID = characterId },
+                    commandType: CommandType.Text);
+                return characters.FirstOrDefault();
+            }
+        }
+
         public async Task<IEnumerable<CustomCharacterData>> GetCustomCharacterData(Guid customerGUID, string characterName)
         {
             IEnumerable<CustomCharacterData> outputCustomCharacterDataRows;
@@ -394,7 +405,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     outputObject.MapNameToStart = outputMap.MapName;
                 }
 
-                if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
+                if (outputCharacter.IsInternalNetworkTestUser)
                 {
                     outputObject.ServerIP = "127.0.0.1";
                 }

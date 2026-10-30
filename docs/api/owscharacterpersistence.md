@@ -204,9 +204,29 @@ Key fields:
 | `CharacterId` | `int` | Character ID. |
 | `CharName` | `string` | Character name. |
 | `MapName` | `string` | Current zone/map. |
-| `CharacterLevel` | `short` | Character level. |
 | `X`,`Y`,`Z` | `double` | Character position. |
 | `ClassName` | `string` | Character class name. |
+
+## Characters/GetById
+Gets a character and all stored custom character data for the customer identified by `X-CustomerGUID`.
+
+- Method: `POST`
+- Route: `/api/Characters/{characterId}`
+- Route parameter: `characterId` (positive integer).
+- No request body or user session is required for this internal endpoint.
+
+### Response
+`200 OK` with `CharacterAndCustomData`.
+
+| Field | Type | Description |
+|---|---|---|
+| `CharacterData` | `object` | Character information (`GetCharByCharName`). |
+| `CustomCharacterDataRows` | `array` | All stored custom fields, including private fields. |
+| `CustomCharacterDataRows[].CustomFieldName` | `string` | Custom field key. |
+| `CustomCharacterDataRows[].FieldValue` | `string` | Custom field value. |
+
+The public API's custom field filtering and generated `ReadOnlyCharacterData` field are not applied.
+Returns `401` for an empty or invalid customer GUID and `400` for a nonpositive ID or a character not found for that customer. The Lambda handler returns `405` for methods other than `POST`.
 
 ## Characters/GetCustomData
 Gets all custom character data fields for a character.  This is generally used to get all custom character data each time a player connects to a new server instance.
@@ -270,15 +290,12 @@ Updates a character's stat block.
 ### Request Body
 | Field | Required | Type | Description |
 |---|---|---|---|
-| `updateCharacterStats` | Yes | `object` | Full stat payload for the character. |
+| `updateCharacterStats` | Yes | `object` | Character position and rotation payload. |
 | `updateCharacterStats.CharName` | Yes | `string` | Character name to update. |
-| `updateCharacterStats.CharacterLevel` | No | `int` | Character level. |
-| `updateCharacterStats.XP` | No | `int` | Character XP. |
 | `updateCharacterStats.X`,`Y`,`Z` | No | `float` | Position values. |
 | `updateCharacterStats.RX`,`RY`,`RZ` | No | `float` | Rotation values. |
-| `updateCharacterStats.Health`,`MaxHealth` | No | `float` | Health values. |
 
-Note: `UpdateCharacterStats` contains many additional fields (attributes, resources, currencies, combat stats, etc.) and is passed through to the repository.
+The legacy `UpdateCharacterStats` endpoint now updates only position and rotation. Character attributes, resources, currencies, and combat stats are no longer stored on `Characters`.
 
 ### Response
 `200 OK` with `SuccessAndErrorMessage`.

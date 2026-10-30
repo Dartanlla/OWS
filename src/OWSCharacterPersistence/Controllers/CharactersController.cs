@@ -45,6 +45,18 @@ namespace OWSCharacterPersistence.Controllers
             return await request.Handle();
         }
 
+        /// <summary>
+        /// Gets a character and all custom character data by CharacterId for the customer.
+        /// </summary>
+        [HttpPost("{characterId:int}")]
+        [Produces(typeof(CharacterAndCustomData))]
+        public async Task<IActionResult> GetById([FromRoute] int characterId)
+        {
+            var request = new GetByIdRequest(characterId);
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
         [HttpPost]
         [Route("GetCustomData")]
         [Produces(typeof(CustomCharacterDataRows))]

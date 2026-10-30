@@ -128,6 +128,40 @@ public class Function
         string body = proxyRequest.Body ?? "{}";
         object? result;
 
+        // Character IDs are route values, so match the resource path before the action-name dispatcher.
+        var pathSegments = path.TrimEnd('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (pathSegments.Length >= 3
+            && string.Equals(pathSegments[^3], "api", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(pathSegments[^2], "Characters", StringComparison.OrdinalIgnoreCase)
+            && int.TryParse(pathSegments[^1], out var characterId))
+        {
+            if (!string.Equals(proxyRequest.HttpMethod, "POST", StringComparison.OrdinalIgnoreCase))
+                return TicketResponse(405, new { ErrorMessage = "POST is required." });
+
+            GetByIdDTO? dto;
+            try
+            {
+                string requestBody = proxyRequest.IsBase64Encoded
+                    ? System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(body))
+                    : body;
+                dto = JsonSerializer.Deserialize<GetByIdDTO>(requestBody, _jsonOptions);
+            }
+            catch (Exception exception) when (exception is JsonException || exception is FormatException)
+            {
+                return TicketResponse(400, new { ErrorMessage = "Invalid JSON request body." });
+            }
+
+            var request = new GetByIdRequest(characterId, dto!, usersRepository, charactersRepository,
+                customerGuid, customCharacterDataSelector, getReadOnlyPublicCharacterData);
+            var actionResult = await request.Handle();
+            return actionResult switch
+            {
+                ObjectResult response => TicketResponse(response.StatusCode ?? 200, response.Value!),
+                StatusCodeResult response => TicketResponse(response.StatusCode, new { }),
+                _ => TicketResponse(500, new { ErrorMessage = "Unexpected character lookup result." })
+            };
+        }
+
         switch (action)
         {
             case "ExternalConnectionTicket":

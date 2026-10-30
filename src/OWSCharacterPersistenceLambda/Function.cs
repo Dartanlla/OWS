@@ -88,6 +88,27 @@ public class Function
         string body = proxyRequest.Body ?? "{}";
         object? result;
 
+        // Match character IDs before dispatching the existing named actions.
+        var pathSegments = path.TrimEnd('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (pathSegments.Length >= 3
+            && string.Equals(pathSegments[^3], "api", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(pathSegments[^2], "Characters", StringComparison.OrdinalIgnoreCase)
+            && int.TryParse(pathSegments[^1], out var characterId))
+        {
+            if (!string.Equals(proxyRequest.RequestContext?.Http?.Method, "POST", StringComparison.OrdinalIgnoreCase))
+                return CharacterResponse(405, new { ErrorMessage = "POST is required." });
+
+            var request = new GetByIdRequest(characterId);
+            request.SetData(charactersRepository, customerGuid);
+            var actionResult = await request.Handle();
+            return actionResult switch
+            {
+                ObjectResult response => CharacterResponse(response.StatusCode ?? 200, response.Value),
+                StatusCodeResult response => CharacterResponse(response.StatusCode, new { }),
+                _ => CharacterResponse(500, new { ErrorMessage = "Unexpected character lookup result." })
+            };
+        }
+
         switch (action)
         {
             // --- AbilitiesController ---
@@ -218,9 +239,21 @@ public class Function
     private static object? ExtractActionResultValue(IActionResult actionResult) =>
         actionResult is OkObjectResult ok ? ok.Value : null;
 
+    private static APIGatewayHttpApiV2ProxyResponse CharacterResponse(int statusCode, object? body)
+    {
+        var headers = BuildResponseHeaders();
+        headers["Cache-Control"] = "no-store";
+        return new APIGatewayHttpApiV2ProxyResponse
+        {
+            StatusCode = statusCode,
+            Body = JsonSerializer.Serialize(body),
+            Headers = headers
+        };
+    }
+
     private static Dictionary<string, string> BuildResponseHeaders() => new()
     {
-        { "Access-Control-Allow-Headers", "Content-Type, x-api-key" },
+        { "Access-Control-Allow-Headers", "Content-Type, x-api-key, X-CustomerGUID" },
         { "Access-Control-Allow-Methods", "OPTIONS,GET,POST" },
         { "Access-Control-Allow-Origin", "*" },
         { "Content-Type", "application/json" },
