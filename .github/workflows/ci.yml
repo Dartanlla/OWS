@@ -5,6 +5,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  # The merge queue tests each queued pull request on top of the ones ahead of it; the required checks run here too.
+  merge_group:
 
 # Least privilege: the jobs only read the repository.
 permissions:
