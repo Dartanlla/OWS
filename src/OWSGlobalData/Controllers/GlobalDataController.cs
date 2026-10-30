@@ -11,6 +11,7 @@ using OWSData.Models.StoredProcs;
 using OWSShared.Interfaces;
 using OWSData.Models.Composites;
 using OWSData.Repositories.Interfaces;
+using OWSShared;
 using OWSShared.Options;
 using System.Net.Http;
 using Serilog;
@@ -45,13 +46,17 @@ namespace OWSGlobalData.Controllers
         /// Add an item to Global Data
         /// </summary>
         /// <remarks>
-        /// Adds or updates a key/value pair to the Global Data system.
+        /// Adds or updates a key/value pair to the Global Data system. Zone servers only: the CustomerGUID ships with
+        /// game clients, so writes also need the X-Samsara-Service-Key. Reads stay on the CustomerGUID alone.
         /// </remarks>
         [HttpPost]
         [Route("AddOrUpdateGlobalDataItem")]
         [Produces(typeof(SuccessAndErrorMessage))]
-        public async Task<SuccessAndErrorMessage> AddOrUpdateGlobalDataItem([FromBody] AddOrUpdateGlobalDataItemDTO addOrUpdateGlobalDataItemDTO)
+        public async Task<ActionResult<SuccessAndErrorMessage>> AddOrUpdateGlobalDataItem([FromBody] AddOrUpdateGlobalDataItemDTO addOrUpdateGlobalDataItemDTO)
         {
+            Request.Headers.TryGetValue(SamsaraServiceKeyCheck.Header, out var serviceKey);
+            if (!SamsaraServiceKeyCheck.IsValid(serviceKey.ToString())) return Unauthorized();
+
             var addOrUpdateGlobalDataItemRequest = new AddOrUpdateGlobalDataItemRequest(
                 addOrUpdateGlobalDataItemDTO,
                 _globalDataRepository,

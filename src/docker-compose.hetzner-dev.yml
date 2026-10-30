@@ -228,6 +228,8 @@ services:
     healthcheck: *app-healthcheck
     environment:
       <<: *ows-common-env
+      # Global data writes need this server-to-server key (reads don't). Fails closed outside Development when unset.
+      OWS_SAMSARA_SERVICE_KEY: "${OWS_SAMSARA_SERVICE_KEY:-}"
     ports:
       - "${OWS_API_BIND:-127.0.0.1}:${OWS_GLOBAL_DATA_PORT:-44325}:80"
     mem_limit: "${OWS_GLOBAL_DATA_MEM_LIMIT:-256m}"

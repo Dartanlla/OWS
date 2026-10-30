@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OWSData\OWSData.csproj" />
+    <ProjectReference Include="..\OWSGlobalData\OWSGlobalData.csproj" />
     <ProjectReference Include="..\OWSInstanceLauncher\OWSInstanceLauncher.csproj" />
     <ProjectReference Include="..\OWSManagement\OWSManagement.csproj" />
     <ProjectReference Include="..\OWSShared\OWSShared.csproj" />
