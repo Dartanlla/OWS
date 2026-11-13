@@ -315,18 +315,47 @@ public class Function
                 break;
             }
             case "GetServerToConnectTo":
-            {
-                var request = JsonSerializer.Deserialize<GetServerToConnectToRequest>(body, _jsonOptions)!;
-                request.SetData(usersRepository, charactersRepository, customerGuid, httpClientFactory);
-                result = ExtractActionResultValue(await request.Handle());
-                break;
-            }
             case "GetServerToConnectToStatus":
             {
-                var request = JsonSerializer.Deserialize<GetServerToConnectToStatusRequest>(body, _jsonOptions)!;
-                request.SetData(charactersRepository, customerGuid);
-                result = ExtractActionResultValue(await request.Handle());
-                break;
+                if (!path.TrimEnd('/').EndsWith("/api/Users/" + action, StringComparison.OrdinalIgnoreCase))
+                    return TicketResponse(404, new { ErrorMessage = "Unknown action." });
+                if (!string.Equals(proxyRequest.HttpMethod, "POST", StringComparison.OrdinalIgnoreCase))
+                    return TicketResponse(405, new { ErrorMessage = "POST is required." });
+
+                Func<Task<IActionResult>> handle;
+                try
+                {
+                    string requestBody = proxyRequest.IsBase64Encoded
+                        ? System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(body))
+                        : body;
+                    if (action == "GetServerToConnectTo")
+                    {
+                        var request = JsonSerializer.Deserialize<GetServerToConnectToRequest>(requestBody, _jsonOptions);
+                        if (request == null)
+                            return TicketResponse(400, new { ErrorMessage = "A request body is required." });
+                        request.SetData(usersRepository, charactersRepository, customerGuid, httpClientFactory);
+                        handle = request.Handle;
+                    }
+                    else
+                    {
+                        var request = JsonSerializer.Deserialize<GetServerToConnectToStatusRequest>(requestBody, _jsonOptions);
+                        if (request == null)
+                            return TicketResponse(400, new { ErrorMessage = "A request body is required." });
+                        request.SetData(usersRepository, charactersRepository, customerGuid);
+                        handle = request.Handle;
+                    }
+                }
+                catch (Exception exception) when (exception is JsonException || exception is FormatException)
+                {
+                    return TicketResponse(400, new { ErrorMessage = "Invalid JSON request body." });
+                }
+
+                return (await handle()) switch
+                {
+                    ObjectResult response => TicketResponse(response.StatusCode ?? 200, response.Value!),
+                    StatusCodeResult response => TicketResponse(response.StatusCode, new { }),
+                    _ => TicketResponse(500, new { ErrorMessage = "Unexpected server assignment result." })
+                };
             }
             case "GetUserSession":
             {

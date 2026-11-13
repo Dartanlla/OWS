@@ -37,20 +37,17 @@ namespace OWSPublicAPI.Requests.Users
 
         public async Task<IActionResult> Handle()
         {
+            var (character, error) = await ServerAssignmentAuthorization.CheckAsync(
+                usersRepository, charactersRepository, CustomerGUID, UserSessionGUID, CharacterName);
+            if (error != null)
+                return error;
+
             Log.Information($"GetServerToConnectTo: Started...");
             Output = new JoinMapByCharName();
 
             //If ZoneName is empty, look it up from the character.  This is used for the inital login.
             if (String.IsNullOrEmpty(ZoneName) || ZoneName == "GETLASTZONENAME")
             {
-                GetCharByCharName character = await charactersRepository.GetCharByCharName(CustomerGUID, CharacterName);
-
-                //If we can't find the character by name, then return BadRequest.
-                if (character == null)
-                {
-                    return new BadRequestResult();
-                }
-
                 ZoneName = character.MapName;
                 Log.Information($"GetServerToConnectTo: Using last ZoneName for CharacterName: {CharacterName} ZoneName: {ZoneName}");
             }
@@ -64,7 +61,7 @@ namespace OWSPublicAPI.Requests.Users
                 return new OkObjectResult(Output);
             }
 
-            JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharName(CustomerGUID, CharacterName, ZoneName, PlayerGroupType);
+            JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharName(CustomerGUID, character.CharName, ZoneName, PlayerGroupType);
 
             if (joinMapByCharacterName == null || joinMapByCharacterName.WorldServerID < 1)
             {
@@ -91,7 +88,7 @@ namespace OWSPublicAPI.Requests.Users
             else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 2)
             {
                 Log.Information($"GetServerToConnectTo: Found a ready zone server (MapInstanceID: {joinMapByCharacterName.MapInstanceID}). Connecting character.");
-                await charactersRepository.AddCharacterToMapInstanceByCharName(CustomerGUID, CharacterName, joinMapByCharacterName.MapInstanceID);
+                await charactersRepository.AddCharacterToMapInstanceByCharName(CustomerGUID, character.CharName, joinMapByCharacterName.MapInstanceID);
             }
 
             Output = joinMapByCharacterName;

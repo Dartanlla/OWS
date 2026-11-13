@@ -37,6 +37,8 @@ public:
 	}
 
 	UPROPERTY()
+		FString UserSessionGUID;
+	UPROPERTY()
 		FString CharacterName;
 	UPROPERTY()
 		FString ZoneName;
@@ -55,6 +57,8 @@ public:
 		MapInstanceId = 0;
 	}
 
+	UPROPERTY()
+		FString UserSessionGUID;
 	UPROPERTY()
 		FString CharacterName;
 	UPROPERTY()
@@ -859,6 +863,9 @@ public:
 		ZoneName = "";
 		PlayerGroupTypeID = 0;
 	}
+
+	UPROPERTY()
+		FString UserSessionGUID;
 
 	UPROPERTY()
 		FString CharacterName;

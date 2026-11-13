@@ -10,19 +10,30 @@ namespace OWSPublicAPI.Requests.Users
     public class GetServerToConnectToStatusRequest : IRequestHandler<GetServerToConnectToStatusRequest, IActionResult>, IRequest
     {
         public int MapInstanceID { get; set; }
+        public Guid UserSessionGUID { get; set; }
         public string CharacterName { get; set; }
 
         private Guid CustomerGUID;
+        private IUsersRepository usersRepository;
         private ICharactersRepository charactersRepository;
 
-        public void SetData(ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
+        public void SetData(IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
         {
+            this.usersRepository = usersRepository;
             this.charactersRepository = charactersRepository;
             CustomerGUID = customerGuid.CustomerGUID;
         }
 
         public async Task<IActionResult> Handle()
         {
+            var (character, error) = await ServerAssignmentAuthorization.CheckAsync(
+                usersRepository, charactersRepository, CustomerGUID, UserSessionGUID, CharacterName);
+            if (error != null)
+                return error;
+
+            if (MapInstanceID <= 0)
+                return new BadRequestResult();
+
             var instance = await charactersRepository.CheckMapInstanceStatus(CustomerGUID, MapInstanceID);
 
             if (instance == null)
@@ -34,7 +45,7 @@ namespace OWSPublicAPI.Requests.Users
             if (instance.Status == 2)
             {
                 Log.Information($"GetServerToConnectToStatus: MapInstanceID {MapInstanceID} is ready. Connecting character {CharacterName}.");
-                await charactersRepository.AddCharacterToMapInstanceByCharName(CustomerGUID, CharacterName, MapInstanceID);
+                await charactersRepository.AddCharacterToMapInstanceByCharName(CustomerGUID, character.CharName, MapInstanceID);
             }
             else
             {

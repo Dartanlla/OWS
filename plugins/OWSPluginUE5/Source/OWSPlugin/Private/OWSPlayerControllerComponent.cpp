@@ -313,10 +313,18 @@ void UOWSPlayerControllerComponent::OnSetSelectedCharacterAndConnectToLastZoneRe
 //TravelToLastZoneServer - routes through the shared GetZoneServerToTravelTo handlers so polling is supported.
 void UOWSPlayerControllerComponent::TravelToLastZoneServer(FString CharacterName)
 {
+	if (ServerTravelUserSessionGUID.IsEmpty())
+	{
+		OnErrorGetZoneServerToTravelToDelegate.ExecuteIfBound(TEXT("A player session is required to connect to a zone server."));
+		return;
+	}
+
 	bZoneStatusIsLastZone = true;
 	ZoneStatusCharacterName = CharacterName;
+	ZoneStatusUserSessionGUID = ServerTravelUserSessionGUID;
 
 	FTravelToLastZoneServerJSONPost TravelToLastZoneServerJSONPost;
+	TravelToLastZoneServerJSONPost.UserSessionGUID = ZoneStatusUserSessionGUID;
 	TravelToLastZoneServerJSONPost.CharacterName = CharacterName;
 	TravelToLastZoneServerJSONPost.ZoneName = TEXT("GETLASTZONENAME");
 	TravelToLastZoneServerJSONPost.PlayerGroupType = 0;
@@ -334,11 +342,19 @@ void UOWSPlayerControllerComponent::TravelToLastZoneServer(FString CharacterName
 //GetZoneServerToTravelTo
 void UOWSPlayerControllerComponent::GetZoneServerToTravelTo(FString CharacterName, TEnumAsByte<ERPGSchemeToChooseMap::SchemeToChooseMap> SelectedSchemeToChooseMap, int32 WorldServerID, FString ZoneName)
 {
+	const AOWSPlayerState* PlayerState = GetOWSPlayerState();
+	if (!PlayerState || PlayerState->UserSessionGUID.IsEmpty())
+	{
+		OnErrorGetZoneServerToTravelToDelegate.ExecuteIfBound(TEXT("A player session is required to connect to a zone server."));
+		return;
+	}
+
 	bZoneStatusIsLastZone = false;
-	// Cache character name for use by the status-polling path.
 	ZoneStatusCharacterName = CharacterName;
+	ZoneStatusUserSessionGUID = PlayerState->UserSessionGUID;
 
 	FTravelToLastZoneServerJSONPost TravelToLastZoneServerJSONPost;
+	TravelToLastZoneServerJSONPost.UserSessionGUID = ZoneStatusUserSessionGUID;
 	TravelToLastZoneServerJSONPost.CharacterName = CharacterName;
 	TravelToLastZoneServerJSONPost.ZoneName = ZoneName;
 	TravelToLastZoneServerJSONPost.PlayerGroupType = 0;
@@ -426,6 +442,7 @@ void UOWSPlayerControllerComponent::PollGetZoneServerToTravelToStatus()
 	++ZoneStatusPollCount;
 
 	FGetServerToConnectToStatusJSONPost StatusPost;
+	StatusPost.UserSessionGUID = ZoneStatusUserSessionGUID;
 	StatusPost.CharacterName = ZoneStatusCharacterName;
 	StatusPost.MapInstanceId = ZoneStatusCachedMapInstanceId;
 
@@ -1256,7 +1273,15 @@ void UOWSPlayerControllerComponent::OnGetPlayerGroupsCharacterIsInResponseReceiv
 //LaunchZoneInstance
 void UOWSPlayerControllerComponent::LaunchZoneInstance(FString CharacterName, FString ZoneName, ERPGPlayerGroupType::PlayerGroupType GroupType)
 {
+	const AOWSPlayerState* PlayerState = GetOWSPlayerState();
+	if (!PlayerState || PlayerState->UserSessionGUID.IsEmpty())
+	{
+		OnErrorLaunchZoneInstanceDelegate.ExecuteIfBound(TEXT("A player session is required to launch a zone server."));
+		return;
+	}
+
 	FLaunchZoneInstance LaunchZoneInstance;
+	LaunchZoneInstance.UserSessionGUID = PlayerState->UserSessionGUID;
 	LaunchZoneInstance.CharacterName = CharacterName;
 	LaunchZoneInstance.ZoneName = ZoneName;
 	LaunchZoneInstance.PlayerGroupTypeID = GroupType;

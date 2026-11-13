@@ -372,6 +372,7 @@ protected:
 	FTimerHandle ZoneStatusPollTimerHandle;
 	FString ZoneStatusCachedServerAndPort;
 	FString ZoneStatusCharacterName;
+	FString ZoneStatusUserSessionGUID;
 	int32 ZoneStatusCachedMapInstanceId = 0;
 	int32 ZoneStatusPollCount = 0;
 	float ZoneStatusPollIntervalSeconds = 2.0f;
