@@ -1,6 +1,13 @@
 version: '3.7'
 
 services:
+  owspublicapi:
+    environment:
+      - OWSTicketConfig__ConnectionString=owsticket:6379,password=${OWSTicketValkeyPassword:?Set OWSTicketValkeyPassword in .env.tickets}
+      - OWS_TICKET_REDEMPTION_API_KEY=${OWSTicketRedemptionApiKey:?Set OWSTicketRedemptionApiKey in .env.tickets}
+    depends_on:
+      - owsticket
+
   owsticket:
     image: valkey/valkey:latest
     restart: always
@@ -11,6 +18,6 @@ services:
       - --appendonly
       - 'no'
       - --requirepass
-      - ${OWSTicketValkeyPassword:?Set OWSTicketValkeyPassword before starting Compose}
+      - ${OWSTicketValkeyPassword:?Set OWSTicketValkeyPassword in .env.tickets}
     ports:
       - "127.0.0.1:6380:6379"

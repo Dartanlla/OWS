@@ -34,7 +34,7 @@ namespace OWSData.Repositories.Implementations.ValKey
 
             try
             {
-                var userSession = JsonSerializer.Deserialize<GetUserSession>(userSessionJson!);
+                var userSession = JsonSerializer.Deserialize<GetUserSession>((string)userSessionJson!);
                 return userSession ?? new GetUserSession();
             }
             catch (JsonException)

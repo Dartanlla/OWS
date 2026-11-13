@@ -96,7 +96,7 @@ return cjson.encode(record)";
                 return null;
             }
 
-            var record = JsonSerializer.Deserialize<ConnectionTicket>(value);
+            var record = JsonSerializer.Deserialize<ConnectionTicket>((string)value);
             return record?.ServerId == serverId
                 && record.ExpiresAtUtc > DateTimeOffset.UtcNow
                 ? record : null;
