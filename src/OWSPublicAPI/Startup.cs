@@ -119,6 +119,12 @@ namespace OWSPublicAPI
             // Register And Validate External Login Provider Options
             // services.ConfigureAndValidate<EpicOnlineServicesOptions>(ExternalLoginProviderOptions.EpicOnlineServices, Configuration.GetSection($"{ExternalLoginProviderOptions.SectionName}:{ExternalLoginProviderOptions.EpicOnlineServices}"));
 
+            var ticketConnectionString = Configuration["OWSTicketConfig:ConnectionString"];
+            if (!string.IsNullOrWhiteSpace(ticketConnectionString))
+            {
+                services.AddSingleton<ITicketRepository>(_ => new TicketRepository(ticketConnectionString));
+            }
+
             InitializeContainer(services);
         }
 
@@ -189,10 +195,6 @@ namespace OWSPublicAPI
             container.Register<ICustomDataSelector, DefaultCustomDataSelector>(Lifestyle.Singleton);
             container.Register<IGetReadOnlyPublicCharacterData, DefaultGetReadOnlyPublicCharacterData>(Lifestyle.Singleton);
             container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
-            container.Register<ITicketRepository>(
-                () => new TicketRepository(
-                    Configuration["OWSTicketConfig:ConnectionString"]),
-                Lifestyle.Singleton);
 
             var externalloginproviderfactory = new ExternalLoginProviderFactory(container);
 

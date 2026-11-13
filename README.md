@@ -48,12 +48,24 @@ session exists and has a selected character, then returns an opaque ticket, a
 new Base64-encoded 32-byte session secret, `CharacterId`, `ServerId`, and
 `ExpiresAtUtc`. The ticket expires after 45 seconds.
 
-The dedicated `owsticket` Valkey service stores ticket records in memory and
-publishes port `6380` on the Docker host's loopback interface for local Edge
-integration. Set a distinct `OWSTicketValkeyPassword` in the environment before
-running Docker Compose. In a local API process, set
-`OWSTicketConfig__ConnectionString` to a connection string for `localhost:6380`
-that includes that password. Compose configures the API connection automatically.
+The default Docker Compose setup runs without the Nilux ticket integration. To
+enable it, copy `src/.env` to `src/.env.tickets` and add a unique
+`OWSTicketValkeyPassword` and a separate, randomly generated
+`OWSTicketRedemptionApiKey`. The copy is excluded from Git and Docker builds.
+Use a password without commas because it is passed in a comma-delimited Valkey
+connection string.
+
+From `src`, add `--env-file .env.tickets` to the Compose command and append
+`-f .docker/owsticket.yml` after your usual Compose files, before `up`. For
+Visual Studio, set `DockerComposeEnvFilePath` to `.env.tickets` in
+`docker-compose.dcproj` and append `;.docker/owsticket.yml` to
+`AdditionalComposeFilePaths`.
+
+The optional `owsticket` service stores records in memory, publishes
+`127.0.0.1:6380`, and configures the containerized Public API automatically.
+When running the Public API directly, configure
+`OWSTicketConfig__ConnectionString` with `localhost:6380` and the Valkey
+password.
 
 `ITicketRepository` exposes `GetTicketAsync` for retrieving the secret before
 handshake verification and `RedeemTicketAsync` for atomically claiming the ticket
@@ -64,7 +76,9 @@ claimants and other server IDs are rejected.
 Nilux Edge accesses those operations through the private HTTPS endpoint
 `POST /api/Users/RedeemExternalConnectionTicket`; it never connects to Valkey.
 The endpoint accepts `Claim: false` for the pre-authentication lookup and
-`Claim: true` for the atomic claim, and requires `X-Edge-Redemption-Key`. Set
-`OWS_TICKET_REDEMPTION_API_KEY` on the API/Lambda and configure the same secret
-as `NILUX_OWS_REDEMPTION_API_KEY` on Edge. Do not expose either value to the game
-client or commit it to source.
+`Claim: true` for the atomic claim, and requires `X-Edge-Redemption-Key`. The
+Compose override passes `OWSTicketRedemptionApiKey` to the API as
+`OWS_TICKET_REDEMPTION_API_KEY`. Set that API variable directly for a standalone
+API or Lambda deployment. Configure the same secret as
+`NILUX_OWS_REDEMPTION_API_KEY` on Edge. Keep the secret out of source control and
+the game client.

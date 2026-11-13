@@ -88,6 +88,18 @@ namespace OWSPublicAPI.Controllers
         }
 
         /// <summary>
+        /// Gets character and public custom data by CharacterId for the owning user session.
+        /// </summary>
+        [HttpPost("{characterId:int}")]
+        [Produces(typeof(CharacterAndCustomData))]
+        public async Task<IActionResult> GetById([FromRoute] int characterId, [FromBody] GetByIdDTO request)
+        {
+            var getByIdRequest = new GetByIdRequest(characterId, request, _usersRepository, _charactersRepository,
+                _customerGuid, _customCharacterDataSelector, _getReadOnlyPublicCharacterData);
+            return await getByIdRequest.Handle();
+        }
+
+        /// <summary>
         /// Get Default Custom Character Data by defaultSetName.
         /// </summary>
         /// <remarks>

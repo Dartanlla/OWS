@@ -13,7 +13,7 @@ nav_order: 2
   * [C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit) extension is required
   * [Docker for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker) extension is required
 * Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop) for Windows/macOS/Linux
-* [.Net 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+* [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 * Enable "Virtualization Technology" in your BIOS
 <br />
 <br />

@@ -194,6 +194,17 @@ namespace OWSData.Repositories.Implementations.MSSQL
             return outputCharacter.FirstOrDefault();
         }
 
+        public async Task<GetCharByCharName> GetCharByCharId(Guid customerGUID, int characterId)
+        {
+            using (var connection = Connection)
+            {
+                var characters = await connection.QueryAsync<GetCharByCharName>(GenericQueries.GetCharByCharId,
+                    new { CustomerGUID = customerGUID, CharacterID = characterId },
+                    commandType: CommandType.Text);
+                return characters.FirstOrDefault();
+            }
+        }
+
         public async Task<IEnumerable<DefaultCustomData>> GetDefaultCustomCharacterData(Guid customerGUID, string defaultSetName)
         {
             IEnumerable<DefaultCustomData> outputDefaultCustomCharacterDataRows;
@@ -337,7 +348,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
                     //If the login username has @localhost in it or if Users.IsInternalNetworkTestUser is set to true, then redirect the client IP to the InternalServerIP (usually 127.0.0.1 on a development PC)
                     //This is useful if you want to play a game client on the same device (development PC) as the game server while still allowing players from outside the network to connect with an external IP.
-                    if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
+                    if (outputCharacter.IsInternalNetworkTestUser)
                     {
                         outputObject.ServerIP = outputJoinMapByCharName.WorldServerIP;
                     }
@@ -364,7 +375,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
                     //If the login username has @localhost in it or if Users.IsInternalNetworkTestUser is set to true, then redirect the client IP to the InternalServerIP (usually 127.0.0.1 on a development PC)
                     //This is useful if you want to play a game client on the same device (development PC) as the game server while still allowing players from outside the network to connect with an external IP.
-                    if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
+                    if (outputCharacter.IsInternalNetworkTestUser)
                     {
                         outputObject.ServerIP = outputWorldServers.InternalServerIp;
                     }

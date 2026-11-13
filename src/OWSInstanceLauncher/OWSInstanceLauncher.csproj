@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <StartupObject>OWSInstanceLauncher.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
@@ -17,8 +17,7 @@
     <PackageReference Include="SimpleInjector" Version="5.4.5" />
     <PackageReference Include="SimpleInjector.Integration.AspNetCore.Mvc" Version="5.5.0" />
     <PackageReference Include="SimpleInjector.Integration.GenericHost" Version="5.5.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OWSData\OWSData.csproj" />

@@ -17,7 +17,7 @@ UE4 is no longer supported by OWS 2
 
 ## Initial setup
 
-1. Open the [OWS GitHub project](https://github.com/Dartanlla/OWS) in Visual Studio 2022 and click on the Docker Compose button (if it is not already running). Check the [Docker Setup](docker-setup) section for a detailed explanation.
+1. Open the [OWS GitHub project](https://github.com/Dartanlla/OWS) in Visual Studio 2026 and click on the Docker Compose button (if it is not already running). Check the [Docker Setup](docker-setup) section for a detailed explanation.
    
 2. Unzip OpenWorldStarterPlugin.zip to your Unreal Projects folder or another location on your PC.
    

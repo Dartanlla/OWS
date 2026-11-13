@@ -37,7 +37,6 @@ namespace OWSPublicAPI.Controllers
         private readonly ILogger _logger;
         private readonly Container _container;
         private readonly IUsersRepository _usersRepository;
-        private readonly ITicketRepository _ticketRepository;
         private readonly IExternalLoginProviderFactory _externalLoginProviderFactory;
         private readonly ICharactersRepository _charactersRepository;
         private readonly IPublicAPIInputValidation _publicAPIInputValidation;
@@ -56,7 +55,6 @@ namespace OWSPublicAPI.Controllers
             ILogger<UsersController> logger,
             Container container, 
             IUsersRepository usersRepository,
-            ITicketRepository ticketRepository,
             IExternalLoginProviderFactory externalLoginProviderFactory,
             ICharactersRepository charactersRepository,
             IPublicAPIInputValidation publicAPIInputValidation,
@@ -68,7 +66,6 @@ namespace OWSPublicAPI.Controllers
             _logger = logger;
             _container = container;
             _usersRepository = usersRepository;
-            _ticketRepository = ticketRepository;
             _externalLoginProviderFactory = externalLoginProviderFactory;
             _charactersRepository = charactersRepository;
             _publicAPIInputValidation = publicAPIInputValidation;
@@ -202,7 +199,8 @@ namespace OWSPublicAPI.Controllers
         [Route("ExternalConnectionTicket")]
         [Produces(typeof(ExternalConnectionTicketResponse))]
         public async Task<IActionResult> ExternalConnectionTicket(
-            [FromBody] ExternalConnectionTicketRequest request)
+            [FromBody] ExternalConnectionTicketRequest request,
+            [FromServices] ITicketRepository ticketRepository = null)
         {
             Response.Headers["Cache-Control"] = "no-store";
             if (!Request.IsHttps)
@@ -210,10 +208,16 @@ namespace OWSPublicAPI.Controllers
                 return StatusCode(StatusCodes.Status403Forbidden,
                     "Connection tickets must be requested over HTTPS.");
             }
+            if (ticketRepository == null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                    "The connection ticket store is not configured.");
+            }
+
             try
             {
                 var result = await new ExternalConnectionTicketIssuer(
-                    _usersRepository, _ticketRepository)
+                    _usersRepository, ticketRepository)
                     .IssueAsync(_customerGuid.CustomerGUID, request);
                 switch (result.Status)
                 {
@@ -245,7 +249,8 @@ namespace OWSPublicAPI.Controllers
         [Route("RedeemExternalConnectionTicket")]
         [Produces(typeof(RedeemExternalConnectionTicketResponse))]
         public async Task<IActionResult> RedeemExternalConnectionTicket(
-            [FromBody] RedeemExternalConnectionTicketRequest request)
+            [FromBody] RedeemExternalConnectionTicketRequest request,
+            [FromServices] ITicketRepository ticketRepository = null)
         {
             Response.Headers["Cache-Control"] = "no-store";
             if (!Request.IsHttps)
@@ -274,11 +279,16 @@ namespace OWSPublicAPI.Controllers
                 return BadRequest(
                     "Ticket, a positive ServerId, and ClaimantId when claiming are required.");
             }
+            if (ticketRepository == null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                    "The connection ticket store is not configured.");
+            }
 
             try
             {
                 var ticket = await ExternalConnectionTicketRedemption.ExecuteAsync(
-                    _ticketRepository, request);
+                    ticketRepository, request);
                 return ticket == null
                     ? NotFound("The ticket is unavailable, expired, assigned to another server, or already claimed.")
                     : Ok(ExternalConnectionTicketRedemption.ToResponse(ticket));
