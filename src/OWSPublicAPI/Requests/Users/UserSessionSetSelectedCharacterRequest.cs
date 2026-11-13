@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using OWSData.Models.Composites;
 using OWSData.Repositories.Interfaces;
@@ -27,12 +25,22 @@ namespace OWSPublicAPI.Requests.Users
 
         public async Task<IActionResult> Handle()
         {
-            var (character, error) = await PlayerAuthorization.CheckAsync(
+            var (update, error) = await SelectAsync(
                 usersRepository, charactersRepository, customerGUID, UserSessionGUID, SelectedCharacterName);
-            if (error != null)
-                return error;
+            return error ?? new OkObjectResult(update);
+        }
 
-            return new OkObjectResult(await usersRepository.UserSessionSetSelectedCharacter(customerGUID, UserSessionGUID, character.CharacterId));
+        internal static async Task<(SuccessAndErrorMessage Update, IActionResult Error)> SelectAsync(
+            IUsersRepository usersRepository, ICharactersRepository charactersRepository,
+            Guid customerGuid, Guid sessionGuid, string characterName)
+        {
+            var (character, error) = await PlayerAuthorization.CheckAsync(
+                usersRepository, charactersRepository, customerGuid, sessionGuid, characterName);
+            if (error != null)
+                return (null, error);
+
+            var update = await usersRepository.UserSessionSetSelectedCharacter(customerGuid, sessionGuid, character.CharacterId);
+            return update.Success ? (update, null) : (null, new ConflictObjectResult(update));
         }
     }
 }

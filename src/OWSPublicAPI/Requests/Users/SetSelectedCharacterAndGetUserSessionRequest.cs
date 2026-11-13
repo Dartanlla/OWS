@@ -1,12 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using OWSData.Models.Composites;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
-using OWSData.Models.StoredProcs;
 
 namespace OWSPublicAPI.Requests.Users
 {
@@ -28,14 +24,10 @@ namespace OWSPublicAPI.Requests.Users
 
         public async Task<IActionResult> Handle()
         {
-            var (character, error) = await PlayerAuthorization.CheckAsync(
+            var (_, error) = await UserSessionSetSelectedCharacterRequest.SelectAsync(
                 usersRepository, charactersRepository, customerGUID, UserSessionGUID, SelectedCharacterName);
             if (error != null)
                 return error;
-
-            var update = await usersRepository.UserSessionSetSelectedCharacter(customerGUID, UserSessionGUID, character.CharacterId);
-            if (!update.Success)
-                return new ConflictObjectResult(update);
 
             var session = await PlayerAuthorization.GetSessionAsync(usersRepository, customerGUID, UserSessionGUID);
             return session == null ? new UnauthorizedResult() : new OkObjectResult(session);
