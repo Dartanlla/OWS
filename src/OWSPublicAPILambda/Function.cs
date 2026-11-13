@@ -103,19 +103,35 @@ public class Function
     public async Task<APIGatewayProxyResponse> FunctionHandler(APIGatewayProxyRequest proxyRequest, ILambdaContext context)
     {
         string path = proxyRequest.Path ?? string.Empty;
-        string action = path.Split('/').LastOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
+        var pathSegments = path.TrimEnd('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (pathSegments.Length < 3 || !string.Equals(pathSegments[^3], "api", StringComparison.OrdinalIgnoreCase))
+            return TicketResponse(404, new { ErrorMessage = "Unknown route." });
 
-        string? customerGuidStr = null;
-        proxyRequest.Headers?.TryGetValue("X-CustomerGUID", out customerGuidStr);
-        if (string.IsNullOrEmpty(customerGuidStr))
-            proxyRequest.Headers?.TryGetValue("x-customerguid", out customerGuidStr);
+        string action = pathSegments[^1];
+        string controller = pathSegments[^2];
+        if (string.Equals(controller, "System", StringComparison.OrdinalIgnoreCase) && action == "Status")
+            return string.Equals(proxyRequest.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase)
+                ? TicketResponse(200, true) : TicketResponse(405, new { ErrorMessage = "GET is required." });
 
-        var customerGuid = new HeaderCustomerGUID
-        {
-            CustomerGUID = Guid.TryParse(customerGuidStr, out var g) ? g : Guid.Empty
-        };
+        bool charactersRoute = string.Equals(controller, "Characters", StringComparison.OrdinalIgnoreCase);
+        bool usersRoute = string.Equals(controller, "Users", StringComparison.OrdinalIgnoreCase);
+        if (!(charactersRoute && (action == "ByName" || action == "GetDefaultCustomData" || int.TryParse(action, out _))) &&
+            !(usersRoute && IsUsersAction(action)))
+            return TicketResponse(404, new { ErrorMessage = "Unknown route." });
+
+        string method = action == "GetUserSession" ? "GET" : "POST";
+        if (!string.Equals(proxyRequest.HttpMethod, method, StringComparison.OrdinalIgnoreCase))
+            return TicketResponse(405, new { ErrorMessage = method + " is required." });
 
         var usersRepository = services!.GetRequiredService<IUsersRepository>();
+        var customerGuid = new HeaderCustomerGUID();
+        if (PublicApiTenant.IsTenantScoped(controller, action))
+        {
+            customerGuid.CustomerGUID = await PublicApiTenant.ResolveAsync(
+                GetHeader(proxyRequest.Headers, "X-CustomerGUID"), usersRepository);
+            if (customerGuid.CustomerGUID == Guid.Empty)
+                return TicketResponse(401, new { ErrorMessage = "A valid tenant is required." });
+        }
         var charactersRepository = services!.GetRequiredService<ICharactersRepository>();
         var publicAPIInputValidation = services!.GetRequiredService<IPublicAPIInputValidation>();
         var externalLoginProviderFactory = services!.GetRequiredService<IExternalLoginProviderFactory>();
@@ -129,7 +145,6 @@ public class Function
         object? result;
 
         // Character IDs are route values, so match the resource path before the action-name dispatcher.
-        var pathSegments = path.TrimEnd('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
         if (pathSegments.Length >= 3
             && string.Equals(pathSegments[^3], "api", StringComparison.OrdinalIgnoreCase)
             && string.Equals(pathSegments[^2], "Characters", StringComparison.OrdinalIgnoreCase)
@@ -290,7 +305,7 @@ public class Function
             {
                 var request = JsonSerializer.Deserialize<CreateCharacterRequest>(body, _jsonOptions)!;
                 request.SetData(usersRepository, publicAPIInputValidation, customerGuid);
-                result = ExtractActionResultValue(await request.Handle());
+                result = await request.Handle();
                 break;
             }
             case "CreateCharacterUsingDefaultCharacterValues":
@@ -304,14 +319,14 @@ public class Function
             {
                 var request = JsonSerializer.Deserialize<GetAllCharactersRequest>(body, _jsonOptions)!;
                 request.SetData(usersRepository, customerGuid);
-                result = ExtractActionResultValue(await request.Handle());
+                result = await request.Handle();
                 break;
             }
             case "GetPlayerGroupsCharacterIsIn":
             {
                 var request = JsonSerializer.Deserialize<GetPlayerGroupsCharacterIsInRequest>(body, _jsonOptions)!;
-                request.SetData(usersRepository, customerGuid);
-                result = ExtractActionResultValue(await request.Handle());
+                request.SetData(usersRepository, charactersRepository, customerGuid);
+                result = await request.Handle();
                 break;
             }
             case "GetServerToConnectTo":
@@ -365,21 +380,21 @@ public class Function
                 if (Guid.TryParse(userSessionGuidStr, out var sessionGuid))
                     request.UserSessionGUID = sessionGuid;
                 request.SetData(usersRepository, customerGuid);
-                result = ExtractActionResultValue(await request.Handle());
+                result = await request.Handle();
                 break;
             }
             case "LoginAndCreateSession":
             {
                 var request = JsonSerializer.Deserialize<LoginAndCreateSessionRequest>(body, _jsonOptions)!;
                 request.SetData(usersRepository, customerGuid);
-                result = ExtractActionResultValue(await request.Handle());
+                result = await request.Handle();
                 break;
             }
             case "ExternalLoginAndCreateSession":
             {
                 var request = JsonSerializer.Deserialize<ExternalLoginAndCreateSessionRequest>(body, _jsonOptions)!;
                 request.SetData(usersRepository, externalLoginProviderFactory, customerGuid);
-                result = ExtractActionResultValue(await request.Handle());
+                result = await request.Handle();
                 break;
             }
             case "Logout":
@@ -392,15 +407,15 @@ public class Function
             case "UserSessionSetSelectedCharacter":
             {
                 var request = JsonSerializer.Deserialize<UserSessionSetSelectedCharacterRequest>(body, _jsonOptions)!;
-                request.SetData(usersRepository, customerGuid);
-                result = ExtractActionResultValue(await request.Handle());
+                request.SetData(usersRepository, charactersRepository, customerGuid);
+                result = await request.Handle();
                 break;
             }
             case "SetSelectedCharacterAndGetUserSession":
             {
                 var request = JsonSerializer.Deserialize<SetSelectedCharacterAndGetUserSessionRequest>(body, _jsonOptions)!;
-                request.SetData(usersRepository, customerGuid);
-                result = ExtractActionResultValue(await request.Handle());
+                request.SetData(usersRepository, charactersRepository, customerGuid);
+                result = await request.Handle();
                 break;
             }
             case "RegisterUser":
@@ -413,27 +428,22 @@ public class Function
             case "RemoveCharacter":
             {
                 var request = JsonSerializer.Deserialize<RemoveCharacterRequest>(body, _jsonOptions)!;
-                request.SetData(usersRepository, customerGuid);
-                result = ExtractActionResultValue(await request.Handle());
+                request.SetData(usersRepository, charactersRepository, customerGuid);
+                result = await request.Handle();
                 break;
             }
             case "ByName":
             {
                 var dto = JsonSerializer.Deserialize<GetByNameDTO>(body, _jsonOptions)!;
                 var request = new GetByNameRequest(dto, usersRepository, charactersRepository, customerGuid, customCharacterDataSelector, getReadOnlyPublicCharacterData);
-                result = ExtractActionResultValue(await request.Handle());
+                result = await request.Handle();
                 break;
             }
             case "GetDefaultCustomData":
             {
                 var dto = JsonSerializer.Deserialize<GetDefaultCustomrDataDTO>(body, _jsonOptions)!;
                 var request = new GetDefaultCustomDataRequest(dto, usersRepository, charactersRepository, customerGuid, customDataSelector, getReadOnlyPublicCharacterData);
-                result = ExtractActionResultValue(await request.Handle());
-                break;
-            }
-            case "Status":
-            {
-                result = true;
+                result = await request.Handle();
                 break;
             }
             default:
@@ -445,6 +455,14 @@ public class Function
                 };
         }
 
+        if (result is IActionResult handledResult)
+            return handledResult switch
+            {
+                ObjectResult response => TicketResponse(response.StatusCode ?? 200, response.Value!),
+                StatusCodeResult response => TicketResponse(response.StatusCode, new { }),
+                _ => TicketResponse(500, new { ErrorMessage = "Unexpected action result." })
+            };
+
         return new APIGatewayProxyResponse
         {
             StatusCode = 200,
@@ -453,8 +471,12 @@ public class Function
         };
     }
 
-    private static object? ExtractActionResultValue(IActionResult actionResult) =>
-        actionResult is OkObjectResult ok ? ok.Value : null;
+    private static bool IsUsersAction(string action) => action is
+        "ExternalConnectionTicket" or "RedeemExternalConnectionTicket" or "CreateCharacter" or
+        "CreateCharacterUsingDefaultCharacterValues" or "GetAllCharacters" or "GetPlayerGroupsCharacterIsIn" or
+        "GetServerToConnectTo" or "GetServerToConnectToStatus" or "GetUserSession" or "LoginAndCreateSession" or
+        "ExternalLoginAndCreateSession" or "Logout" or "UserSessionSetSelectedCharacter" or
+        "SetSelectedCharacterAndGetUserSession" or "RegisterUser" or "RemoveCharacter";
 
     private static string? GetHeader(
         IDictionary<string, string>? headers,

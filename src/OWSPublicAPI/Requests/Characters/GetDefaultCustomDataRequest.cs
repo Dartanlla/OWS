@@ -1,3 +1,4 @@
+using OWSPublicAPI.Requests.Users;
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
@@ -62,13 +63,11 @@ namespace OWSPublicAPI.Requests.Characters
             }
 
             //Get the User Session
-            GetUserSession userSession = await _usersRepository.GetUserSession(_customerGUID, parsedGuid);
+            GetUserSession userSession = await PlayerAuthorization.GetSessionAsync(_usersRepository, _customerGUID, parsedGuid);
 
             //Make sure the User Session is valid
-            if (userSession == null || !userSession.UserGuid.HasValue)
-            {
-                return new BadRequestObjectResult(Output);
-            }
+            if (userSession == null)
+                return new UnauthorizedResult();
 
             IEnumerable<DefaultCustomData> customDataItems = await _charactersRepository.GetDefaultCustomCharacterData(_customerGUID, _getDefaultCustomCharacterDataDTO.DefaultSetName);
             Output.Rows = new List<DefaultCustomData>();

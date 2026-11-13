@@ -34,6 +34,7 @@ namespace OWSPublicAPI.Requests.Users
 
         private Guid CustomerGUID;
         private IUsersRepository usersRepository;
+        private ICharactersRepository charactersRepository;
         private IPublicAPIInputValidation publicAPIInputValidation;
 
         /// <summary>
@@ -42,10 +43,11 @@ namespace OWSPublicAPI.Requests.Users
         /// <remarks>
         /// Injects the dependencies for the CreateCharacterRequest.
         /// </remarks>
-        public void SetData(IUsersRepository usersRepository, IHeaderCustomerGUID customerGuid)
+        public void SetData(IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
         {
             CustomerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
+            this.charactersRepository = charactersRepository;
         }
 
         /// <summary>
@@ -56,11 +58,12 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
-            SuccessAndErrorMessage output;
+            var (character, error) = await PlayerAuthorization.CheckAsync(
+                usersRepository, charactersRepository, CustomerGUID, UserSessionGUID, CharacterName);
+            if (error != null)
+                return error;
 
-            output = await usersRepository.RemoveCharacter(CustomerGUID, UserSessionGUID, CharacterName);
-
-            return new OkObjectResult(output);
+            return new OkObjectResult(await usersRepository.RemoveCharacter(CustomerGUID, UserSessionGUID, character.CharacterId));
         }
     }
 }

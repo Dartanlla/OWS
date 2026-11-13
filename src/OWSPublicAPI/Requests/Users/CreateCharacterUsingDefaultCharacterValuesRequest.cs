@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -48,8 +49,12 @@ namespace OWSPublicAPI.Requests.Users
         /// <remarks>
         /// Overrides IRequestHandler Handle().
         /// </remarks>
-        public async Task<SuccessAndErrorMessage> Handle()
+        public async Task<IActionResult> Handle()
         {
+            var userSession = await PlayerAuthorization.GetSessionAsync(_usersRepository, _customerGUID, _createCharacterUsingDefaultCharacterValuesDTO.UserSessionGUID);
+            if (userSession == null)
+                return new UnauthorizedResult();
+
             //Validate Character Name
             string errorMessage = _publicAPIInputValidation.ValidateCharacterName(_createCharacterUsingDefaultCharacterValuesDTO.CharacterName);
 
@@ -58,7 +63,7 @@ namespace OWSPublicAPI.Requests.Users
                 SuccessAndErrorMessage successAndErrorMessage = new SuccessAndErrorMessage();
                 successAndErrorMessage.Success = false;
                 successAndErrorMessage.ErrorMessage = errorMessage;
-                return successAndErrorMessage;
+                return new OkObjectResult(successAndErrorMessage);
             }
 
             //Make sure Character Name is Unique
@@ -69,18 +74,7 @@ namespace OWSPublicAPI.Requests.Users
                 SuccessAndErrorMessage successAndErrorMessage = new SuccessAndErrorMessage();
                 successAndErrorMessage.Success = false;
                 successAndErrorMessage.ErrorMessage = "Character name already exists for this customer!";
-                return successAndErrorMessage;
-            }
-
-            //Get User Session
-            var userSession = await _usersRepository.GetUserSession(_customerGUID, _createCharacterUsingDefaultCharacterValuesDTO.UserSessionGUID);
-
-            if (userSession == null || !userSession.UserGuid.HasValue)
-            {
-                SuccessAndErrorMessage successAndErrorMessage = new SuccessAndErrorMessage();
-                successAndErrorMessage.Success = false;
-                successAndErrorMessage.ErrorMessage = "Invalid User Session";
-                return successAndErrorMessage;
+                return new OkObjectResult(successAndErrorMessage);
             }
 
             var createCharacterResult = await _usersRepository.CreateCharacterUsingDefaultCharacterValues(_customerGUID, userSession.UserGuid.Value, _createCharacterUsingDefaultCharacterValuesDTO.CharacterName,
@@ -88,18 +82,18 @@ namespace OWSPublicAPI.Requests.Users
 
             if (createCharacterResult == null)
             {
-                return new SuccessAndErrorMessage()
+                return new OkObjectResult(new SuccessAndErrorMessage()
                 {
                     Success = false,
                     ErrorMessage = "Character could not be created."
-                };
+                });
             }
 
-            return new SuccessAndErrorMessage()
+            return new OkObjectResult(new SuccessAndErrorMessage()
             {
                 Success = createCharacterResult.Success,
                 ErrorMessage = createCharacterResult.Success ? "" : createCharacterResult.ErrorMessage
-            };
+            });
         }
     }
 }

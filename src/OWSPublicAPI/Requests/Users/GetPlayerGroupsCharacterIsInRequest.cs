@@ -39,9 +39,9 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public int PlayerGroupTypeID { get; set; }
 
-        private IEnumerable<GetPlayerGroupsCharacterIsIn> output;
         private Guid customerGUID;
         private IUsersRepository usersRepository;
+        private ICharactersRepository charactersRepository;
 
         /// <summary>
         /// SetData
@@ -49,10 +49,11 @@ namespace OWSPublicAPI.Requests.Users
         /// <remarks>
         /// Used to pass dependencies to the Request object (for performance reasons).
         /// </remarks>
-        public void SetData(IUsersRepository usersRepository, IHeaderCustomerGUID customerGuid)
+        public void SetData(IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
         {
             customerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
+            this.charactersRepository = charactersRepository;
         }
 
         /// <summary>
@@ -63,9 +64,12 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
-            output = await usersRepository.GetPlayerGroupsCharacterIsIn(customerGUID, UserSessionGUID, CharacterName, PlayerGroupTypeID);
+            var (character, error) = await PlayerAuthorization.CheckAsync(
+                usersRepository, charactersRepository, customerGUID, UserSessionGUID, CharacterName);
+            if (error != null)
+                return error;
 
-            return new OkObjectResult(output);
+            return new OkObjectResult(await usersRepository.GetPlayerGroupsCharacterIsIn(customerGUID, UserSessionGUID, character.CharacterId, PlayerGroupTypeID));
         }
     }
 }

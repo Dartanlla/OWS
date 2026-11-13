@@ -29,50 +29,36 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         private IDbConnection Connection => new SqlConnection(_storageOptions.Value.OWSDBConnectionString);
 
-        public async Task AddCharacterToMapInstanceByCharName(Guid customerGUID, string characterName, int mapInstanceID)
+        public async Task<bool> AddOwnedCharacterToMapInstance(Guid customerGuid, int characterId, Guid owner, int mapInstanceId)
         {
-            IDbConnection conn = Connection;
-            conn.Open();
-            using IDbTransaction transaction = conn.BeginTransaction();
-            try
+            using var connection = Connection;
+            connection.Open();
+            using var transaction = connection.BeginTransaction(IsolationLevel.Serializable);
+            var parameters = new DynamicParameters(new
             {
-                var parameters = new DynamicParameters();
-                parameters.Add("@CustomerGUID", customerGUID);
-                parameters.Add("@CharName", characterName);
-                parameters.Add("@MapInstanceID", mapInstanceID);
+                CustomerGUID = customerGuid, CharacterID = characterId, UserGUID = owner, MapInstanceID = mapInstanceId
+            });
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
-                    parameters,
-                    commandType: CommandType.Text);
+            var character = await connection.QuerySingleOrDefaultAsync<Characters>(
+                GenericQueries.GetOwnedCharacterById, parameters, transaction);
+            var zone = await connection.QuerySingleOrDefaultAsync<Maps>(
+                GenericQueries.GetZoneName, parameters, transaction);
+            if (character == null || zone == null)
+                return false;
 
-                var outputZone = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetZoneName,
-                    parameters,
-                    commandType: CommandType.Text);
+            parameters.Add("@ZoneName", zone.ZoneName);
+            await connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances, parameters, transaction);
+            await connection.ExecuteAsync(GenericQueries.AddCharacterToInstance, parameters, transaction);
+            await connection.ExecuteAsync(GenericQueries.UpdateCharacterZone, parameters, transaction);
+            transaction.Commit();
+            return true;
+        }
 
-                if (outputCharacter.CharacterId > 0)
-                {
-                    parameters.Add("@CharacterID", outputCharacter.CharacterId);
-                    parameters.Add("@ZoneName", outputZone.ZoneName);
-
-                    await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
-                        parameters,
-                        commandType: CommandType.Text);
-
-                    await Connection.ExecuteAsync(GenericQueries.AddCharacterToInstance,
-                        parameters,
-                        commandType: CommandType.Text);
-
-                    await Connection.ExecuteAsync(GenericQueries.UpdateCharacterZone,
-                        parameters,
-                        commandType: CommandType.Text);
-                }
-                transaction.Commit();
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw new Exception("Database Exception in AddCharacterToMapInstanceByCharName!");
-            }
+        public async Task<IEnumerable<CustomCharacterData>> GetOwnedCharacterCustomData(Guid customerGuid, int characterId, Guid owner)
+        {
+            using var connection = Connection;
+            return await connection.QueryAsync<CustomCharacterData>(GenericQueries.GetOwnedCharacterCustomData,
+                new { CustomerGUID = customerGuid, CharacterID = characterId, UserGUID = owner });
         }
 
         public async Task AddOrUpdateCustomCharacterData(Guid customerGUID, AddOrUpdateCustomCharacterData addOrUpdateCustomCharacterData)
@@ -241,7 +227,13 @@ namespace OWSData.Repositories.Implementations.MSSQL
             return outputCustomCharacterDataRows;
         }
 
-        public async Task<JoinMapByCharName> JoinMapByCharName(Guid customerGUID, string characterName, string zoneName, int playerGroupType)
+        public Task<JoinMapByCharName> JoinMapByCharName(Guid customerGUID, string characterName, string zoneName, int playerGroupType) =>
+            JoinMap(customerGUID, characterName, null, null, zoneName, playerGroupType);
+
+        public Task<JoinMapByCharName> JoinMapByCharacterId(Guid customerGuid, int characterId, Guid owner, string zoneName, int playerGroupType) =>
+            JoinMap(customerGuid, null, characterId, owner, zoneName, playerGroupType);
+
+        private async Task<JoinMapByCharName> JoinMap(Guid customerGUID, string characterName, int? characterId, Guid? owner, string zoneName, int playerGroupType)
         {
             // TODO: Run Cleanup here for now. Later this can get moved to a scheduler to run periodically.
             await CleanUpInstances(customerGUID);
@@ -287,7 +279,9 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
                 //Lookup the Character row by characterName
                 parameters.Add("@CharName", characterName);
-                Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName,
+                parameters.Add("@CharacterID", characterId);
+                parameters.Add("@UserGUID", owner);
+                Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(characterId.HasValue ? GenericQueries.GetOwnedCharacterById : GenericQueries.GetCharacterByName,
                     parameters,
                     commandType: CommandType.Text);
 

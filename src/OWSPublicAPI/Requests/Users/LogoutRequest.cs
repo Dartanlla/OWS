@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 ﻿using OWSData.Models.Composites;
 using OWSData.Repositories.Implementations.MSSQL;
 using OWSData.Repositories.Interfaces;
@@ -21,9 +22,12 @@ namespace OWSPublicAPI.Requests.Users
             _usersRepository = usersRepository;
         }
 
-        public async Task<SuccessAndErrorMessage> Handle()
+        public async Task<IActionResult> Handle()
         {
-            return await _usersRepository.Logout(_customerGuid.CustomerGUID, _logoutDTO.UserSessionGUID);
+            if (await PlayerAuthorization.GetSessionAsync(_usersRepository, _customerGuid.CustomerGUID, _logoutDTO.UserSessionGUID) == null)
+                return new UnauthorizedResult();
+
+            return new OkObjectResult(await _usersRepository.Logout(_customerGuid.CustomerGUID, _logoutDTO.UserSessionGUID));
         }
     }
 }

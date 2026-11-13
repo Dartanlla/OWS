@@ -35,7 +35,7 @@ namespace OWSTests.Characters
                 Assert.Equal(nameof(IUsersRepository.GetUserSession), method.Name);
                 Assert.Equal(_customer, args[0]);
                 Assert.Equal(_session, args[1]);
-                return Task.FromResult(invalidSession ? null : new GetUserSession { UserGuid = _owner });
+                return Task.FromResult(invalidSession ? null : new GetUserSession { UserGuid = _owner, CustomerGuid = _customer, UserSessionGUID = _session });
             });
             var characters = RepositoryProxy.Create<ICharactersRepository>((method, args) =>
             {
@@ -45,12 +45,13 @@ namespace OWSTests.Characters
                     Assert.Equal(42, args[1]);
                     return Task.FromResult(missingCharacter ? null : new GetCharByCharName
                     {
-                        CharacterId = 42, CharName = "ResolvedName",
+                        CharacterId = 42, CustomerGuid = _customer, CharName = "ResolvedName",
                         UserGuid = wrongOwner ? Guid.NewGuid() : _owner
                     });
                 }
-                Assert.Equal(nameof(ICharactersRepository.GetCustomCharacterData), method.Name);
-                Assert.Equal("ResolvedName", args[1]);
+                Assert.Equal(nameof(ICharactersRepository.GetOwnedCharacterCustomData), method.Name);
+                Assert.Equal(42, args[1]);
+                Assert.Equal(_owner, args[2]);
                 _customDataRead = true;
                 return Task.FromResult<IEnumerable<CustomCharacterData>>(new[]
                 {
@@ -80,8 +81,12 @@ namespace OWSTests.Characters
         [InlineData(false, false, true)]
         public async Task RejectsInvalidSessionMissingCharacterAndWrongOwner(bool invalidSession, bool missingCharacter, bool wrongOwner)
         {
-            Assert.IsType<BadRequestObjectResult>(await CreateRequest(invalidSession: invalidSession,
-                missingCharacter: missingCharacter, wrongOwner: wrongOwner).Handle());
+            var result = await CreateRequest(invalidSession: invalidSession,
+                missingCharacter: missingCharacter, wrongOwner: wrongOwner).Handle();
+            if (invalidSession)
+                Assert.IsType<UnauthorizedResult>(result);
+            else
+                Assert.IsType<BadRequestObjectResult>(result);
             Assert.False(_customDataRead);
         }
 
@@ -108,7 +113,10 @@ namespace OWSTests.Characters
         [InlineData("/api/Characters/42", "POST", "null", false, 400)]
         [InlineData("/api/Characters/42", "POST", "{}", false, 400)]
         [InlineData("/api/Other/42", "POST", "valid", false, 404)]
-        public async Task LambdaRoutesIdAndPreservesStatus(string path, string method, string body, bool base64, int expectedStatus)
+        [InlineData("/api/Characters/42", "POST", "valid", false, 401, "missing")]
+        [InlineData("/api/Characters/42", "POST", "valid", false, 401, "invalid")]
+        [InlineData("/api/Characters/42", "POST", "valid", false, 401, "unknown")]
+        public async Task LambdaRoutesIdAndPreservesStatus(string path, string method, string body, bool base64, int expectedStatus, string tenant = "known")
         {
             // The constructor only configures services; all database access is replaced below.
             string previousConnection = Environment.GetEnvironmentVariable("OWS_DB_CONNECTION_STRING");
@@ -126,14 +134,15 @@ namespace OWSTests.Characters
                     serviceCollection.AddSingleton(type, Function.services.GetRequiredService(type));
                 }
                 serviceCollection.AddSingleton<IUsersRepository>(RepositoryProxy.Create<IUsersRepository>((m, a) =>
-                    Task.FromResult(new GetUserSession { UserGuid = _owner })));
+                    m.Name == nameof(IUsersRepository.CustomerExists) ? Task.FromResult((Guid)a[0] == _customer) :
+                    Task.FromResult(new GetUserSession { UserGuid = _owner, CustomerGuid = _customer, UserSessionGUID = _session })));
                 serviceCollection.AddSingleton<ICharactersRepository>(RepositoryProxy.Create<ICharactersRepository>((m, a) =>
                 {
                     if (m.Name == nameof(ICharactersRepository.GetCharByCharId))
                     {
                         Assert.Equal(_customer, a[0]);
                         Assert.Equal(42, a[1]);
-                        return Task.FromResult(new GetCharByCharName { CharacterId = 42, CharName = "ResolvedName", UserGuid = _owner });
+                        return Task.FromResult(new GetCharByCharName { CharacterId = 42, CustomerGuid = _customer, CharName = "ResolvedName", UserGuid = _owner });
                     }
                     return Task.FromResult<IEnumerable<CustomCharacterData>>(Array.Empty<CustomCharacterData>());
                 }));
@@ -147,7 +156,12 @@ namespace OWSTests.Characters
                     Path = path, HttpMethod = method,
                     Body = base64 ? Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(body)) : body,
                     IsBase64Encoded = base64,
-                    Headers = new Dictionary<string, string> { ["x-customerguid"] = _customer.ToString() }
+                    Headers = tenant == "missing" ? new Dictionary<string, string>() :
+                        new Dictionary<string, string>
+                        {
+                            ["x-CuStOmErGuId"] = tenant == "known" ? _customer.ToString() :
+                                tenant == "unknown" ? Guid.NewGuid().ToString() : "invalid"
+                        }
                 }, null);
                 Assert.Equal(expectedStatus, response.StatusCode);
                 if (expectedStatus == 200)

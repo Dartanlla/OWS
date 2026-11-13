@@ -9,14 +9,16 @@ namespace OWSData.Repositories.Interfaces
 {
     public interface ICharactersRepository
     {
-        Task AddCharacterToMapInstanceByCharName(Guid customerGUID, string characterName, int mapInstanceID);
+        Task<bool> AddOwnedCharacterToMapInstance(Guid customerGuid, int characterId, Guid owner, int mapInstanceId);
         Task AddOrUpdateCustomCharacterData(Guid customerGUID, AddOrUpdateCustomCharacterData addOrUpdateCustomCharacterData);
         Task<MapInstances> CheckMapInstanceStatus(Guid customerGUID, int mapInstanceID);
         Task CleanUpInstances(Guid customerGUID);
         Task<GetCharByCharName> GetCharByCharName(Guid customerGUID, string characterName);
         Task<GetCharByCharName> GetCharByCharId(Guid customerGUID, int characterId);
+        Task<IEnumerable<CustomCharacterData>> GetOwnedCharacterCustomData(Guid customerGuid, int characterId, Guid owner);
         Task<IEnumerable<CustomCharacterData>> GetCustomCharacterData(Guid customerGUID, string characterName);
         Task<IEnumerable<DefaultCustomData>> GetDefaultCustomCharacterData(Guid customerGUID, string defaultSetName);
+        Task<JoinMapByCharName> JoinMapByCharacterId(Guid customerGuid, int characterId, Guid owner, string zoneName, int playerGroupType);
         Task<JoinMapByCharName> JoinMapByCharName(Guid customerGUID, string characterName, string zoneName, int playerGroupType);
         Task UpdateCharacterStats(UpdateCharacterStats updateCharacterStats);
         Task UpdatePosition(Guid customerGUID, string characterName, string mapName, float X, float Y, float Z, float RX, float RY, float RZ);

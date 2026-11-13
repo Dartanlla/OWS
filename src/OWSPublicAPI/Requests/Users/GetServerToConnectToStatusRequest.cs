@@ -26,7 +26,7 @@ namespace OWSPublicAPI.Requests.Users
 
         public async Task<IActionResult> Handle()
         {
-            var (character, error) = await ServerAssignmentAuthorization.CheckAsync(
+            var (character, error) = await PlayerAuthorization.CheckAsync(
                 usersRepository, charactersRepository, CustomerGUID, UserSessionGUID, CharacterName);
             if (error != null)
                 return error;
@@ -45,7 +45,8 @@ namespace OWSPublicAPI.Requests.Users
             if (instance.Status == 2)
             {
                 Log.Information($"GetServerToConnectToStatus: MapInstanceID {MapInstanceID} is ready. Connecting character {CharacterName}.");
-                await charactersRepository.AddCharacterToMapInstanceByCharName(CustomerGUID, character.CharName, MapInstanceID);
+                if (!await charactersRepository.AddOwnedCharacterToMapInstance(CustomerGUID, character.CharacterId, character.UserGuid.Value, MapInstanceID))
+                    return new NotFoundResult();
             }
             else
             {

@@ -34,6 +34,13 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
+        public async Task<bool> CustomerExists(Guid customerGuid)
+        {
+            using var connection = Connection;
+            return await connection.QuerySingleOrDefaultAsync<Guid?>(GenericQueries.GetCustomer,
+                new { CustomerGUID = customerGuid }) == customerGuid;
+        }
+
         public async Task<IEnumerable<GetAllCharacters>> GetAllCharacters(Guid customerGUID, Guid userSessionGUID)
         {
             IEnumerable<GetAllCharacters> outputObject = new List<GetAllCharacters>();
@@ -139,7 +146,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
         }
 
         //_PlayerGroupTypeID 0 returns all group types
-        public async Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid customerGUID, Guid userSessionGUID, string characterName, int playerGroupTypeID = 0)
+        public async Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid customerGUID, Guid userSessionGUID, int characterId, int playerGroupTypeID = 0)
         {
             IEnumerable<GetPlayerGroupsCharacterIsIn> outputObject;
 
@@ -147,13 +154,13 @@ namespace OWSData.Repositories.Implementations.MSSQL
             {
                 var p = new DynamicParameters();
                 p.Add("@CustomerGUID", customerGUID);
-                p.Add("@CharName", characterName);
+                p.Add("@CharacterID", characterId);
                 p.Add("@UserSessionGUID", userSessionGUID);
                 p.Add("@PlayerGroupTypeID", playerGroupTypeID);
 
-                outputObject = await Connection.QueryAsync<GetPlayerGroupsCharacterIsIn>("GetPlayerGroupsCharacterIsIn",
+                outputObject = await Connection.QueryAsync<GetPlayerGroupsCharacterIsIn>(GenericQueries.GetPlayerGroupsCharacterIsIn,
                     p,
-                    commandType: CommandType.StoredProcedure);
+                    commandType: CommandType.Text);
             }
 
             return outputObject;
@@ -302,36 +309,16 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
-        public async Task<SuccessAndErrorMessage> UserSessionSetSelectedCharacter(Guid customerGUID, Guid userSessionGUID, string selectedCharacterName)
+        public async Task<SuccessAndErrorMessage> UserSessionSetSelectedCharacter(Guid customerGUID, Guid userSessionGUID, int characterId)
         {
-            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
-
-            try
+            using var connection = Connection;
+            int updated = await connection.ExecuteAsync(GenericQueries.UserSessionSetSelectedCharacter,
+                new { CustomerGUID = customerGUID, UserSessionGUID = userSessionGUID, CharacterID = characterId });
+            return new SuccessAndErrorMessage
             {
-                using (Connection)
-                {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@UserSessionGUID", userSessionGUID);
-                    p.Add("@SelectedCharacterName", selectedCharacterName);
-
-                    await Connection.ExecuteAsync("UserSessionSetSelectedCharacter",
-                        p,
-                        commandType: CommandType.StoredProcedure);
-                }
-
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
-
-                return outputObject;
-            }
-            catch (Exception ex)
-            {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
-
-                return outputObject;
-            }
+                Success = updated == 1,
+                ErrorMessage = updated == 1 ? "" : "The character could not be selected for this session."
+            };
         }
 
         public async Task<SuccessAndErrorMessage> RegisterUser(Guid customerGUID, string email, string password, string firstName, string lastName)
@@ -382,36 +369,25 @@ namespace OWSData.Repositories.Implementations.MSSQL
             return outputObject;
         }
 
-        public async Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGUID, Guid userSessionGUID, string characterName)
+        public async Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGUID, Guid userSessionGUID, int characterId)
         {
-            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+            using var connection = Connection;
+            connection.Open();
+            using var transaction = connection.BeginTransaction(IsolationLevel.Serializable);
+            const string ownedCharacterName = @"SELECT C.CharName FROM Characters C
+                INNER JOIN UserSessions US ON US.CustomerGUID = C.CustomerGUID AND US.UserGUID = C.UserGUID
+                WHERE C.CustomerGUID = @CustomerGUID AND C.CharacterID = @CharacterID
+                    AND US.UserSessionGUID = @UserSessionGUID";
+            var characterName = await connection.QuerySingleOrDefaultAsync<string>(ownedCharacterName,
+                new { CustomerGUID = customerGUID, UserSessionGUID = userSessionGUID, CharacterID = characterId }, transaction);
+            if (characterName == null)
+                return new SuccessAndErrorMessage { Success = false, ErrorMessage = "The character could not be removed for this session." };
 
-            try
-            {
-                using (Connection)
-                {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@UserSessionGUID", userSessionGUID);
-                    p.Add("@CharacterName", characterName);
-
-                    await Connection.ExecuteAsync("RemoveCharacter",
-                        p,
-                        commandType: CommandType.StoredProcedure);
-                }
-
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
-
-                return outputObject;
-            }
-            catch (Exception ex)
-            {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
-
-                return outputObject;
-            }
+            await connection.ExecuteAsync("RemoveCharacter",
+                new { CustomerGUID = customerGUID, UserSessionGUID = userSessionGUID, CharacterName = characterName },
+                transaction, commandType: CommandType.StoredProcedure);
+            transaction.Commit();
+            return new SuccessAndErrorMessage { Success = true, ErrorMessage = "" };
         }
 
         public async Task<SuccessAndErrorMessage> UpdateUser(Guid customerGuid, Guid userGuid, string firstName, string lastName, string email)

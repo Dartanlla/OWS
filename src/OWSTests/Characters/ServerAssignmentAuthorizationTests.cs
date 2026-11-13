@@ -53,6 +53,7 @@ namespace OWSTests.Characters
                     {
                         CustomerGuid = tenant,
                         CharName = "Character",
+                        CharacterId = 12,
                         UserGuid = scenario == "wrong owner" ? Guid.NewGuid() : owner
                     });
                 }
@@ -60,18 +61,19 @@ namespace OWSTests.Characters
                 Assert.Equal(200, status);
                 switch (method.Name)
                 {
-                    case nameof(ICharactersRepository.JoinMapByCharName):
+                    case nameof(ICharactersRepository.JoinMapByCharacterId):
                         return Task.FromResult(new JoinMapByCharName
                         {
                             WorldServerID = 1, MapInstanceID = 42, MapInstanceStatus = 2
                         });
                     case nameof(ICharactersRepository.CheckMapInstanceStatus):
                         return Task.FromResult(new MapInstances { Status = 2 });
-                    case nameof(ICharactersRepository.AddCharacterToMapInstanceByCharName):
-                        Assert.Equal("Character", args[1]);
-                        Assert.Equal(42, args[2]);
+                    case nameof(ICharactersRepository.AddOwnedCharacterToMapInstance):
+                        Assert.Equal(12, args[1]);
+                        Assert.Equal(owner, args[2]);
+                        Assert.Equal(42, args[3]);
                         assignments++;
-                        return Task.CompletedTask;
+                        return Task.FromResult(true);
                     default:
                         throw new InvalidOperationException(method.Name);
                 }

@@ -37,7 +37,7 @@ namespace OWSPublicAPI.Requests.Users
 
         public async Task<IActionResult> Handle()
         {
-            var (character, error) = await ServerAssignmentAuthorization.CheckAsync(
+            var (character, error) = await PlayerAuthorization.CheckAsync(
                 usersRepository, charactersRepository, CustomerGUID, UserSessionGUID, CharacterName);
             if (error != null)
                 return error;
@@ -61,7 +61,7 @@ namespace OWSPublicAPI.Requests.Users
                 return new OkObjectResult(Output);
             }
 
-            JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharName(CustomerGUID, character.CharName, ZoneName, PlayerGroupType);
+            JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharacterId(CustomerGUID, character.CharacterId, character.UserGuid.Value, ZoneName, PlayerGroupType);
 
             if (joinMapByCharacterName == null || joinMapByCharacterName.WorldServerID < 1)
             {
@@ -88,7 +88,8 @@ namespace OWSPublicAPI.Requests.Users
             else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 2)
             {
                 Log.Information($"GetServerToConnectTo: Found a ready zone server (MapInstanceID: {joinMapByCharacterName.MapInstanceID}). Connecting character.");
-                await charactersRepository.AddCharacterToMapInstanceByCharName(CustomerGUID, character.CharName, joinMapByCharacterName.MapInstanceID);
+                if (!await charactersRepository.AddOwnedCharacterToMapInstance(CustomerGUID, character.CharacterId, character.UserGuid.Value, joinMapByCharacterName.MapInstanceID))
+                    return new NotFoundResult();
             }
 
             Output = joinMapByCharacterName;

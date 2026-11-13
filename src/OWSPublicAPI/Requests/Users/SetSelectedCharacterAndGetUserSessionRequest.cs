@@ -15,24 +15,30 @@ namespace OWSPublicAPI.Requests.Users
         public Guid UserSessionGUID { get; set; }
         public string SelectedCharacterName { get; set; }
 
-        private GetUserSession output;
-        private SuccessAndErrorMessage successOrError;
         private Guid customerGUID;
         private IUsersRepository usersRepository;
+        private ICharactersRepository charactersRepository;
 
-        public void SetData(IUsersRepository usersRepository, IHeaderCustomerGUID customerGuid)
+        public void SetData(IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
         {
             customerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
+            this.charactersRepository = charactersRepository;
         }
 
         public async Task<IActionResult> Handle()
         {
-            successOrError = await usersRepository.UserSessionSetSelectedCharacter(customerGUID, UserSessionGUID, SelectedCharacterName);
+            var (character, error) = await PlayerAuthorization.CheckAsync(
+                usersRepository, charactersRepository, customerGUID, UserSessionGUID, SelectedCharacterName);
+            if (error != null)
+                return error;
 
-            output = await usersRepository.GetUserSession(customerGUID, UserSessionGUID);
+            var update = await usersRepository.UserSessionSetSelectedCharacter(customerGUID, UserSessionGUID, character.CharacterId);
+            if (!update.Success)
+                return new ConflictObjectResult(update);
 
-            return new OkObjectResult(output);
+            var session = await PlayerAuthorization.GetSessionAsync(usersRepository, customerGUID, UserSessionGUID);
+            return session == null ? new UnauthorizedResult() : new OkObjectResult(session);
         }
     }
 }

@@ -1,3 +1,4 @@
+using OWSPublicAPI.Requests.Users;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -51,17 +52,17 @@ namespace OWSPublicAPI.Requests.Characters
             if (_characterId <= 0 || !Guid.TryParse(_request?.UserSessionGUID, out var sessionGuid))
                 return new BadRequestObjectResult(output);
 
-            var userSession = await _usersRepository.GetUserSession(_customerGUID, sessionGuid);
-            if (userSession == null || !userSession.UserGuid.HasValue)
-                return new BadRequestObjectResult(output);
+            var userSession = await PlayerAuthorization.GetSessionAsync(_usersRepository, _customerGUID, sessionGuid);
+            if (userSession == null)
+                return new UnauthorizedResult();
 
             var characterData = await _charactersRepository.GetCharByCharId(_customerGUID, _characterId);
-            if (characterData == null || !characterData.UserGuid.HasValue || characterData.UserGuid != userSession.UserGuid)
+            if (characterData == null || characterData.CustomerGuid != _customerGUID || characterData.CharacterId <= 0 || !characterData.UserGuid.HasValue || characterData.UserGuid != userSession.UserGuid)
                 return new BadRequestObjectResult(output);
 
             output.CharacterData = characterData;
             output.CustomCharacterDataRows = new List<CustomCharacterDataDTO>();
-            var customData = await _charactersRepository.GetCustomCharacterData(_customerGUID, characterData.CharName);
+            var customData = await _charactersRepository.GetOwnedCharacterCustomData(_customerGUID, characterData.CharacterId, userSession.UserGuid.Value);
             foreach (var item in customData)
             {
                 if (_customCharacterDataSelector.ShouldExportThisCustomCharacterDataField(item.CustomFieldName))

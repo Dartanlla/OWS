@@ -49,6 +49,9 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
+            if (await PlayerAuthorization.GetSessionAsync(usersRepository, customerGUID, UserSessionGUID) == null)
+                return new UnauthorizedResult();
+
             output = await usersRepository.GetAllCharacters(customerGUID, UserSessionGUID);
 
             return new OkObjectResult(output);

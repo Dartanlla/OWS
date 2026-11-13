@@ -14,35 +14,25 @@ namespace OWSPublicAPI.Requests.Users
         public Guid UserSessionGUID { get; set; }
         public string SelectedCharacterName { get; set; }
 
-        private SuccessAndErrorMessage output;
         private Guid customerGUID;
         private IUsersRepository usersRepository;
+        private ICharactersRepository charactersRepository;
 
-        public void SetData(IUsersRepository usersRepository, IHeaderCustomerGUID customerGuid)
+        public void SetData(IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
         {
             customerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
+            this.charactersRepository = charactersRepository;
         }
 
         public async Task<IActionResult> Handle()
         {
-            var userCharacters = await usersRepository.GetAllCharacters(customerGUID, UserSessionGUID);
-            bool characterExistsForUser = userCharacters.Any(character =>
-                !string.IsNullOrWhiteSpace(character.CharName) &&
-                string.Equals(character.CharName, SelectedCharacterName, StringComparison.OrdinalIgnoreCase));
+            var (character, error) = await PlayerAuthorization.CheckAsync(
+                usersRepository, charactersRepository, customerGUID, UserSessionGUID, SelectedCharacterName);
+            if (error != null)
+                return error;
 
-            if (!characterExistsForUser)
-            {
-                return new OkObjectResult(new SuccessAndErrorMessage
-                {
-                    Success = false,
-                    ErrorMessage = "SelectedCharacterName does not exist for this user session."
-                });
-            }
-
-            output = await usersRepository.UserSessionSetSelectedCharacter(customerGUID, UserSessionGUID, SelectedCharacterName);
-
-            return new OkObjectResult(output);
+            return new OkObjectResult(await usersRepository.UserSessionSetSelectedCharacter(customerGUID, UserSessionGUID, character.CharacterId));
         }
     }
 }

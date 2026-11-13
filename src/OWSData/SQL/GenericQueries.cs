@@ -145,13 +145,21 @@ namespace OWSData.SQL
 				COALESCE(CL.ClassName,'') as ClassName
 			FROM Characters WC
 			INNER JOIN Users U
-				ON U.UserGUID = WC.UserGUID
+				ON U.UserGUID = WC.UserGUID AND U.CustomerGUID = WC.CustomerGUID
 			INNER JOIN UserSessions US
-				ON US.UserGUID = U.UserGUID
+				ON US.UserGUID = U.UserGUID AND US.CustomerGUID = U.CustomerGUID
 			LEFT JOIN Class CL
 				ON CL.ClassID = WC.ClassID
 			WHERE WC.CustomerGUID = @CustomerGUID
 			AND US.UserSessionGUID = @UserSessionGUID";
+
+        public static readonly string GetOwnedCharacterById = @"SELECT * FROM Characters
+                WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID AND UserGUID = @UserGUID";
+
+        public static readonly string GetOwnedCharacterCustomData = @"SELECT CCD.*
+                FROM CustomCharacterData CCD
+                INNER JOIN Characters C ON C.CharacterID = CCD.CharacterID AND C.CustomerGUID = CCD.CustomerGUID
+                WHERE CCD.CustomerGUID = @CustomerGUID AND CCD.CharacterID = @CharacterID AND C.UserGUID = @UserGUID";
 
         public static readonly string GetCharacterByName = @"SELECT *
 				FROM Characters
@@ -242,14 +250,15 @@ namespace OWSData.SQL
 				ON PG.PlayerGroupID = PGC.PlayerGroupID
 				AND PG.CustomerGUID = PGC.CustomerGUID
 			INNER JOIN Characters C
-				ON C.CharacterID = PGC.CharacterID
+				ON C.CharacterID = PGC.CharacterID AND C.CustomerGUID = PGC.CustomerGUID
 			INNER JOIN UserSessions US
 				ON US.UserGUID = C.UserGUID
 				AND US.CustomerGUID = C.CustomerGUID
 			WHERE PGC.CustomerGUID = @CustomerGUID
 			  AND (PG.PlayerGroupTypeID = @PlayerGroupTypeID OR @PlayerGroupTypeID = 0)
-			  AND C.CharName = @CharName
-			  AND C.CustomerGUID = @CustomerGUID";
+			  AND C.CharacterID = @CharacterID
+			  AND C.CustomerGUID = @CustomerGUID
+			  AND US.UserSessionGUID = @UserSessionGUID";
 
         public static readonly string GetDefaultCustomCharacterDataByDefaultSetName = @"SELECT *
 				FROM DefaultCustomCharacterData DCCD
@@ -452,7 +461,7 @@ namespace OWSData.SQL
 				C.MapName AS ZoneName
 			FROM UserSessions US
 			INNER JOIN Users U
-				ON U.UserGUID = US.UserGUID
+				ON U.UserGUID = US.UserGUID AND U.CustomerGUID = US.CustomerGUID
 			LEFT JOIN Characters C
 				ON C.CustomerGUID = US.CustomerGUID
 				AND C.CharName = US.SelectedCharacterName
@@ -494,9 +503,10 @@ namespace OWSData.SQL
 				(SELECT UserSessionGUID FROM ins) AS UserSessionGUID";
 
         public static readonly string UserSessionSetSelectedCharacter = @"UPDATE UserSessions
-				SET SelectedCharacterName = @SelectedCharacterName
-				WHERE CustomerGUID = @CustomerGUID
-				  AND UserSessionGUID = @UserSessionGUID";
+				SET SelectedCharacterName = (SELECT C.CharName FROM Characters C WHERE C.CustomerGUID = @CustomerGUID AND C.CharacterID = @CharacterID)
+                WHERE CustomerGUID = @CustomerGUID AND UserSessionGUID = @UserSessionGUID
+                  AND EXISTS (SELECT 1 FROM Characters C WHERE C.CustomerGUID = @CustomerGUID
+                    AND C.CharacterID = @CharacterID AND C.UserGUID = UserSessions.UserGUID)";
 
         public static readonly string AddUser = @"WITH new_user AS (
 				SELECT gen_random_uuid() AS UserGUID,
@@ -521,7 +531,7 @@ namespace OWSData.SQL
 				FROM Characters C
 				JOIN user_data UD ON C.UserGUID = UD.UserGUID
 				WHERE C.CustomerGUID = @CustomerGUID
-				  AND C.CharName = @CharacterName
+				  AND C.CharacterID = @CharacterID
 			),
 			del_char_ability_bar_abilities AS (
 				DELETE FROM CharAbilityBarAbilities CABA
@@ -603,7 +613,7 @@ namespace OWSData.SQL
 				  AND C.CharacterID = CD.CharacterID
 				RETURNING 1
 			)
-			SELECT 1";
+			SELECT COUNT(*) FROM del_characters";
 
         #endregion
     }

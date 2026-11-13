@@ -65,6 +65,9 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
+            if (await PlayerAuthorization.GetSessionAsync(usersRepository, CustomerGUID, UserSessionGUID) == null)
+                return new UnauthorizedResult();
+
             //Validate Character Name
             string errorMessage = publicAPIInputValidation.ValidateCharacterName(CharacterName);
 

@@ -1,3 +1,4 @@
+using OWSPublicAPI.Requests.Users;
 using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -35,10 +36,8 @@ namespace OWSPublicAPI.Services
             if (customerGuid == Guid.Empty)
                 return new TicketIssueResult { Status = TicketIssueStatus.InvalidSession };
 
-            var session = await _usersRepository.GetUserSession(customerGuid, request.UserSessionGUID);
-            if (session == null || session.UserSessionGUID != request.UserSessionGUID
-                || session.CustomerGuid != customerGuid
-                || !session.UserGuid.HasValue || session.UserGuid.Value == Guid.Empty
+            var session = await PlayerAuthorization.GetSessionAsync(_usersRepository, customerGuid, request.UserSessionGUID);
+            if (session == null
                 || session.CharacterID <= 0
                 || string.IsNullOrWhiteSpace(session.SelectedCharacterName)
                 || !string.Equals(session.SelectedCharacterName, session.CharName,

@@ -25,7 +25,6 @@ using OWSData.Repositories.Implementations;
 using OWSPublicAPI.Requests;
 using OWSShared.Interfaces;
 using OWSShared.Implementations;
-using OWSShared.Middleware;
 using OWSExternalLoginProviders.Interfaces;
 using OWSExternalLoginProviders.Options;
 using OWSExternalLoginProviders.Extensions;
@@ -34,6 +33,7 @@ using Microsoft.Extensions.Hosting;
 using System.IO;
 using Microsoft.AspNetCore.DataProtection;
 using OWSData.Repositories.Implementations.ValKey;
+using OWSPublicAPI.Services;
 
 
 namespace OWSPublicAPI
@@ -66,12 +66,7 @@ namespace OWSPublicAPI
 
             services.AddHttpContextAccessor();
 
-            services.AddMvcCore(config => {
-                config.EnableEndpointRouting = false;
-                //IHttpRequestStreamReaderFactory readerFactory = services.BuildServiceProvider().GetRequiredService<IHttpRequestStreamReaderFactory>();
-                //config.ModelBinderProviders.Insert(0, new Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider(config.InputFormatters, readerFactory));
-                //config.ModelBinderProviders.Insert(0, new QueryModelBinderProvider(container));
-            })
+            services.AddMvcCore()
             .AddViews()
             .AddApiExplorer()
             .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
@@ -133,8 +128,6 @@ namespace OWSPublicAPI
         {
             app.UseSimpleInjector(container);
 
-            app.UseMiddleware<StoreCustomerGUIDMiddleware>(container);
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -151,7 +144,8 @@ namespace OWSPublicAPI
             //app.UseStaticFiles();
             app.UseRouting();
 
-            app.UseMvc();
+            app.Use(next => context => container.GetInstance<PublicApiTenant>().InvokeAsync(context, next));
+            app.UseEndpoints(endpoints => endpoints.MapControllers());
 
             app.UseSwagger(/*c =>
             {
@@ -195,6 +189,7 @@ namespace OWSPublicAPI
             container.Register<ICustomDataSelector, DefaultCustomDataSelector>(Lifestyle.Singleton);
             container.Register<IGetReadOnlyPublicCharacterData, DefaultGetReadOnlyPublicCharacterData>(Lifestyle.Singleton);
             container.Register<IHeaderCustomerGUID, HeaderCustomerGUID>(Lifestyle.Scoped);
+            container.Register<PublicApiTenant>(Lifestyle.Scoped);
 
             var externalloginproviderfactory = new ExternalLoginProviderFactory(container);
 

@@ -1,3 +1,4 @@
+using OWSPublicAPI.Requests.Users;
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
@@ -56,19 +57,20 @@ namespace OWSPublicAPI.Requests.Characters
             CharacterAndCustomData Output = new CharacterAndCustomData();
 
             //Get the User Session
-            GetUserSession userSession = await _usersRepository.GetUserSession(_customerGUID, new Guid(_getByNameDTO.UserSessionGUID));
+            if (!Guid.TryParse(_getByNameDTO.UserSessionGUID, out var sessionGuid))
+                return new BadRequestObjectResult(Output);
+
+            var userSession = await PlayerAuthorization.GetSessionAsync(_usersRepository, _customerGUID, sessionGuid);
 
             //Make sure the User Session is valid
-            if (userSession == null || !userSession.UserGuid.HasValue)
-            {
-                return new BadRequestObjectResult(Output);
-            }
+            if (userSession == null)
+                return new UnauthorizedResult();
 
             //Get character data
             GetCharByCharName characterData = await _charactersRepository.GetCharByCharName(_customerGUID, _getByNameDTO.CharacterName);
 
             //Make sure the character data is valid and in the right User Session
-            if (characterData == null || !characterData.UserGuid.HasValue || characterData.UserGuid != userSession.UserGuid)
+            if (characterData == null || characterData.CustomerGuid != _customerGUID || characterData.CharacterId <= 0 || !characterData.UserGuid.HasValue || characterData.UserGuid != userSession.UserGuid)
             {
                 return new BadRequestObjectResult(Output);
             }
@@ -77,7 +79,7 @@ namespace OWSPublicAPI.Requests.Characters
             Output.CharacterData = characterData;
 
             //Get custom character data
-            IEnumerable<CustomCharacterData> customCharacterDataItems = await _charactersRepository.GetCustomCharacterData(_customerGUID, _getByNameDTO.CharacterName);
+            IEnumerable<CustomCharacterData> customCharacterDataItems = await _charactersRepository.GetOwnedCharacterCustomData(_customerGUID, characterData.CharacterId, userSession.UserGuid.Value);
 
             //Initialize the list
             Output.CustomCharacterDataRows = new List<CustomCharacterDataDTO>();

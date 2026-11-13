@@ -27,6 +27,13 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         private IDbConnection Connection => new NpgsqlConnection(_storageOptions.Value.OWSDBConnectionString);
 
+        public async Task<bool> CustomerExists(Guid customerGuid)
+        {
+            using var connection = Connection;
+            return await connection.QuerySingleOrDefaultAsync<Guid?>(GenericQueries.GetCustomer,
+                new { CustomerGUID = customerGuid }) == customerGuid;
+        }
+
         public async Task<IEnumerable<GetAllCharacters>> GetAllCharacters(Guid customerGUID, Guid userSessionGUID)
         {
             IEnumerable<GetAllCharacters> outputObject;
@@ -138,7 +145,7 @@ namespace OWSData.Repositories.Implementations.Postgres
 
         //_PlayerGroupTypeID 0 returns all group types
         public async Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid customerGUID, Guid userSessionGUID, 
-            string characterName, int playerGroupTypeID = 0)
+            int characterId, int playerGroupTypeID = 0)
         {
             IEnumerable<GetPlayerGroupsCharacterIsIn> outputObject;
 
@@ -149,7 +156,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     using var conn = Connection;
                     var p = new DynamicParameters();
                     p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@CharName", characterName);
+                    p.Add("@CharacterID", characterId);
                     p.Add("@UserSessionGUID", userSessionGUID);
                     p.Add("@PlayerGroupTypeID", playerGroupTypeID);
 
@@ -342,36 +349,16 @@ namespace OWSData.Repositories.Implementations.Postgres
             }
         }
 
-        public async Task<SuccessAndErrorMessage> UserSessionSetSelectedCharacter(Guid customerGUID, Guid userSessionGUID, string selectedCharacterName)
+        public async Task<SuccessAndErrorMessage> UserSessionSetSelectedCharacter(Guid customerGUID, Guid userSessionGUID, int characterId)
         {
-            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
-
-            try
+            using var connection = Connection;
+            int updated = await connection.ExecuteAsync(GenericQueries.UserSessionSetSelectedCharacter,
+                new { CustomerGUID = customerGUID, UserSessionGUID = userSessionGUID, CharacterID = characterId });
+            return new SuccessAndErrorMessage
             {
-                using (var connection = (NpgsqlConnection)Connection)
-                {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@UserSessionGUID", userSessionGUID);
-                    p.Add("@SelectedCharacterName", selectedCharacterName);
-
-                    await connection.ExecuteAsync(GenericQueries.UserSessionSetSelectedCharacter,
-                        p,
-                        commandType: CommandType.Text);
-                }
-
-                outputObject.Success = true;
-                outputObject.ErrorMessage = "";
-
-                return outputObject;
-            }
-            catch (Exception ex)
-            {
-                outputObject.Success = false;
-                outputObject.ErrorMessage = ex.Message;
-
-                return outputObject;
-            }
+                Success = updated == 1,
+                ErrorMessage = updated == 1 ? "" : "The character could not be selected for this session."
+            };
         }
 
         public async Task<SuccessAndErrorMessage> RegisterUser(Guid customerGUID, string email, string password, string firstName, string lastName)
@@ -421,44 +408,16 @@ namespace OWSData.Repositories.Implementations.Postgres
             return outputObject;
         }
 
-        public async Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGUID, Guid userSessionGUID, string characterName)
+        public async Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGUID, Guid userSessionGUID, int characterId)
         {
-            try
+            using var connection = Connection;
+            int removed = await connection.QuerySingleAsync<int>(GenericQueries.RemoveCharacter,
+                new { CustomerGUID = customerGUID, UserSessionGUID = userSessionGUID, CharacterID = characterId });
+            return new SuccessAndErrorMessage
             {
-                using (var connection = (NpgsqlConnection)Connection)
-                {
-                    await connection.OpenAsync();
-
-                    using (IDbTransaction transaction = connection.BeginTransaction())
-                    {
-                    var p = new DynamicParameters();
-                    p.Add("@CustomerGUID", customerGUID);
-                    p.Add("@UserSessionGUID", userSessionGUID);
-                    p.Add("@CharacterName", characterName);
-
-                    await connection.ExecuteAsync(GenericQueries.RemoveCharacter,
-                        p,
-                        transaction,
-                        commandType: CommandType.Text);
-
-                        transaction.Commit();
-                    }
-                }
-
-                return new SuccessAndErrorMessage()
-                {
-                    Success = true,
-                    ErrorMessage = ""
-                };
-            }
-            catch (Exception ex)
-            {
-                return new SuccessAndErrorMessage()
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message
-                };
-            }
+                Success = removed == 1,
+                ErrorMessage = removed == 1 ? "" : "The character could not be removed for this session."
+            };
         }
 
         public async Task<SuccessAndErrorMessage> UpdateUser(Guid customerGuid, Guid userGuid, string firstName, string lastName, string email)

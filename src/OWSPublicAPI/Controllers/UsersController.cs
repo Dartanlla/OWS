@@ -104,7 +104,7 @@ namespace OWSPublicAPI.Controllers
         [HttpPost]
         [Route("CreateCharacterUsingDefaultCharacterValues")]
         [Produces(typeof(SuccessAndErrorMessage))]
-        public async Task<SuccessAndErrorMessage> CreateCharacterUsingDefaultCharacterValues([FromBody] CreateCharacterUsingDefaultCharacterValuesDTO createCharacterUsingDefaultCharacterValuesDTO)
+        public async Task<IActionResult> CreateCharacterUsingDefaultCharacterValues([FromBody] CreateCharacterUsingDefaultCharacterValuesDTO createCharacterUsingDefaultCharacterValuesDTO)
         {
             CreateCharacterUsingDefaultCharacterValuesRequest request = 
                 new CreateCharacterUsingDefaultCharacterValuesRequest(createCharacterUsingDefaultCharacterValuesDTO, _usersRepository, _charactersRepository, _publicAPIInputValidation, _customerGuid);
@@ -140,7 +140,7 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(GetPlayerGroupsCharacterIsIn))]
         public async Task<IActionResult> GetPlayerGroupsCharacterIsIn([FromBody] GetPlayerGroupsCharacterIsInRequest request)
         {
-            request.SetData(_usersRepository, _customerGuid);
+            request.SetData(_usersRepository, _charactersRepository, _customerGuid);
             return await request.Handle();
         }
 
@@ -340,7 +340,7 @@ namespace OWSPublicAPI.Controllers
         [HttpPost]
         [Route("Logout")]
         [Produces(typeof(SuccessAndErrorMessage))]
-        public async Task<SuccessAndErrorMessage> Logout([FromBody] LogoutDTO request)
+        public async Task<IActionResult> Logout([FromBody] LogoutDTO request)
         {
             LogoutRequest logoutRequest = new LogoutRequest(request, _usersRepository, _customerGuid);
             return await logoutRequest.Handle();
@@ -357,7 +357,7 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(SuccessAndErrorMessage))]
         public async Task<IActionResult> UserSessionSetSelectedCharacter([FromBody] UserSessionSetSelectedCharacterRequest request)
         {
-            request.SetData(_usersRepository, _customerGuid);
+            request.SetData(_usersRepository, _charactersRepository, _customerGuid);
             return await request.Handle();
         }
 
@@ -369,7 +369,7 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(GetUserSession))]
         public async Task<IActionResult> SetSelectedCharacterAndGetUserSession([FromBody] SetSelectedCharacterAndGetUserSessionRequest request)
         {
-            request.SetData(_usersRepository, _customerGuid);
+            request.SetData(_usersRepository, _charactersRepository, _customerGuid);
             return await request.Handle();
         }
 
@@ -399,7 +399,7 @@ namespace OWSPublicAPI.Controllers
         [Produces(typeof(SuccessAndErrorMessage))]
         public async Task<IActionResult> RemoveCharacter([FromBody] RemoveCharacterRequest request)
         {
-            request.SetData(_usersRepository, _customerGuid);
+            request.SetData(_usersRepository, _charactersRepository, _customerGuid);
             return await request.Handle();
         }
     }

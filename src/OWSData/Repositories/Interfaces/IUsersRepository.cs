@@ -11,10 +11,11 @@ namespace OWSData.Repositories.Interfaces
 {
     public interface IUsersRepository
     {
+        Task<bool> CustomerExists(Guid customerGuid);
         Task<CreateCharacter> CreateCharacter(Guid customerGUID, Guid userSessionGUID, string characterName, string className);
         Task<SuccessAndErrorMessage> CreateCharacterUsingDefaultCharacterValues(Guid customerGUID, Guid userGUID, string characterName, string defaultSetName);
         Task<IEnumerable<GetAllCharacters>> GetAllCharacters(Guid customerGUID, Guid userSessionGUID);
-        Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid customerGUID, Guid userSessionGUID, string characterName, int playerGroupTypeID = 0);
+        Task<IEnumerable<GetPlayerGroupsCharacterIsIn>> GetPlayerGroupsCharacterIsIn(Guid customerGUID, Guid userSessionGUID, int characterId, int playerGroupTypeID = 0);
         Task<User> GetUser(Guid customerGuid, Guid userGuid);
         Task<IEnumerable<User>> GetUsers(Guid customerGuid);
         Task<GetUserSession> GetUserSession(Guid customerGUID, Guid userSessionGUID);
@@ -22,10 +23,10 @@ namespace OWSData.Repositories.Interfaces
         Task<GetUserSessionComposite> GetUserSessionParallel(Guid customerGUID, Guid userSessionGUID);
         Task<PlayerLoginAndCreateSession> LoginAndCreateSession(Guid customerGUID, string email, string password, bool dontCheckPassword = false);
         Task<SuccessAndErrorMessage> Logout(Guid customerGuid, Guid userSessionGuid);
-        Task<SuccessAndErrorMessage> UserSessionSetSelectedCharacter(Guid customerGUID, Guid userSessionGUID, string selectedCharacterName);
+        Task<SuccessAndErrorMessage> UserSessionSetSelectedCharacter(Guid customerGUID, Guid userSessionGUID, int characterId);
         Task<SuccessAndErrorMessage> RegisterUser(Guid customerGUID, string userName, string password, string firstName, string lastName);
         Task<GetUserSession> GetUserFromEmail(Guid customerGUID, string email);
-        Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGUID, Guid userSessionGUID, string characterName);
+        Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGUID, Guid userSessionGUID, int characterId);
         Task<SuccessAndErrorMessage> UpdateUser(Guid customerGuid, Guid userGuid, string firstName, string lastName, string email);
         
     }
