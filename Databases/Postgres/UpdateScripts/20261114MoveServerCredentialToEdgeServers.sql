@@ -1,0 +1,6 @@
+BEGIN;
+
+ALTER TABLE EdgeServers ADD COLUMN IF NOT EXISTS ServerCredentialHash VARCHAR(64) NULL;
+ALTER TABLE MapInstances DROP COLUMN IF EXISTS ServerCredentialHash;
+
+COMMIT;

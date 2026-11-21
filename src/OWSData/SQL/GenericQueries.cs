@@ -6,6 +6,18 @@ namespace OWSData.SQL
 {
     public static class GenericQueries
     {
+        public static readonly string GetEdgeServer = @"SELECT CustomerGUID, EdgeServerID, Host, Port, IsActive, UpdatedAtUtc
+            FROM EdgeServers WHERE CustomerGUID = @CustomerGUID AND EdgeServerID = @EdgeServerID";
+
+        public static readonly string GetEdgeServers = @"SELECT CustomerGUID, EdgeServerID, Host, Port, IsActive, UpdatedAtUtc
+            FROM EdgeServers WHERE CustomerGUID = @CustomerGUID AND (@IsActive IS NULL OR IsActive = @IsActive)
+            ORDER BY EdgeServerID";
+
+        public static readonly string DeleteEdgeServer = @"DELETE FROM EdgeServers
+            WHERE CustomerGUID = @CustomerGUID AND EdgeServerID = @EdgeServerID";
+
+        public static readonly string AuthenticateActiveEdgeServer = @"SELECT CustomerGUID FROM EdgeServers
+            WHERE EdgeServerID = @EdgeServerID AND IsActive = @Active AND ServerCredentialHash = @Hash";
 
 	    #region System Queries
 
@@ -152,6 +164,15 @@ namespace OWSData.SQL
 				ON CL.ClassID = WC.ClassID
 			WHERE WC.CustomerGUID = @CustomerGUID
 			AND US.UserSessionGUID = @UserSessionGUID";
+
+        public static readonly string HasReadyAssignment = @"SELECT COUNT(*)
+                FROM CharOnMapInstance A
+                INNER JOIN Characters C ON C.CustomerGUID = A.CustomerGUID AND C.CharacterID = A.CharacterID
+                INNER JOIN MapInstances M ON M.CustomerGUID = A.CustomerGUID AND M.MapInstanceID = A.MapInstanceID
+                WHERE A.CustomerGUID = @CustomerGUID AND A.CharacterID = @CharacterID
+                  AND C.UserGUID = @UserGUID AND M.MapInstanceID = @MapInstanceID AND M.Status = 2
+                  AND EXISTS (SELECT 1 FROM EdgeServers E WHERE E.CustomerGUID = A.CustomerGUID
+                      AND E.EdgeServerID = @EdgeServerID AND E.IsActive = @Active AND E.ServerCredentialHash IS NOT NULL)";
 
         public static readonly string GetOwnedCharacterById = @"SELECT * FROM Characters
                 WHERE CustomerGUID = @CustomerGUID AND CharacterID = @CharacterID AND UserGUID = @UserGUID";

@@ -20,8 +20,7 @@ namespace OWSPublicAPI.Services
 
         public static bool IsTenantScoped(string controller, string action) =>
             string.Equals(controller, "Characters", StringComparison.OrdinalIgnoreCase) ||
-            (string.Equals(controller, "Users", StringComparison.OrdinalIgnoreCase) &&
-             !string.Equals(action, "RedeemExternalConnectionTicket", StringComparison.OrdinalIgnoreCase));
+            string.Equals(controller, "Users", StringComparison.OrdinalIgnoreCase);
 
         public static async Task<Guid> ResolveAsync(string header, IUsersRepository users) =>
             Guid.TryParse(header, out var tenant) && tenant != Guid.Empty && await users.CustomerExists(tenant)

@@ -6,6 +6,28 @@ namespace OWSData.SQL
 {
     public static class PostgresQueries
     {
+        public static readonly string ProvisionEdgeServerCredential = @"UPDATE EdgeServers
+            SET IsActive = CASE WHEN ServerCredentialHash IS NULL THEN @Inactive ELSE IsActive END,
+                ServerCredentialHash = @Hash, UpdatedAtUtc = CURRENT_TIMESTAMP
+            WHERE CustomerGUID = @CustomerGUID AND EdgeServerID = @EdgeServerID
+                AND (ServerCredentialHash IS NULL OR ServerCredentialHash = @Hash)";
+
+        public static readonly string SetEdgeServerReady = @"UPDATE EdgeServers
+            SET IsActive = @Active, UpdatedAtUtc = CURRENT_TIMESTAMP
+            WHERE CustomerGUID = @CustomerGUID AND EdgeServerID = @EdgeServerID AND ServerCredentialHash = @Hash";
+
+        public static readonly string RevokeEdgeServerCredential = @"UPDATE EdgeServers
+            SET IsActive = @Inactive, ServerCredentialHash = NULL, UpdatedAtUtc = CURRENT_TIMESTAMP
+            WHERE CustomerGUID = @CustomerGUID AND EdgeServerID = @EdgeServerID
+                AND (@Hash IS NULL OR ServerCredentialHash = @Hash)";
+
+        public static readonly string AddEdgeServer = @"INSERT INTO EdgeServers (CustomerGUID, Host, Port, IsActive)
+            SELECT CustomerGUID, @Host, @Port, @IsActive FROM Customers WHERE CustomerGUID = @CustomerGUID
+            RETURNING EdgeServerID";
+
+        public static readonly string UpdateEdgeServer = @"UPDATE EdgeServers
+            SET Host = @Host, Port = @Port, IsActive = @IsActive, UpdatedAtUtc = CURRENT_TIMESTAMP
+            WHERE CustomerGUID = @CustomerGUID AND EdgeServerID = @EdgeServerID";
 
 	    #region To Refactor
 
@@ -148,6 +170,12 @@ ON CONFLICT ON CONSTRAINT ak_zoneservers
 		public static readonly string AddMapInstance = @"INSERT INTO MapInstances (CustomerGUID, WorldServerID, MapID, Port, Status, PlayerGroupID, LastUpdateFromServer)
 		VALUES (@CustomerGUID, @WorldServerID, @MapID, @Port, 1, @PlayerGroupID, NOW())
 		RETURNING mapinstanceid";
+
+        public static readonly string AddMapInstanceForTenant = @"INSERT INTO MapInstances
+            (CustomerGUID, WorldServerID, MapID, Port, Status, LastUpdateFromServer)
+            SELECT @CustomerGUID, @WorldServerID, @MapID, @Port, 1, CURRENT_TIMESTAMP
+            WHERE EXISTS (SELECT 1 FROM WorldServers WHERE CustomerGUID = @CustomerGUID AND WorldServerID = @WorldServerID)
+              AND EXISTS (SELECT 1 FROM Maps WHERE CustomerGUID = @CustomerGUID AND MapID = @MapID) RETURNING MapInstanceID";
 
 		public static readonly string GetAllInactiveMapInstances = @"SELECT MapInstanceID
                 FROM MapInstances

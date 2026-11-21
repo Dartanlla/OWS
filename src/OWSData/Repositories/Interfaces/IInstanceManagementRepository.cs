@@ -1,5 +1,6 @@
 ﻿using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
+using OWSData.Models.Tables;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,6 +10,18 @@ namespace OWSData.Repositories.Interfaces
 {
     public interface IInstanceManagementRepository
     {
+        Task<int> AddEdgeServer(Guid customerGuid, string host, int port, bool isActive);
+        Task<EdgeServers> GetEdgeServer(Guid customerGuid, int edgeServerId);
+        Task<IEnumerable<EdgeServers>> GetEdgeServers(Guid customerGuid, bool? isActive);
+        Task<bool> UpdateEdgeServer(Guid customerGuid, int edgeServerId, string host, int port, bool isActive);
+        Task<bool> DeleteEdgeServer(Guid customerGuid, int edgeServerId);
+        Task<int> AddMapInstance(Guid tenant, int worldServerId, int mapId, int port);
+        Task<IEnumerable<OWSData.Models.Tables.MapInstances>> GetReadyMapInstances(Guid tenant);
+        Task<bool> HasReadyAssignment(Guid tenant, int characterId, Guid owner, int mapInstanceId, int edgeServerId);
+        Task<bool> ProvisionEdgeServerCredential(Guid tenant, int edgeServerId, string hash);
+        Task<Guid?> AuthenticateActiveEdgeServer(int edgeServerId, string hash);
+        Task<bool> SetEdgeServerReady(Guid tenant, int edgeServerId, string hash);
+        Task<bool> RevokeEdgeServerCredential(Guid tenant, int edgeServerId, string hash);
         Task<GetServerInstanceFromPort> GetZoneInstance(Guid customerGUID, int zoneInstanceId);
         Task<GetServerInstanceFromPort> GetServerInstanceFromPort(Guid customerGUID, string serverIP, int port);
         Task<IEnumerable<GetZoneInstancesForWorldServer>> GetZoneInstancesForWorldServer(Guid customerGUID, int worldServerID);

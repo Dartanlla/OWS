@@ -11,6 +11,7 @@ namespace OWSData.Models.Tickets
         public Guid UserSessionGuid { get; set; }
         public int CharacterId { get; set; }
         public int ServerId { get; set; }
+        public int MapInstanceId { get; set; }
         public DateTimeOffset ExpiresAtUtc { get; set; }
         public string RedeemedBy { get; set; }
     }

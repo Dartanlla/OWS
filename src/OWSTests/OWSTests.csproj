@@ -3,6 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.0.14" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.14" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.14" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
@@ -15,9 +16,16 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OWSShared\OWSShared.csproj" />
-    <ProjectReference Include="..\OWSPublicAPILambda\OWSPublicAPILambda.csproj" />
+    <ProjectReference Include="..\OWSCharacterPersistence\OWSCharacterPersistence.csproj" />
     <ProjectReference Include="..\OWSCharacterPersistenceLambda\OWSCharacterPersistenceLambda.csproj" />
+    <ProjectReference Include="..\OWSContent\OWSContent.csproj" />
+    <ProjectReference Include="..\OWSGlobalData\OWSGlobalData.csproj" />
+    <ProjectReference Include="..\OWSInstanceManagement\OWSInstanceManagement.csproj" />
+    <ProjectReference Include="..\OWSInstanceManagementLambda\OWSInstanceManagementLambda.csproj" />
+    <ProjectReference Include="..\OWSManagement\OWSManagement.csproj" />
+    <ProjectReference Include="..\OWSPublicAPI\OWSPublicAPI.csproj" />
+    <ProjectReference Include="..\OWSPublicAPILambda\OWSPublicAPILambda.csproj" />
+    <ProjectReference Include="..\OWSShared\OWSShared.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="appsettings.json">

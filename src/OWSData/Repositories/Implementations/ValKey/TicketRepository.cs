@@ -19,7 +19,7 @@ namespace OWSData.Repositories.Implementations.ValKey
 local payload = redis.call('GET', KEYS[1])
 if not payload then return nil end
 local record = cjson.decode(payload)
-if record.ServerId ~= tonumber(ARGV[1]) then return nil end
+if record.ServerId ~= tonumber(ARGV[1]) or record.CustomerGuid ~= ARGV[3] or not record.MapInstanceId or record.MapInstanceId <= 0 then return nil end
 if record.RedeemedBy and record.RedeemedBy ~= cjson.null then
     if record.RedeemedBy ~= ARGV[2] then return nil end
 else
@@ -50,7 +50,7 @@ return cjson.encode(record)";
                 || string.IsNullOrWhiteSpace(ticket.SessionSecretBase64)
                 || ticket.CustomerGuid == Guid.Empty || ticket.UserGuid == Guid.Empty
                 || ticket.UserSessionGuid == Guid.Empty || ticket.CharacterId <= 0
-                || ticket.ServerId <= 0 || ticket.RedeemedBy != null
+                || ticket.ServerId <= 0 || ticket.MapInstanceId <= 0 || ticket.RedeemedBy != null
                 || timeToLive <= TimeSpan.Zero)
             {
                 throw new ArgumentException("A complete ticket and positive TTL are required.");
@@ -62,7 +62,7 @@ return cjson.encode(record)";
         }
 
         public async Task<ConnectionTicket> RedeemTicketAsync(
-            string ticket, int serverId, string claimantId)
+            string ticket, Guid customerGuid, int serverId, string claimantId)
         {
             if (string.IsNullOrWhiteSpace(ticket) || serverId <= 0
                 || string.IsNullOrWhiteSpace(claimantId))
@@ -73,7 +73,7 @@ return cjson.encode(record)";
             var result = await Database.ScriptEvaluateAsync(
                 RedeemScript,
                 new RedisKey[] { MakeKey(ticket) },
-                new RedisValue[] { serverId, claimantId });
+                new RedisValue[] { serverId, claimantId, customerGuid.ToString("D") });
             if (result.IsNull)
             {
                 return null;
@@ -83,7 +83,7 @@ return cjson.encode(record)";
             return redeemed?.ExpiresAtUtc > DateTimeOffset.UtcNow ? redeemed : null;
         }
 
-        public async Task<ConnectionTicket> GetTicketAsync(string ticket, int serverId)
+        public async Task<ConnectionTicket> GetTicketAsync(string ticket, Guid customerGuid, int serverId)
         {
             if (string.IsNullOrWhiteSpace(ticket) || serverId <= 0)
             {
@@ -97,7 +97,7 @@ return cjson.encode(record)";
             }
 
             var record = JsonSerializer.Deserialize<ConnectionTicket>((string)value);
-            return record?.ServerId == serverId
+            return record?.ServerId == serverId && record.CustomerGuid == customerGuid && record.MapInstanceId > 0
                 && record.ExpiresAtUtc > DateTimeOffset.UtcNow
                 ? record : null;
         }

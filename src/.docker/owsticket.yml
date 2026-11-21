@@ -4,7 +4,16 @@ services:
   owspublicapi:
     environment:
       - OWSTicketConfig__ConnectionString=owsticket:6379,password=${OWSTicketValkeyPassword:?Set OWSTicketValkeyPassword in .env.tickets}
-      - OWS_TICKET_REDEMPTION_API_KEY=${OWSTicketRedemptionApiKey:?Set OWSTicketRedemptionApiKey in .env.tickets}
+      - OWS_INSTANCE_ASSIGNMENT_CREDENTIAL=${OWS_INSTANCE_ASSIGNMENT_CREDENTIAL:-}
+    depends_on:
+      - owsticket
+
+  owsinstancemanagement:
+    environment:
+      - OWS_INSTANCE_LAUNCHER_CREDENTIAL=${OWS_INSTANCE_LAUNCHER_CREDENTIAL:-}
+      - OWSTicketConfig__ConnectionString=owsticket:6379,password=${OWSTicketValkeyPassword:?Set OWSTicketValkeyPassword in .env.tickets}
+      - OWS_INSTANCE_ASSIGNMENT_CREDENTIAL=${OWS_INSTANCE_ASSIGNMENT_CREDENTIAL:-}
+      - OWS_EDGE_PRIVATE_HTTPS_PORT=${OWS_EDGE_PRIVATE_HTTPS_PORT:-}
     depends_on:
       - owsticket
 

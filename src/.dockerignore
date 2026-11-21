@@ -2,6 +2,7 @@
 **/.dockerignore
 **/.env
 **/.env.tickets
+**/.env.inventory
 **/.git
 **/.gitignore
 **/.project

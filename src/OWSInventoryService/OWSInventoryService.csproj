@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="Npgsql" Version="8.0.3" />
+    <PackageReference Include="StackExchange.Redis" Version="2.8.24" />
+    <EmbeddedResource Include="Redis/*.lua" />
+  </ItemGroup>
+</Project>

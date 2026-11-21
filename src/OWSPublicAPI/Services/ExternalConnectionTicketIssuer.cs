@@ -1,6 +1,9 @@
+using OWSShared.Options;
 using OWSPublicAPI.Requests.Users;
 using System;
 using System.Security.Cryptography;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using OWSData.Models.Tickets;
 using OWSData.Repositories.Interfaces;
@@ -8,7 +11,7 @@ using OWSPublicAPI.DTOs;
 
 namespace OWSPublicAPI.Services
 {
-    public enum TicketIssueStatus { Issued, InvalidRequest, InvalidSession, AllocationFailed }
+    public enum TicketIssueStatus { Issued, InvalidRequest, InvalidSession, IneligibleServer, AllocationFailed }
 
     public sealed class TicketIssueResult
     {
@@ -20,17 +23,19 @@ namespace OWSPublicAPI.Services
     public sealed class ExternalConnectionTicketIssuer
     {
         private readonly IUsersRepository _usersRepository;
+        private readonly IHttpClientFactory _clients;
         private readonly ITicketRepository _ticketRepository;
 
-        public ExternalConnectionTicketIssuer(IUsersRepository usersRepository, ITicketRepository ticketRepository)
+        public ExternalConnectionTicketIssuer(IUsersRepository usersRepository, IHttpClientFactory clients, ITicketRepository ticketRepository)
         {
             _usersRepository = usersRepository;
+            _clients = clients;
             _ticketRepository = ticketRepository;
         }
 
         public async Task<TicketIssueResult> IssueAsync(Guid customerGuid, ExternalConnectionTicketRequest request)
         {
-            if (request == null || request.UserSessionGUID == Guid.Empty || request.ServerId <= 0)
+            if (request == null || request.UserSessionGUID == Guid.Empty || request.ServerId <= 0 || request.MapInstanceId <= 0)
                 return new TicketIssueResult { Status = TicketIssueStatus.InvalidRequest };
 
             if (customerGuid == Guid.Empty)
@@ -46,6 +51,29 @@ namespace OWSPublicAPI.Services
                 return new TicketIssueResult { Status = TicketIssueStatus.InvalidSession };
             }
 
+            using var client = _clients.CreateClient("OWSInstanceManagement");
+            using var assignment = new HttpRequestMessage(HttpMethod.Post, "api/Instance/CheckReadyAssignment")
+            {
+                Content = JsonContent.Create(new MapInstanceOperation
+                {
+                    CustomerGuid = customerGuid,
+                    EdgeServerId = request.ServerId,
+                    MapInstanceId = request.MapInstanceId,
+                    CharacterId = session.CharacterID,
+                    UserGuid = session.UserGuid.Value
+                })
+            };
+            var serviceCredential = Environment.GetEnvironmentVariable("OWS_INSTANCE_ASSIGNMENT_CREDENTIAL");
+            if (string.IsNullOrWhiteSpace(serviceCredential))
+                return new TicketIssueResult { Status = TicketIssueStatus.AllocationFailed };
+
+            assignment.Headers.Add(ServerCredentials.AssignmentHeader, serviceCredential);
+            using var response = await client.SendAsync(assignment);
+            if (!response.IsSuccessStatusCode)
+                return new TicketIssueResult { Status = TicketIssueStatus.AllocationFailed };
+            if (!await response.Content.ReadFromJsonAsync<bool>())
+                return new TicketIssueResult { Status = TicketIssueStatus.IneligibleServer };
+
             var expiresAtUtc = DateTimeOffset.UtcNow.AddSeconds(45);
             var ticket = new ConnectionTicket
             {
@@ -55,6 +83,7 @@ namespace OWSPublicAPI.Services
                 UserSessionGuid = session.UserSessionGUID,
                 CharacterId = session.CharacterID,
                 ServerId = request.ServerId,
+                MapInstanceId = request.MapInstanceId,
                 ExpiresAtUtc = expiresAtUtc
             };
 
@@ -73,6 +102,7 @@ namespace OWSPublicAPI.Services
                             SessionSecretBase64 = ticket.SessionSecretBase64,
                             CharacterId = ticket.CharacterId,
                             ServerId = ticket.ServerId,
+                            MapInstanceId = ticket.MapInstanceId,
                             ExpiresAtUtc = ticket.ExpiresAtUtc
                         }
                     };

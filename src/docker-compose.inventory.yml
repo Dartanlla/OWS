@@ -1,0 +1,55 @@
+x-inventory: &inventory
+  image: ${REGISTRY:-ows}/owsinventoryservice:${TAG:-latest}
+  build:
+    context: .
+    dockerfile: OWSInventoryService/Dockerfile
+  profiles: [inventory]
+  depends_on:
+    database:
+      condition: service_started
+    owsinventoryredis:
+      condition: service_healthy
+  restart: unless-stopped
+  healthcheck:
+    test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /health/ready HTTP/1.0\r\n\r\n' >&3 && read -r status <&3 && [[ \"$$status\" == *' 200 '* ]]"]
+    interval: 15s
+    timeout: 5s
+
+x-inventory-environment: &inventory-environment
+  ASPNETCORE_HTTP_PORTS: 8080
+  ConnectionStrings__InventoryPostgres: ${DATABASE_CONNECTION_STRING}
+  ConnectionStrings__InventoryRedis: owsinventoryredis:6379,password=${INVENTORY_REDIS_PASSWORD:?Set INVENTORY_REDIS_PASSWORD},abortConnect=false
+
+services:
+  owsinventoryredis:
+    image: redis:7-alpine
+    profiles: [inventory]
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction", "--requirepass", "${INVENTORY_REDIS_PASSWORD:?Set INVENTORY_REDIS_PASSWORD}"]
+    environment:
+      REDISCLI_AUTH: ${INVENTORY_REDIS_PASSWORD:?Set INVENTORY_REDIS_PASSWORD}
+    volumes:
+      - owsinventoryredis:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  owsinventoryservice:
+    <<: *inventory
+    env_file: ${INVENTORY_SERVICE_ENV_FILE:-.env.inventory}
+    environment:
+      <<: *inventory-environment
+      Inventory__RunWorker: "false"
+    ports:
+      - "127.0.0.1:${INVENTORY_HTTP_PORT:-44440}:8080"
+
+  owsinventoryworker:
+    <<: *inventory
+    environment:
+      <<: *inventory-environment
+      Inventory__RunWorker: "true"
+
+volumes:
+  owsinventoryredis:

@@ -532,6 +532,18 @@ CREATE TABLE MapInstances
         PRIMARY KEY (CustomerGUID, MapInstanceID)
 );
 
+CREATE TABLE IF NOT EXISTS EdgeServers
+(
+    EdgeServerID INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    CustomerGUID UUID NOT NULL REFERENCES Customers (CustomerGUID),
+    Host VARCHAR(253) NOT NULL,
+    Port INT NOT NULL CHECK (Port BETWEEN 1 AND 65535),
+    IsActive BOOLEAN NOT NULL DEFAULT FALSE,
+    ServerCredentialHash VARCHAR(64) NULL,
+    UpdatedAtUtc TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT UQ_EdgeServers_Endpoint UNIQUE (CustomerGUID, Host, Port)
+);
+
 CREATE TABLE Maps
 (
     CustomerGUID                UUID                    NOT NULL,
@@ -3735,12 +3747,6 @@ BEGIN
     RETURN QUERY SELECT * FROM temp_table;
 END;
 $$;
-
-ALTER TABLE WorldServers
-ADD ZoneServerGUID UUID NULL;
-
-ALTER TABLE WorldServers
-ADD CONSTRAINT AK_ZoneServers UNIQUE (CustomerGUID, ZoneServerGUID);
 
 CREATE TABLE DefaultCharacterValues
 (

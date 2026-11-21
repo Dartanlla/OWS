@@ -6,6 +6,28 @@ namespace OWSData.SQL
 {
     public static class MSSQLQueries
     {
+        public static readonly string ProvisionEdgeServerCredential = @"UPDATE EdgeServers
+            SET IsActive = CASE WHEN ServerCredentialHash IS NULL THEN @Inactive ELSE IsActive END,
+                ServerCredentialHash = @Hash, UpdatedAtUtc = SYSUTCDATETIME()
+            WHERE CustomerGUID = @CustomerGUID AND EdgeServerID = @EdgeServerID
+                AND (ServerCredentialHash IS NULL OR ServerCredentialHash = @Hash)";
+
+        public static readonly string SetEdgeServerReady = @"UPDATE EdgeServers
+            SET IsActive = @Active, UpdatedAtUtc = SYSUTCDATETIME()
+            WHERE CustomerGUID = @CustomerGUID AND EdgeServerID = @EdgeServerID AND ServerCredentialHash = @Hash";
+
+        public static readonly string RevokeEdgeServerCredential = @"UPDATE EdgeServers
+            SET IsActive = @Inactive, ServerCredentialHash = NULL, UpdatedAtUtc = SYSUTCDATETIME()
+            WHERE CustomerGUID = @CustomerGUID AND EdgeServerID = @EdgeServerID
+                AND (@Hash IS NULL OR ServerCredentialHash = @Hash)";
+
+        public static readonly string AddEdgeServer = @"INSERT INTO EdgeServers (CustomerGUID, Host, Port, IsActive)
+            OUTPUT INSERTED.EdgeServerID
+            SELECT CustomerGUID, @Host, @Port, @IsActive FROM Customers WHERE CustomerGUID = @CustomerGUID";
+
+        public static readonly string UpdateEdgeServer = @"UPDATE EdgeServers
+            SET Host = @Host, Port = @Port, IsActive = @IsActive, UpdatedAtUtc = SYSUTCDATETIME()
+            WHERE CustomerGUID = @CustomerGUID AND EdgeServerID = @EdgeServerID";
 
 	    #region To Refactor
 
@@ -140,6 +162,13 @@ namespace OWSData.SQL
 		public static readonly string AddMapInstance = @"INSERT INTO MapInstances (CustomerGUID, WorldServerID, MapID, Port, Status, PlayerGroupID, LastUpdateFromServer)
 		OUTPUT inserted.MapInstanceID
 		VALUES (@CustomerGUID, @WorldServerID, @MapID, @Port, 1, @PlayerGroupID, GETDATE())";
+
+        public static readonly string AddMapInstanceForTenant = @"INSERT INTO MapInstances
+            (CustomerGUID, WorldServerID, MapID, Port, Status, LastUpdateFromServer)
+            OUTPUT inserted.MapInstanceID
+            SELECT @CustomerGUID, @WorldServerID, @MapID, @Port, 1, CURRENT_TIMESTAMP
+            WHERE EXISTS (SELECT 1 FROM WorldServers WHERE CustomerGUID = @CustomerGUID AND WorldServerID = @WorldServerID)
+              AND EXISTS (SELECT 1 FROM Maps WHERE CustomerGUID = @CustomerGUID AND MapID = @MapID)";
 
 		public static readonly string GetAllInactiveMapInstances = @"SELECT MapInstanceID
                 FROM MapInstances

@@ -94,6 +94,11 @@ namespace OWSInstanceManagement
             services.AddAWSService<IAmazonSQS>();
             services.AddSingleton<IInstanceLauncherMessaging, SQSInstanceLauncherMessaging>();
 
+            var ticketConnection = Configuration["OWSTicketConfig:ConnectionString"];
+            if (!string.IsNullOrWhiteSpace(ticketConnection))
+                services.AddSingleton<OWSData.Repositories.Interfaces.ITicketRepository>(
+                    _ => new OWSData.Repositories.Implementations.ValKey.TicketRepository(ticketConnection));
+
             InitializeContainer(services);
         }
 

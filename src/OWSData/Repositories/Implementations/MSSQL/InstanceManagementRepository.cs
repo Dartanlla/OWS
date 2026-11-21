@@ -33,6 +33,108 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
         }
 
+        public async Task<int> AddEdgeServer(Guid customerGuid, string host, int port, bool isActive)
+        {
+            using var connection = Connection;
+            try
+            {
+                return await connection.QuerySingleOrDefaultAsync<int>(MSSQLQueries.AddEdgeServer,
+                    new { CustomerGUID = customerGuid, Host = host, Port = port, IsActive = isActive });
+            }
+            catch (SqlException exception) when (exception.Number == 2627 &&
+                exception.Message.Contains("UQ_EdgeServers_Endpoint", StringComparison.Ordinal))
+            {
+                throw new EdgeServerEndpointInUseException(exception);
+            }
+        }
+
+        public async Task<EdgeServers> GetEdgeServer(Guid customerGuid, int edgeServerId)
+        {
+            using var connection = Connection;
+            return await connection.QuerySingleOrDefaultAsync<EdgeServers>(GenericQueries.GetEdgeServer,
+                new { CustomerGUID = customerGuid, EdgeServerID = edgeServerId });
+        }
+
+        public async Task<IEnumerable<EdgeServers>> GetEdgeServers(Guid customerGuid, bool? isActive)
+        {
+            using var connection = Connection;
+            return await connection.QueryAsync<EdgeServers>(GenericQueries.GetEdgeServers,
+                new { CustomerGUID = customerGuid, IsActive = isActive });
+        }
+
+        public async Task<bool> UpdateEdgeServer(Guid customerGuid, int edgeServerId, string host, int port, bool isActive)
+        {
+            using var connection = Connection;
+            try
+            {
+                return await connection.ExecuteAsync(MSSQLQueries.UpdateEdgeServer,
+                    new { CustomerGUID = customerGuid, EdgeServerID = edgeServerId, Host = host, Port = port, IsActive = isActive }) == 1;
+            }
+            catch (SqlException exception) when (exception.Number == 2627 &&
+                exception.Message.Contains("UQ_EdgeServers_Endpoint", StringComparison.Ordinal))
+            {
+                throw new EdgeServerEndpointInUseException(exception);
+            }
+        }
+
+        public async Task<bool> DeleteEdgeServer(Guid customerGuid, int edgeServerId)
+        {
+            using var connection = Connection;
+            return await connection.ExecuteAsync(GenericQueries.DeleteEdgeServer,
+                new { CustomerGUID = customerGuid, EdgeServerID = edgeServerId }) == 1;
+        }
+
+        public async Task<int> AddMapInstance(Guid tenant, int worldServerId, int mapId, int port)
+        {
+            using var connection = Connection;
+            return await connection.QuerySingleOrDefaultAsync<int>(MSSQLQueries.AddMapInstanceForTenant,
+                new { CustomerGUID = tenant, WorldServerID = worldServerId, MapID = mapId, Port = port, PlayerGroupID = (int?)null });
+        }
+
+        public async Task<IEnumerable<OWSData.Models.Tables.MapInstances>> GetReadyMapInstances(Guid tenant)
+        {
+            using var connection = Connection;
+            return await connection.QueryAsync<OWSData.Models.Tables.MapInstances>(
+                @"SELECT CustomerGUID, MapInstanceID, WorldServerID, MapID, Port, Status, PlayerGroupID,
+                         NumberOfReportedPlayers, LastUpdateFromServer, LastServerEmptyDate
+                  FROM MapInstances WHERE CustomerGUID = @tenant AND Status = 2", new { tenant });
+        }
+
+        public async Task<bool> HasReadyAssignment(Guid tenant, int characterId, Guid owner, int mapInstanceId, int edgeServerId)
+        {
+            using var connection = Connection;
+            return await connection.QuerySingleAsync<long>(GenericQueries.HasReadyAssignment,
+                new { CustomerGUID = tenant, CharacterID = characterId, UserGUID = owner, MapInstanceID = mapInstanceId, EdgeServerID = edgeServerId, Active = true }) > 0;
+        }
+
+        public async Task<bool> ProvisionEdgeServerCredential(Guid tenant, int edgeServerId, string hash)
+        {
+            using var connection = Connection;
+            return await connection.ExecuteAsync(MSSQLQueries.ProvisionEdgeServerCredential,
+                new { CustomerGUID = tenant, EdgeServerID = edgeServerId, Hash = hash, Inactive = false }) == 1;
+        }
+
+        public async Task<Guid?> AuthenticateActiveEdgeServer(int edgeServerId, string hash)
+        {
+            using var connection = Connection;
+            return await connection.QuerySingleOrDefaultAsync<Guid?>(GenericQueries.AuthenticateActiveEdgeServer,
+                new { EdgeServerID = edgeServerId, Hash = hash, Active = true });
+        }
+
+        public async Task<bool> SetEdgeServerReady(Guid tenant, int edgeServerId, string hash)
+        {
+            using var connection = Connection;
+            return await connection.ExecuteAsync(MSSQLQueries.SetEdgeServerReady,
+                new { CustomerGUID = tenant, EdgeServerID = edgeServerId, Hash = hash, Active = true }) == 1;
+        }
+
+        public async Task<bool> RevokeEdgeServerCredential(Guid tenant, int edgeServerId, string hash)
+        {
+            using var connection = Connection;
+            return await connection.ExecuteAsync(MSSQLQueries.RevokeEdgeServerCredential,
+                new { CustomerGUID = tenant, EdgeServerID = edgeServerId, Hash = hash, Inactive = false }) == 1;
+        }
+
         public async Task<GetServerInstanceFromPort> GetZoneInstance(Guid customerGUID, int zoneInstanceId)
         {
             GetServerInstanceFromPort output;
@@ -106,25 +208,16 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task<SuccessAndErrorMessage> SetZoneInstanceStatus(Guid customerGUID, int zoneInstanceID, int instanceStatus)
         {
-            using (Connection)
+            using var connection = Connection;
+            var updated = await connection.ExecuteAsync(GenericQueries.UpdateMapInstanceStatus, new
             {
-                var parameter = new DynamicParameters();
-                parameter.Add("@CustomerGUID", customerGUID);
-                parameter.Add("@MapInstanceID", zoneInstanceID);
-                parameter.Add("@MapInstanceStatus", instanceStatus);
-
-                await Connection.QueryFirstOrDefaultAsync(GenericQueries.UpdateMapInstanceStatus,
-                    parameter,
-                    commandType: CommandType.Text);
-            }
-
-            SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                CustomerGUID = customerGUID, MapInstanceID = zoneInstanceID, MapInstanceStatus = instanceStatus
+            });
+            return new SuccessAndErrorMessage
             {
-                Success = true,
-                ErrorMessage = ""
+                Success = updated == 1,
+                ErrorMessage = updated == 1 ? "" : "The instance could not be updated."
             };
-
-            return output;
         }
 
         public async Task<SuccessAndErrorMessage> ShutDownWorldServer(Guid customerGUID, int worldServerID)

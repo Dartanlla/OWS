@@ -196,8 +196,8 @@ public class Function
                     return TicketResponse(400, new { ErrorMessage = "Invalid JSON request body." });
                 }
 
-                if (request == null || request.UserSessionGUID == Guid.Empty || request.ServerId <= 0)
-                    return TicketResponse(400, new { ErrorMessage = "UserSessionGUID and a positive ServerId are required." });
+                if (request == null || request.UserSessionGUID == Guid.Empty || request.ServerId <= 0 || request.MapInstanceId <= 0)
+                    return TicketResponse(400, new { ErrorMessage = "UserSessionGUID and positive ServerId and MapInstanceId values are required." });
 
                 var ticketRepository = services!.GetService<ITicketRepository>();
                 if (ticketRepository == null)
@@ -208,12 +208,13 @@ public class Function
 
                 try
                 {
-                    var issue = await new ExternalConnectionTicketIssuer(usersRepository, ticketRepository)
+                    var issue = await new ExternalConnectionTicketIssuer(usersRepository, httpClientFactory, ticketRepository)
                         .IssueAsync(customerGuid.CustomerGUID, request);
                     return issue.Status switch
                     {
                         TicketIssueStatus.Issued => TicketResponse(200, issue.Response!),
-                        TicketIssueStatus.InvalidRequest => TicketResponse(400, new { ErrorMessage = "UserSessionGUID and a positive ServerId are required." }),
+                        TicketIssueStatus.InvalidRequest => TicketResponse(400, new { ErrorMessage = "UserSessionGUID and positive ServerId and MapInstanceId values are required." }),
+                        TicketIssueStatus.IneligibleServer => TicketResponse(403, new { ErrorMessage = "The Edge server is not eligible for this character assignment." }),
                         TicketIssueStatus.InvalidSession => TicketResponse(401, new { ErrorMessage = "OWS session or selected character is invalid." }),
                         _ => TicketResponse(503, new { ErrorMessage = "Could not allocate a connection ticket." })
                     };
@@ -222,83 +223,6 @@ public class Function
                 {
                     context.Logger.LogLine($"Connection ticket issuance failed: {exception}");
                     return TicketResponse(503, new { ErrorMessage = "The connection ticket store is unavailable." });
-                }
-            }
-            case "RedeemExternalConnectionTicket":
-            {
-                if (!path.TrimEnd('/').EndsWith(
-                        "/api/Users/RedeemExternalConnectionTicket",
-                        StringComparison.OrdinalIgnoreCase))
-                {
-                    return TicketResponse(404, new { ErrorMessage = "Unknown action." });
-                }
-                if (!string.Equals(proxyRequest.HttpMethod, "POST", StringComparison.OrdinalIgnoreCase))
-                {
-                    return TicketResponse(405, new { ErrorMessage = "POST is required." });
-                }
-
-                if (string.IsNullOrWhiteSpace(
-                        ExternalConnectionTicketRedemption.GetConfiguredApiKey()))
-                {
-                    context.Logger.LogLine(
-                        $"Set {ExternalConnectionTicketRedemption.ApiKeyEnvironmentVariable} "
-                        + "on the Lambda function to enable private ticket redemption.");
-                    return TicketResponse(503,
-                        new { ErrorMessage = "Ticket redemption is not configured." });
-                }
-
-                string? providedApiKey = GetHeader(
-                    proxyRequest.Headers, ExternalConnectionTicketRedemption.ApiKeyHeader);
-                if (!ExternalConnectionTicketRedemption.IsAuthorized(providedApiKey))
-                {
-                    return TicketResponse(401,
-                        new { ErrorMessage = "Invalid Edge redemption credentials." });
-                }
-
-                RedeemExternalConnectionTicketRequest? request;
-                try
-                {
-                    request = JsonSerializer.Deserialize<RedeemExternalConnectionTicketRequest>(
-                        body, _jsonOptions);
-                }
-                catch (JsonException)
-                {
-                    return TicketResponse(400,
-                        new { ErrorMessage = "Invalid JSON request body." });
-                }
-
-                if (!ExternalConnectionTicketRedemption.IsValid(request))
-                {
-                    return TicketResponse(400, new
-                    {
-                        ErrorMessage = "Ticket, a positive ServerId, and ClaimantId when claiming are required."
-                    });
-                }
-
-                var ticketRepository = services!.GetService<ITicketRepository>();
-                if (ticketRepository == null)
-                {
-                    return TicketResponse(503,
-                        new { ErrorMessage = "The connection ticket store is not configured." });
-                }
-
-                try
-                {
-                    var ticket = await ExternalConnectionTicketRedemption.ExecuteAsync(
-                        ticketRepository, request!);
-                    return ticket == null
-                        ? TicketResponse(404, new
-                        {
-                            ErrorMessage = "The ticket is unavailable, expired, assigned to another server, or already claimed."
-                        })
-                        : TicketResponse(200,
-                            ExternalConnectionTicketRedemption.ToResponse(ticket));
-                }
-                catch (Exception exception)
-                {
-                    context.Logger.LogLine($"Connection ticket redemption failed: {exception}");
-                    return TicketResponse(503,
-                        new { ErrorMessage = "The connection ticket store is unavailable." });
                 }
             }
             case "CreateCharacter":
@@ -472,7 +396,7 @@ public class Function
     }
 
     private static bool IsUsersAction(string action) => action is
-        "ExternalConnectionTicket" or "RedeemExternalConnectionTicket" or "CreateCharacter" or
+        "ExternalConnectionTicket" or "CreateCharacter" or
         "CreateCharacterUsingDefaultCharacterValues" or "GetAllCharacters" or "GetPlayerGroupsCharacterIsIn" or
         "GetServerToConnectTo" or "GetServerToConnectToStatus" or "GetUserSession" or "LoginAndCreateSession" or
         "ExternalLoginAndCreateSession" or "Logout" or "UserSessionSetSelectedCharacter" or
@@ -498,7 +422,7 @@ public class Function
 
     private static Dictionary<string, string> BuildResponseHeaders() => new()
     {
-        { "Access-Control-Allow-Headers", "Content-Type, x-api-key, X-CustomerGUID, X-Edge-Redemption-Key" },
+        { "Access-Control-Allow-Headers", "Content-Type, x-api-key, X-CustomerGUID" },
         { "Access-Control-Allow-Methods", "OPTIONS,GET,POST" },
         { "Access-Control-Allow-Origin", "*" },
         { "Content-Type", "application/json" },

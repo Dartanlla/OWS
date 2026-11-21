@@ -9,6 +9,8 @@ namespace OWSPublicAPI.DTOs
         public Guid UserSessionGUID { get; set; }
         /// <summary>The intended Nilux Edge server identifier.</summary>
         public int ServerId { get; set; }
+        /// <summary>The destination OWS map instance assigned to the selected character.</summary>
+        public int MapInstanceId { get; set; }
     }
 
     /// <summary>Credentials used once to authenticate a Nilux Edge UDP connection.</summary>
@@ -22,34 +24,10 @@ namespace OWSPublicAPI.DTOs
         public int CharacterId { get; set; }
         /// <summary>The intended Nilux Edge server identifier.</summary>
         public int ServerId { get; set; }
+        /// <summary>The destination OWS map instance.</summary>
+        public int MapInstanceId { get; set; }
         /// <summary>The UTC expiration of the ticket.</summary>
         public DateTimeOffset ExpiresAtUtc { get; set; }
     }
 
-    /// <summary>
-    /// Private Edge request for inspecting or atomically claiming an issued ticket.
-    /// </summary>
-    public class RedeemExternalConnectionTicketRequest
-    {
-        public string Ticket { get; set; }
-        public int ServerId { get; set; }
-        public string ClaimantId { get; set; }
-        /// <summary>
-        /// False retrieves the secret for handshake authentication without consuming
-        /// the ticket. True atomically claims it after authentication succeeds.
-        /// </summary>
-        public bool Claim { get; set; }
-    }
-
-    /// <summary>Ticket identity returned only to an authenticated Edge service.</summary>
-    public class RedeemExternalConnectionTicketResponse
-    {
-        public string SessionSecretBase64 { get; set; }
-        public Guid CustomerGuid { get; set; }
-        public Guid UserGuid { get; set; }
-        public Guid UserSessionGuid { get; set; }
-        public int CharacterId { get; set; }
-        public int ServerId { get; set; }
-        public DateTimeOffset ExpiresAtUtc { get; set; }
-    }
 }

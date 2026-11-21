@@ -411,8 +411,21 @@ namespace OWSData.Repositories.Implementations.Postgres
         public async Task<SuccessAndErrorMessage> RemoveCharacter(Guid customerGUID, Guid userSessionGUID, int characterId)
         {
             using var connection = Connection;
-            int removed = await connection.QuerySingleAsync<int>(GenericQueries.RemoveCharacter,
-                new { CustomerGUID = customerGUID, UserSessionGUID = userSessionGUID, CharacterID = characterId });
+            int removed;
+            try
+            {
+                removed = await connection.QuerySingleAsync<int>(GenericQueries.RemoveCharacter,
+                    new { CustomerGUID = customerGUID, UserSessionGUID = userSessionGUID, CharacterID = characterId });
+            }
+            catch (PostgresException error) when (error.SqlState == PostgresErrorCodes.ForeignKeyViolation
+                && error.ConstraintName == "ows_inventory_character_open")
+            {
+                return new SuccessAndErrorMessage
+                {
+                    Success = false,
+                    ErrorMessage = "Close the character inventory before removing this character."
+                };
+            }
             return new SuccessAndErrorMessage
             {
                 Success = removed == 1,

@@ -13,7 +13,6 @@ namespace OWSTests.Characters
     {
         [Theory]
         [InlineData("/api/System/Status", "missing", true, 0)]
-        [InlineData("/api/Users/RedeemExternalConnectionTicket", "missing", true, 0)]
         [InlineData("/api/Users/LoginAndCreateSession", "missing", false, 0)]
         [InlineData("/api/Users/RegisterUser", "malformed", false, 0)]
         [InlineData("/api/Characters/42", "unknown", false, 1)]

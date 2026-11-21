@@ -57,11 +57,21 @@ namespace OWSInstanceManagement.Controllers
         /*[SwaggerOperation("ByName")]
         [SwaggerResponse(200)]
         [SwaggerResponse(404)]*/
-        public async Task<IActionResult> SetZoneInstanceStatusRequest([FromBody] SetZoneInstanceStatusRequest request)
+        public async Task<IActionResult> SetZoneInstanceStatusRequest([FromBody] System.Text.Json.JsonElement body)
         {
-            request.SetData(_instanceManagementRepository, _customerGuid);
-
-            return await request.Handle();
+            var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            try
+            {
+                var request = System.Text.Json.JsonSerializer.Deserialize<SetZoneInstanceStatusRequest>(body, options);
+                if (request?.request == null)
+                    return BadRequest();
+                request.SetData(_instanceManagementRepository, _customerGuid);
+                return await request.Handle();
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                return BadRequest();
+            }
         }
 
         [HttpPost]

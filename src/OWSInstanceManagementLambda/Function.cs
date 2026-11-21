@@ -8,6 +8,8 @@ using Microsoft.Extensions.Options;
 using OWSData.Repositories.Interfaces;
 using OWSInstanceManagement.Requests.Instance;
 using OWSInstanceManagement.Requests.Zones;
+using OWSInstanceManagement.Services;
+using OWSData.Repositories.Implementations.ValKey;
 using OWSShared.Implementations;
 using OWSShared.Interfaces;
 using OWSShared.Options;
@@ -26,6 +28,61 @@ public class Function
     private const string ConnectionStringEnvVar = "OWS_DB_CONNECTION_STRING";
     private const string LegacyConnectionStringEnvVar = "OWSDBConnectionString";
     private const string ConfigSectionConnectionStringEnvVar = "OWSStorageConfig__OWSDBConnectionString";
+    private static readonly Lazy<ITicketRepository?> TicketStore = new(() =>
+        Environment.GetEnvironmentVariable("OWSTicketConfig__ConnectionString") is { Length: > 0 } value
+            ? new TicketRepository(value) : null);
+
+    private static async Task<APIGatewayHttpApiV2ProxyResponse> RedeemTicketAsync(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context)
+    {
+        APIGatewayHttpApiV2ProxyResponse Reply(int status, object payload) => new()
+        {
+            StatusCode = status,
+            Body = JsonSerializer.Serialize(payload),
+            Headers = new Dictionary<string, string> { ["Content-Type"] = "application/json", ["Cache-Control"] = "no-store" }
+        };
+
+        if (!string.Equals(request.RequestContext?.Http?.Method, "POST", StringComparison.OrdinalIgnoreCase))
+            return Reply(405, new { ErrorMessage = "POST is required." });
+
+        RedeemExternalConnectionTicketRequest? ticketRequest;
+        try
+        {
+            var body = request.Body ?? "{}";
+            if (request.IsBase64Encoded)
+                body = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(body));
+            ticketRequest = JsonSerializer.Deserialize<RedeemExternalConnectionTicketRequest>(body, _jsonOptions);
+        }
+        catch (Exception ex) when (ex is JsonException or FormatException)
+        {
+            return Reply(400, new { ErrorMessage = "Invalid JSON request body." });
+        }
+
+        if (ticketRequest == null || !ExternalConnectionTicketRedemption.IsValid(ticketRequest))
+            return Reply(400, new { ErrorMessage = "Ticket, a positive ServerId, and ClaimantId when claiming are required." });
+
+        try
+        {
+            var credential = request.Headers?.FirstOrDefault(header =>
+                string.Equals(header.Key, ServerCredentials.CredentialHeader, StringComparison.OrdinalIgnoreCase)).Value;
+            var hash = ServerCredentials.Hash(credential);
+            var instances = services!.GetRequiredService<IInstanceManagementRepository>();
+            var tenant = hash == null ? null : await instances.AuthenticateActiveEdgeServer(ticketRequest.ServerId, hash);
+            if (!tenant.HasValue)
+                return Reply(401, new { ErrorMessage = "Invalid Edge server credential." });
+            if (TicketStore.Value is not ITicketRepository repository)
+                return Reply(503, new { ErrorMessage = "The connection ticket store is not configured." });
+
+            var ticket = await ExternalConnectionTicketRedemption.ExecuteAsync(repository, ticketRequest, tenant.Value);
+            return ticket == null
+                ? Reply(404, new { ErrorMessage = "The ticket is unavailable." })
+                : Reply(200, ExternalConnectionTicketRedemption.ToResponse(ticket));
+        }
+        catch (Exception ex)
+        {
+            context.Logger.LogLine($"Connection ticket redemption failed: {ex.GetType().Name}");
+            return Reply(503, new { ErrorMessage = "Ticket redemption is unavailable." });
+        }
+    }
 
     private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
     {
@@ -99,6 +156,9 @@ public class Function
     public async Task<APIGatewayHttpApiV2ProxyResponse> FunctionHandler(APIGatewayHttpApiV2ProxyRequest proxyRequest, ILambdaContext context)
     {
         string path = proxyRequest.RawPath ?? string.Empty;
+        if (string.Equals(path.TrimEnd('/'), "/api/Instance/RedeemExternalConnectionTicket", StringComparison.OrdinalIgnoreCase))
+            return await RedeemTicketAsync(proxyRequest, context);
+
         string action = path.Split('/').LastOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
 
         string? customerGuidStr = null;
@@ -112,6 +172,48 @@ public class Function
         };
 
         var instanceManagementRepository = services!.GetRequiredService<IInstanceManagementRepository>();
+        string? Header(string name) => proxyRequest.Headers?.FirstOrDefault(header =>
+            string.Equals(header.Key, name, StringComparison.OrdinalIgnoreCase)).Value;
+
+        var isEdgeOperation = EdgeServerOperations.TryParseOperation(action, out var edgeOperation);
+        var operation = isEdgeOperation || action is "CheckReadyAssignment" or "GetReadyMapInstances" or "AddMapInstance";
+        if (operation)
+        {
+            APIGatewayHttpApiV2ProxyResponse Reply(int status, object payload) => new()
+            {
+                StatusCode = status,
+                Body = JsonSerializer.Serialize(payload),
+                Headers = new Dictionary<string, string> { ["Content-Type"] = "application/json", ["Cache-Control"] = "no-store" }
+            };
+
+            if (!string.Equals(path.TrimEnd('/'), "/api/Instance/" + action, StringComparison.OrdinalIgnoreCase))
+                return Reply(404, new { ErrorMessage = "Unknown route." });
+            if (!string.Equals(proxyRequest.RequestContext?.Http?.Method, "POST", StringComparison.OrdinalIgnoreCase))
+                return Reply(405, new { ErrorMessage = "POST is required." });
+            try
+            {
+                var bodyText = proxyRequest.Body ?? "{}";
+                if (proxyRequest.IsBase64Encoded)
+                    bodyText = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(bodyText));
+                if (isEdgeOperation)
+                {
+                    var edgeRequest = JsonSerializer.Deserialize<EdgeServerRequest>(bodyText, _jsonOptions);
+                    var (edgeStatus, edgePayload) = await EdgeServerOperations.ExecuteAsync(edgeOperation, edgeRequest,
+                        Header(ServerCredentials.LauncherHeader), Header(ServerCredentials.CredentialHeader), instanceManagementRepository);
+                    return Reply(edgeStatus, edgePayload);
+                }
+
+                var input = JsonSerializer.Deserialize<MapInstanceOperation>(bodyText, _jsonOptions);
+                var (status, payload) = await MapInstanceOperations.ExecuteAsync(action, input,
+                    Header(ServerCredentials.LauncherHeader), Header(ServerCredentials.AssignmentHeader), instanceManagementRepository);
+                return Reply(status, payload);
+            }
+            catch (Exception ex) when (ex is JsonException or FormatException)
+            {
+                return Reply(400, new { ErrorMessage = "Invalid JSON request body." });
+            }
+        }
+
         var charactersRepository = services!.GetRequiredService<ICharactersRepository>();
         var instanceLauncherMessaging = services!.GetRequiredService<IInstanceLauncherMessaging>();
 
@@ -123,7 +225,17 @@ public class Function
             // --- InstanceController ---
             case "SetZoneInstanceStatus":
             {
-                var request = JsonSerializer.Deserialize<SetZoneInstanceStatusRequest>(body, _jsonOptions)!;
+                SetZoneInstanceStatusRequest? request;
+                try
+                {
+                    request = JsonSerializer.Deserialize<SetZoneInstanceStatusRequest>(body, _jsonOptions);
+                }
+                catch (JsonException)
+                {
+                    return InvalidZoneStatusRequest();
+                }
+                if (request?.request == null)
+                    return InvalidZoneStatusRequest();
                 request.SetData(instanceManagementRepository, customerGuid);
                 result = ExtractActionResultValue(await request.Handle());
                 break;
@@ -253,6 +365,13 @@ public class Function
 
     private static object? ExtractActionResultValue(IActionResult actionResult) =>
         actionResult is OkObjectResult ok ? ok.Value : null;
+
+    private static APIGatewayHttpApiV2ProxyResponse InvalidZoneStatusRequest() => new()
+    {
+        StatusCode = 400,
+        Body = JsonSerializer.Serialize(new { ErrorMessage = "A zone instance status request is required." }),
+        Headers = BuildResponseHeaders()
+    };
 
     private static Dictionary<string, string> BuildResponseHeaders() => new()
     {

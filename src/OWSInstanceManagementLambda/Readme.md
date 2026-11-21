@@ -47,3 +47,39 @@ Deploy function to AWS Lambda
     cd "OWSInstanceManagementLambda/src/OWSInstanceManagementLambda"
     dotnet lambda deploy-function
 ```
+
+## Edge server registry
+
+Apply `20261114CreateEdgeServers.sql` followed by `20261114MoveServerCredentialToEdgeServers.sql` from the update scripts for your database
+before enabling these endpoints on an existing database. On Lambda, route the
+following `POST /api/Instance/<operation>` requests to this handler with payload
+format 2.0. The standalone Instance Management service exposes the same routes.
+Send `X-OWS-Launcher-Credential` over HTTPS, using the value configured as
+`OWS_INSTANCE_LAUNCHER_CREDENTIAL`. Every JSON body includes `CustomerGuid`.
+
+| Operation | Additional JSON fields | Success response |
+| --- | --- | --- |
+| `AddEdgeServer` | `Host`, `Port`, optional `IsActive` (defaults to `false`) | `201` with `EdgeServerId` |
+| `GetEdgeServer` | `EdgeServerId` | `200` with the record |
+| `GetEdgeServers` | Optional `IsActive` filter | `200` with an array |
+| `UpdateEdgeServer` | `EdgeServerId`, `Host`, `Port`, `IsActive` | `200` with `Success` |
+| `DeleteEdgeServer` | `EdgeServerId` | `200` with `Success` |
+
+The host is a DNS hostname or IP address, and the port is the client-facing UDP
+port. Duplicate host and port entries within a customer return `409`. A missing
+record returns `404` for get, update, and delete. `IsActive` is managed by the
+caller and can be used to list the customer's active endpoints.
+
+Use the following credential operations on the same `/api/Instance` prefix.
+Every body includes `CustomerGuid` and `EdgeServerId`.
+
+| Operation | Credential header | Additional JSON fields |
+| --- | --- | --- |
+| `ProvisionEdgeServerCredential` | `X-OWS-Launcher-Credential` | `CredentialHash`, a 64-character SHA-256 hex digest |
+| `SetEdgeServerReady` | `X-Edge-Redemption-Credential` | None |
+| `RevokeEdgeServerCredential` | `X-Edge-Redemption-Credential` or `X-OWS-Launcher-Credential` | None |
+
+Initial provisioning makes the Edge inactive until it reports readiness.
+Provisioning the same hash is retryable. To replace a hash, revoke the old one
+first. Revocation clears the hash and marks the Edge inactive. Registry reads
+omit the hash, and ticket issuance requires an active Edge with a credential.

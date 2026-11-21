@@ -36,22 +36,33 @@ Open World Server (OWS) is a server instance manager designed to create large wo
 * [Naming Guidelines](https://docs.microsoft.com/en-us/dotnet/standard/design-guidelines/naming-guidelines)
 * [Coding Style](https://github.com/dotnet/corefx/blob/368fdfd86ee3a3bf1bca2a6c339ee590f3d6505d/Documentation/coding-guidelines/coding-style.md)
 
+From the repository root, run the OWS API regression suite before check-in.
+
+```sh
+dotnet test src/OWSTests/OWSTests.csproj
+```
+
+See [OWSTests coverage and prerequisites](src/OWSTests/README.md).
+
 # Documentation
 [Open World Server Documentation](https://www.openworldserver.com/)
 
+[OWSInventoryService setup and API](docs/api/owsinventoryservice.md)
+
 ### Nilux external connection tickets
 
-`POST /api/Users/ExternalConnectionTicket` accepts `UserSessionGUID` and a
-positive `ServerId` (the intended Edge server ID) in JSON over HTTPS. Include
+`POST /api/Users/ExternalConnectionTicket` accepts `UserSessionGUID`, the shared
+Edge's `ServerId`, and the destination `MapInstanceId` in JSON over HTTPS. Include
 the same `X-CustomerGUID` header used for OWS login. The API checks that the
-session exists and has a selected character, then returns an opaque ticket, a
-new Base64-encoded 32-byte session secret, `CharacterId`, `ServerId`, and
+selected character is assigned to the ready destination and that the Edge is
+active and credentialed for the same customer. It returns an opaque ticket, a
+new Base64-encoded 32-byte session secret, `CharacterId`, `ServerId`, `MapInstanceId`, and
 `ExpiresAtUtc`. The ticket expires after 45 seconds.
 
 The default Docker Compose setup runs without the Nilux ticket integration. To
 enable it, copy `src/.env` to `src/.env.tickets` and add a unique
-`OWSTicketValkeyPassword` and a separate, randomly generated
-`OWSTicketRedemptionApiKey`. The copy is excluded from Git and Docker builds.
+`OWSTicketValkeyPassword` and configure the Instance Management service credentials as described
+in the [Lambda setup guide](src/OWSPublicAPILambda/Readme.md). The copy is excluded from Git and Docker builds.
 Use a password without commas because it is passed in a comma-delimited Valkey
 connection string.
 
@@ -73,12 +84,16 @@ after the Edge verifies the AES-GCM authentication tag. A repeated claim by the
 same authenticated handshake succeeds until the original TTL expires; other
 claimants and other server IDs are rejected.
 
-Nilux Edge accesses those operations through the private HTTPS endpoint
-`POST /api/Users/RedeemExternalConnectionTicket`; it never connects to Valkey.
-The endpoint accepts `Claim: false` for the pre-authentication lookup and
-`Claim: true` for the atomic claim, and requires `X-Edge-Redemption-Key`. The
-Compose override passes `OWSTicketRedemptionApiKey` to the API as
-`OWS_TICKET_REDEMPTION_API_KEY`. Set that API variable directly for a standalone
-API or Lambda deployment. Configure the same secret as
-`NILUX_OWS_REDEMPTION_API_KEY` on Edge. Keep the secret out of source control and
-the game client.
+Nilux Edge uses `POST /api/Instance/RedeemExternalConnectionTicket` on OWSInstanceManagement.
+Lambda uses the existing Instance Management HTTP API Gateway. For standalone
+ASP.NET hosting, configure a dedicated Kestrel HTTPS listener
+bound to a private interface, restrict it to Edge with network policy, and set
+`OWS_EDGE_PRIVATE_HTTPS_PORT` to its local port. Keep this port separate from
+the public ingress and out of Compose's published ports. Requests on any other
+listener receive 404. Check this from both the public ingress and the Edge
+network before enabling redemption.
+
+Edge runs independently of map launches. A trusted operator provisions an Edge
+credential, and Edge sends it as `X-Edge-Redemption-Credential`. See the
+[Lambda setup guide](src/OWSPublicAPILambda/Readme.md) for the database migration
+and Edge readiness contract.

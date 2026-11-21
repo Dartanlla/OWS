@@ -5,6 +5,7 @@
 
 # Local dev secrets — never commit credentials
 /src/.env.tickets
+/src/.env.inventory
 appsettings.Development.json
 
 # User-specific files
